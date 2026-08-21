@@ -16,6 +16,7 @@ import {
   PenSquare,
   ShoppingBag,
   Image,
+  Users,
 } from "lucide-react";
 import { getAdminUser, logoutAdmin } from "@/lib/auth";
 
@@ -24,6 +25,7 @@ const sidebarLinks = [
   { label: "Semua Produk", href: "/admin/products", icon: Package },
   { label: "Tambah Produk", href: "/admin/products/new", icon: PlusCircle },
   { label: "Pesanan", href: "/admin/orders", icon: ShoppingBag },
+  { label: "Pelanggan", href: "/admin/customers", icon: Users },
   { label: "Banner & Promo", href: "/admin/banners", icon: Image },
   { label: "Semua Artikel", href: "/admin/blog", icon: FileText },
   { label: "Tulis Artikel", href: "/admin/blog/new", icon: PenSquare },

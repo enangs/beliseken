@@ -10,6 +10,7 @@ import { useCart } from "@/lib/cart";
 import { createOrder, PROVINCES, CITIES, STORE_ORIGIN, type OrderAddress, type ShippingOption } from "@/lib/orders";
 import { formatPrice } from "@/lib/utils";
 import { storeInfo } from "@/data/products";
+import { getCurrentUser, getDefaultAddress, saveUserAddress } from "@/lib/user-auth";
 
 type Step = 1 | 2 | 3;
 
@@ -34,23 +35,45 @@ export default function CheckoutPage() {
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderId, setOrderId] = useState("");
 
-  const [address, setAddress] = useState<OrderAddress>({
-    name: "",
-    phone: "",
-    email: "",
-    address: "",
-    city: "",
-    cityId: "",
-    district: "",
-    districtId: "",
-    province: "JAWA BARAT",
-    provinceId: "6",
-    postcode: "17510",
+  const [address, setAddress] = useState<OrderAddress>(() => {
+    // Auto-fill from logged-in user's default address
+    const defaultAddr = getDefaultAddress();
+    const user = getCurrentUser();
+    if (defaultAddr) {
+      return {
+        name: user?.name || defaultAddr.name,
+        phone: defaultAddr.phone,
+        email: user?.email || "",
+        address: defaultAddr.address,
+        city: defaultAddr.city,
+        cityId: defaultAddr.cityId,
+        district: "",
+        districtId: "",
+        province: defaultAddr.province || "JAWA BARAT",
+        provinceId: defaultAddr.provinceId || "6",
+        postcode: defaultAddr.postcode || "17510",
+      };
+    }
+    // Auto-fill basic info from user profile
+    return {
+      name: user?.name || "",
+      phone: user?.phone || "",
+      email: user?.email || "",
+      address: "",
+      city: user?.city || "",
+      cityId: "",
+      district: "",
+      districtId: "",
+      province: "JAWA BARAT",
+      provinceId: "6",
+      postcode: "17510",
+    };
   });
 
   const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null);
   const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
   const [paymentMethod, setPaymentMethod] = useState("bank_transfer");
+  const [saveAddress, setSaveAddress] = useState(false);
 
   // Calculate shipping when city changes
   useEffect(() => {
@@ -180,6 +203,27 @@ export default function CheckoutPage() {
       paymentMethod,
     });
 
+    // Save address if checkbox is checked
+    if (saveAddress && address.name && address.phone && address.address) {
+      try {
+        const user = getCurrentUser();
+        if (user) {
+          saveUserAddress({
+            label: "Alamat Utama",
+            name: address.name,
+            phone: address.phone,
+            address: address.address,
+            city: address.city,
+            cityId: address.cityId,
+            province: address.province,
+            provinceId: address.provinceId,
+            postcode: address.postcode,
+            isDefault: true,
+          });
+        }
+      } catch {}
+    }
+
     clearCart();
     setOrderId(order.orderNumber);
     setOrderPlaced(true);
@@ -272,6 +316,20 @@ export default function CheckoutPage() {
                       <input type="text" value={address.postcode} onChange={(e) => setAddress({ ...address, postcode: e.target.value })} placeholder="17510" className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand" />
                     </div>
                   </div>
+                  {getCurrentUser() && (
+                    <div className="mt-4 p-3 bg-brand/5 rounded-xl flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="saveAddress"
+                        checked={saveAddress}
+                        onChange={(e) => setSaveAddress(e.target.checked)}
+                        className="w-4 h-4 accent-brand rounded"
+                      />
+                      <label htmlFor="saveAddress" className="text-sm text-brand-navy">
+                        💾 Simpan alamat ini untuk pembelian berikutnya
+                      </label>
+                    </div>
+                  )}
                   <div className="mt-6 flex justify-end">
                     <button onClick={() => setStep(2)} disabled={!address.name || !address.phone || !address.cityId || !address.address} className="px-6 py-2.5 bg-brand hover:bg-brand-dark text-white font-semibold rounded-xl text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                       Lanjut ke Pengiriman →
