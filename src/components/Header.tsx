@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Search,
   ShoppingCart,
@@ -26,6 +26,7 @@ export default function Header() {
   const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isKategoriOpen, setIsKategoriOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -147,7 +148,13 @@ export default function Header() {
 
             {/* Search Bar */}
             <div className="flex-1 max-w-2xl">
-              <div
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (searchQuery.trim()) {
+                    router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+                  }
+                }}
                 className={`flex items-center bg-gray-100 rounded-xl transition-all duration-200 ${
                   isSearchFocused ? "ring-2 ring-brand/30 bg-white shadow-lg" : ""
                 }`}
@@ -155,15 +162,17 @@ export default function Header() {
                 <Search size={18} className="ml-4 text-brand-muted flex-shrink-0" />
                 <input
                   type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Cari laptop, HP, monitor, router..."
                   className="w-full px-4 py-3 text-sm outline-none bg-transparent text-brand-navy placeholder:text-brand-muted/60"
                   onFocus={() => setIsSearchFocused(true)}
                   onBlur={() => setIsSearchFocused(false)}
                 />
-                <button className="px-5 py-3 bg-brand hover:bg-brand-dark text-white font-semibold text-sm rounded-xl mr-1 transition-colors">
+                <button type="submit" className="px-5 py-3 bg-brand hover:bg-brand-dark text-white font-semibold text-sm rounded-xl mr-1 transition-colors">
                   Cari
                 </button>
-              </div>
+              </form>
             </div>
 
             {/* Right Side */}
@@ -249,14 +258,28 @@ export default function Header() {
           <div className="lg:hidden bg-white border-t border-brand-border shadow-xl max-h-[70vh] overflow-y-auto">
             <div className="px-4 py-4 space-y-2">
               {/* Mobile Search */}
-              <div className="flex items-center bg-gray-100 rounded-xl">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (searchQuery.trim()) {
+                    setIsMobileMenuOpen(false);
+                    router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+                  }
+                }}
+                className="flex items-center bg-gray-100 rounded-xl"
+              >
                 <Search size={16} className="ml-3 text-brand-muted" />
                 <input
                   type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Cari laptop, HP, monitor..."
                   className="w-full bg-transparent px-3 py-3 text-sm outline-none"
                 />
-              </div>
+                <button type="submit" className="px-4 py-3 text-sm font-semibold text-brand">
+                  Cari
+                </button>
+              </form>
 
               {user && (
                 <div className="flex items-center gap-3 p-3 bg-brand/5 rounded-xl">
