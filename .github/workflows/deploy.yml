@@ -37,7 +37,8 @@ jobs:
           server: ${{ secrets.CPANEL_FTP_HOST }}
           username: ${{ secrets.CPANEL_FTP_USERNAME }}
           password: ${{ secrets.CPANEL_FTP_PASSWORD }}
+          port: 21
           server-dir: /public_html/
           local-dir: ./out/
-          use-passive-mode: true
-          security: allowunsafe
+          security: loose
+          timeout: 60000
