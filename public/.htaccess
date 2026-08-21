@@ -10,9 +10,12 @@ RewriteCond %{HTTP_HOST} ^www\.beliseken\.com [NC]
 RewriteRule ^(.*)$ https://beliseken.com/$1 [L,R=301]
 
 # ── Next.js Static Export Routing ──
-# If the requested file/directory doesn't exist, try .html extension
+# Handle trailing slashes: /admin/ -> admin.html
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^(.+)/$ /$1.html [L]
+
+# If the requested file doesn't exist, try .html extension
 RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ /$1.html [L]
 
 # ── Custom 404 Page ──
