@@ -1,0 +1,1185 @@
+export interface Product {
+  id: string;
+  name: string;
+  slug: string;
+  category: string;
+  subcategory: string;
+  brand: string;
+  price: number;
+  originalPrice: number;
+  discount: number;
+  rating: number;
+  reviewCount: number;
+  condition: string;
+  badge?: "HOT DEAL" | "BEST SELLER" | "NEW";
+  timeAdded?: string;
+  image: string;
+  imageBase64?: string;
+  description?: string;
+  specs: string[];
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  icon: string;
+  itemCount: number;
+  color: string;
+}
+
+export interface Testimonial {
+  id: string;
+  name: string;
+  role: string;
+  rating: number;
+  text: string;
+  verified: boolean;
+}
+
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content?: string;
+  date: string;
+  readTime: string;
+  category: string;
+  image: string;
+  imageBase64?: string;
+  featured?: boolean;
+}
+
+// ── Categories ──
+
+export const categories: Category[] = [
+  { id: "1", name: "Laptop & Notebook", slug: "laptop-notebook", icon: "💻", itemCount: 10, color: "#3b82f6" },
+  { id: "2", name: "Smartphone & Tablet", slug: "smartphone-tablet", icon: "📱", itemCount: 10, color: "#10b981" },
+  { id: "3", name: "Monitor & TV", slug: "monitor-tv", icon: "🖥️", itemCount: 10, color: "#8b5cf6" },
+  { id: "4", name: "Networking & IT", slug: "networking-it", icon: "🌐", itemCount: 10, color: "#f59e0b" },
+  { id: "5", name: "Peripheral & Aksesoris", slug: "peripheral-aksesoris", icon: "⌨️", itemCount: 10, color: "#ef4444" },
+];
+
+// ── All Products (50 total) ──
+
+export const initialProducts: Product[] = [
+  // ══════════════════════════════════════════
+  // LAPTOP & NOTEBOOK (10 items)
+  // ══════════════════════════════════════════
+  {
+    id: "1",
+    name: "MacBook Air M1 2020",
+    slug: "macbook-air-m1-2020",
+    category: "Laptop & Notebook",
+    subcategory: "Ultrabook",
+    brand: "Apple",
+    price: 6500000,
+    originalPrice: 12999000,
+    discount: 50,
+    rating: 4.8,
+    reviewCount: 124,
+    condition: "Like New",
+    badge: "HOT DEAL",
+    image: "/products/macbook-air-m1.jpg",
+    description: "MacBook Air M1 2020 kondisi like new. Sangat cocok untuk kerja dan kuliah. Baterai masih awet, performa responsif.",
+    specs: ["8GB RAM", "256GB SSD", "M1 Chip", "13.3 inch Retina", "Baterai 95%"],
+  },
+  {
+    id: "2",
+    name: "ThinkPad X1 Carbon Gen 9",
+    slug: "thinkpad-x1-carbon-gen9",
+    category: "Laptop & Notebook",
+    subcategory: "Ultrabook",
+    brand: "Lenovo",
+    price: 8200000,
+    originalPrice: 15500000,
+    discount: 47,
+    rating: 4.9,
+    reviewCount: 89,
+    condition: "Grade A",
+    badge: "BEST SELLER",
+    image: "/products/thinkpad-x1.jpg",
+    description: "Lenovo ThinkPad X1 Carbon Gen 9 untuk profesional IT. Ringan, performa tinggi, keyboard legendaris.",
+    specs: ["i5-1135G7", "16GB RAM", "512GB SSD", "14 inch FHD", "Baterai 90%"],
+  },
+  {
+    id: "3",
+    name: "ASUS ROG Strix G14",
+    slug: "asus-rog-strix-g14",
+    category: "Laptop & Notebook",
+    subcategory: "Laptop Gaming",
+    brand: "ASUS",
+    price: 9800000,
+    originalPrice: 17999000,
+    discount: 46,
+    rating: 4.8,
+    reviewCount: 67,
+    condition: "Grade A",
+    badge: "HOT DEAL",
+    image: "/products/rog-strix-g14.jpg",
+    description: "Laptop gaming ASUS ROG Strix G14 performa tinggi. Cocok untuk gaming dan editing video.",
+    specs: ["Ryzen 9 5900HX", "16GB RAM", "RTX 3060", "512GB SSD", "14 inch 144Hz"],
+  },
+  {
+    id: "4",
+    name: "HP ProBook 440 G8",
+    slug: "hp-probook-440-g8",
+    category: "Laptop & Notebook",
+    subcategory: "Laptop Kantor",
+    brand: "HP",
+    price: 4200000,
+    originalPrice: 8500000,
+    discount: 51,
+    rating: 4.5,
+    reviewCount: 34,
+    condition: "Grade A",
+    image: "/products/hp-probook.jpg",
+    description: "Laptop bisnis HP ProBook 440 G8. Cocok untuk UMKM dan pekerja kantoran.",
+    specs: ["i5-1135G7", "8GB RAM", "256GB SSD", "14 inch FHD", "Baterai 85%"],
+  },
+  {
+    id: "5",
+    name: "Dell Latitude 5420",
+    slug: "dell-latitude-5420",
+    category: "Laptop & Notebook",
+    subcategory: "Laptop Kantor",
+    brand: "Dell",
+    price: 5500000,
+    originalPrice: 11200000,
+    discount: 51,
+    rating: 4.6,
+    reviewCount: 45,
+    condition: "Grade A",
+    badge: "BEST SELLER",
+    image: "/products/dell-latitude.jpg",
+    description: "Dell Latitude 5420 untuk profesional. Layar FHD, performa handal, build quality premium.",
+    specs: ["i5-1145G7", "8GB RAM", "256GB SSD", "14 inch FHD", "Baterai 88%"],
+  },
+  {
+    id: "6",
+    name: "Lenovo IdeaPad Slim 3",
+    slug: "lenovo-ideapad-slim-3",
+    category: "Laptop & Notebook",
+    subcategory: "Ultrabook",
+    brand: "Lenovo",
+    price: 3800000,
+    originalPrice: 7499000,
+    discount: 49,
+    rating: 4.4,
+    reviewCount: 28,
+    condition: "Grade B+",
+    image: "/products/ideapad-slim3.jpg",
+    description: "Lenovo IdeaPad Slim 3 ringan dan tipis. Cocok untuk pelajar dan pekerja ringan.",
+    specs: ["i3-1115G4", "4GB RAM", "256GB SSD", "14 inch HD", "Baterai 80%"],
+  },
+  {
+    id: "7",
+    name: "MacBook Pro 14 M1 Pro",
+    slug: "macbook-pro-14-m1-pro",
+    category: "Laptop & Notebook",
+    subcategory: "Ultrabook",
+    brand: "Apple",
+    price: 16500000,
+    originalPrice: 28999000,
+    discount: 43,
+    rating: 4.9,
+    reviewCount: 56,
+    condition: "Like New",
+    badge: "HOT DEAL",
+    image: "/products/macbook-pro-14.jpg",
+    description: "MacBook Pro 14 M1 Pro untuk kreator konten. Layar Liquid Retina XDR, performa monster.",
+    specs: ["M1 Pro", "16GB RAM", "512GB SSD", "14.2 inch Liquid Retina XDR", "Baterai 92%"],
+  },
+  {
+    id: "8",
+    name: "ASUS VivoBook 14",
+    slug: "asus-vivobook-14",
+    category: "Laptop & Notebook",
+    subcategory: "Ultrabook",
+    brand: "ASUS",
+    price: 3500000,
+    originalPrice: 6999000,
+    discount: 50,
+    rating: 4.3,
+    reviewCount: 19,
+    condition: "Grade B+",
+    image: "/products/vivobook-14.jpg",
+    description: "ASUS VivoBook 14 untuk sehari-hari. Ringan, mudah dibawa ke mana-mana.",
+    specs: ["i5-1035G1", "8GB RAM", "256GB SSD", "14 inch FHD", "Baterai 78%"],
+  },
+  {
+    id: "9",
+    name: "Acer Aspire 5",
+    slug: "acer-aspire-5",
+    category: "Laptop & Notebook",
+    subcategory: "Laptop Kantor",
+    brand: "Acer",
+    price: 3900000,
+    originalPrice: 7800000,
+    discount: 50,
+    rating: 4.4,
+    reviewCount: 22,
+    condition: "Grade A",
+    image: "/products/acer-aspire5.jpg",
+    description: "Acer Aspire 5 performa solid untuk multitasking. Cocok untuk kantor dan pelajar.",
+    specs: ["Ryzen 5 3500U", "8GB RAM", "256GB SSD", "15.6 inch FHD", "Baterai 82%"],
+  },
+  {
+    id: "10",
+    name: "Lenovo ThinkPad T480",
+    slug: "lenovo-thinkpad-t480",
+    category: "Laptop & Notebook",
+    subcategory: "Laptop Kantor",
+    brand: "Lenovo",
+    price: 4500000,
+    originalPrice: 9000000,
+    discount: 50,
+    rating: 4.7,
+    reviewCount: 63,
+    condition: "Grade A",
+    badge: "BEST SELLER",
+    image: "/products/thinkpad-t480.jpg",
+    description: "ThinkPad T480 legendary durability. Keyboard terbaik, build quality militer.",
+    specs: ["i5-8250U", "8GB RAM", "256GB SSD", "14 inch FHD", "Dual Battery"],
+  },
+
+  // ══════════════════════════════════════════
+  // SMARTPHONE & TABLET (10 items)
+  // ══════════════════════════════════════════
+  {
+    id: "11",
+    name: "iPhone 13 Pro 128GB",
+    slug: "iphone-13-pro-128gb",
+    category: "Smartphone & Tablet",
+    subcategory: "Smartphone",
+    brand: "Apple",
+    price: 4800000,
+    originalPrice: 8499000,
+    discount: 43,
+    rating: 4.7,
+    reviewCount: 203,
+    condition: "Grade A",
+    badge: "BEST SELLER",
+    image: "/products/iphone-13-pro.jpg",
+    description: "iPhone 13 Pro 128GB kondisi Grade A. ProMotion 120Hz, performa A15 Bionic masih kencang.",
+    specs: ["128GB", "A15 Bionic", "ProMotion 120Hz", "Kondisi 93%", "Baterai 89%"],
+  },
+  {
+    id: "12",
+    name: "Samsung Galaxy S22 Ultra",
+    slug: "samsung-galaxy-s22-ultra",
+    category: "Smartphone & Tablet",
+    subcategory: "Smartphone",
+    brand: "Samsung",
+    price: 3200000,
+    originalPrice: 5999000,
+    discount: 47,
+    rating: 4.5,
+    reviewCount: 156,
+    condition: "Grade B+",
+    image: "/products/galaxy-s22-ultra.jpg",
+    description: "Samsung Galaxy S22 Ultra dengan S Pen. Kondisi 88%, masih sangat layak pakai.",
+    specs: ["256GB", "Snapdragon 8 Gen 1", "S Pen", "Kondisi 88%", "Layar AMOLED"],
+  },
+  {
+    id: "13",
+    name: "iPhone 14 128GB",
+    slug: "iphone-14-128gb",
+    category: "Smartphone & Tablet",
+    subcategory: "Smartphone",
+    brand: "Apple",
+    price: 5200000,
+    originalPrice: 9999000,
+    discount: 48,
+    rating: 4.6,
+    reviewCount: 89,
+    condition: "Grade A",
+    badge: "NEW",
+    image: "/products/iphone-14.jpg",
+    description: "iPhone 14 128GB kondisi Grade A. Layar OLED, performa A15, kamera ganda.",
+    specs: ["128GB", "A15 Bionic", "6.1 inch OLED", "Kondisi 95%", "Baterai 91%"],
+  },
+  {
+    id: "14",
+    name: "Samsung Galaxy A54",
+    slug: "samsung-galaxy-a54",
+    category: "Smartphone & Tablet",
+    subcategory: "Smartphone",
+    brand: "Samsung",
+    price: 2200000,
+    originalPrice: 4499000,
+    discount: 51,
+    rating: 4.4,
+    reviewCount: 78,
+    condition: "Grade A",
+    image: "/products/galaxy-a54.jpg",
+    description: "Samsung Galaxy A54 mid-range premium. Layar Super AMOLED, tahan air IP67.",
+    specs: ["128GB", "Exynos 1380", "6.4 inch AMOLED 120Hz", "IP67", "Baterai 90%"],
+  },
+  {
+    id: "15",
+    name: "iPad Air M1 64GB",
+    slug: "ipad-air-m1-64gb",
+    category: "Smartphone & Tablet",
+    subcategory: "Tablet",
+    brand: "Apple",
+    price: 5800000,
+    originalPrice: 9499000,
+    discount: 39,
+    rating: 4.8,
+    reviewCount: 67,
+    condition: "Like New",
+    badge: "BEST SELLER",
+    image: "/products/ipad-air-m1.jpg",
+    description: "iPad Air M1 untuk produktivitas dan kreativitas. Chip M1 performa desktop.",
+    specs: ["64GB", "M1 Chip", "10.9 inch Liquid Retina", "Apple Pencil 2", "Baterai 95%"],
+  },
+  {
+    id: "16",
+    name: "Samsung Galaxy Tab S8",
+    slug: "samsung-galaxy-tab-s8",
+    category: "Smartphone & Tablet",
+    subcategory: "Tablet",
+    brand: "Samsung",
+    price: 3200000,
+    originalPrice: 5999000,
+    discount: 47,
+    rating: 4.6,
+    reviewCount: 42,
+    condition: "Grade A",
+    image: "/products/tab-s8.jpg",
+    description: "Samsung Galaxy Tab S8 untuk multitasking. S Pen included, layar 120Hz.",
+    specs: ["128GB", "Snapdragon 8 Gen 1", "11 inch LTPS 120Hz", "S Pen", "Baterai 88%"],
+  },
+  {
+    id: "17",
+    name: "Xiaomi Redmi Note 12",
+    slug: "xiaomi-redmi-note-12",
+    category: "Smartphone & Tablet",
+    subcategory: "Smartphone",
+    brand: "Xiaomi",
+    price: 1200000,
+    originalPrice: 2499000,
+    discount: 52,
+    rating: 4.3,
+    reviewCount: 112,
+    condition: "Grade A",
+    badge: "HOT DEAL",
+    image: "/products/redmi-note12.jpg",
+    description: "Xiaomi Redmi Note 12 value for money. Layar AMOLED 120Hz, kamera 50MP.",
+    specs: ["128GB", "Snapdragon 685", "6.67 inch AMOLED 120Hz", "50MP Camera", "Baterai 87%"],
+  },
+  {
+    id: "18",
+    name: "iPhone 12 Mini 64GB",
+    slug: "iphone-12-mini-64gb",
+    category: "Smartphone & Tablet",
+    subcategory: "Smartphone",
+    brand: "Apple",
+    price: 2800000,
+    originalPrice: 5999000,
+    discount: 53,
+    rating: 4.5,
+    reviewCount: 95,
+    condition: "Grade B+",
+    image: "/products/iphone-12-mini.jpg",
+    description: "iPhone 12 Mini compact flagship. Cocok untuk yang suka ukuran kecil tapi powerful.",
+    specs: ["64GB", "A14 Bionic", "5.4 inch OLED", "Kondisi 85%", "Baterai 82%"],
+  },
+  {
+    id: "19",
+    name: "Samsung Galaxy Tab A8",
+    slug: "samsung-galaxy-tab-a8",
+    category: "Smartphone & Tablet",
+    subcategory: "Tablet",
+    brand: "Samsung",
+    price: 1800000,
+    originalPrice: 3499000,
+    discount: 49,
+    rating: 4.2,
+    reviewCount: 56,
+    condition: "Grade A",
+    image: "/products/tab-a8.jpg",
+    description: "Samsung Galaxy Tab A8 untuk hiburan dan belajar. Layar 10.5 inch, speaker quad.",
+    specs: ["64GB", "Unisoc T618", "10.5 inch TFT", "Speaker Quad", "Baterai 85%"],
+  },
+  {
+    id: "20",
+    name: "Realme GT Neo 3",
+    slug: "realme-gt-neo-3",
+    category: "Smartphone & Tablet",
+    subcategory: "Smartphone",
+    brand: "Realme",
+    price: 1800000,
+    originalPrice: 3999000,
+    discount: 55,
+    rating: 4.4,
+    reviewCount: 34,
+    condition: "Grade A",
+    badge: "NEW",
+    image: "/products/realme-gt-neo3.jpg",
+    description: "Realme GT Neo 3 performa gaming. Charging 150W, layar AMOLED 120Hz.",
+    specs: ["128GB", "Dimensity 8100", "6.7 inch AMOLED 120Hz", "150W Charging", "Baterai 90%"],
+  },
+
+  // ══════════════════════════════════════════
+  // MONITOR & TV (10 items)
+  // ══════════════════════════════════════════
+  {
+    id: "21",
+    name: "Dell UltraSharp U2720Q 4K",
+    slug: "dell-u2720q-4k",
+    category: "Monitor & TV",
+    subcategory: "Monitor",
+    brand: "Dell",
+    price: 2900000,
+    originalPrice: 5200000,
+    discount: 44,
+    rating: 4.6,
+    reviewCount: 45,
+    condition: "Grade A",
+    badge: "NEW",
+    image: "/products/dell-u2720q.jpg",
+    description: "Monitor 4K 27 inch untuk desain dan editing. USB-C 90W charging, warna akurat.",
+    specs: ["27 inch 4K IPS", "USB-C 90W", "HDR 400", "100% sRGB", "60Hz"],
+  },
+  {
+    id: "22",
+    name: "LG 27GN800-B UltraGear",
+    slug: "lg-27gn800b-ultragear",
+    category: "Monitor & TV",
+    subcategory: "Monitor Gaming",
+    brand: "LG",
+    price: 1800000,
+    originalPrice: 3499000,
+    discount: 49,
+    rating: 4.7,
+    reviewCount: 78,
+    condition: "Grade A",
+    badge: "BEST SELLER",
+    image: "/products/lg-ultragear.jpg",
+    description: "Monitor gaming LG UltraGear 27 inch. Nano IPS, 144Hz, 1ms response time.",
+    specs: ["27 inch QHD Nano IPS", "144Hz", "1ms GTG", "HDR 10", "G-Sync Compatible"],
+  },
+  {
+    id: "23",
+    name: "Samsung LU32J390 4K 32 inch",
+    slug: "samsung-lu32j390-4k-32",
+    category: "Monitor & TV",
+    subcategory: "Monitor",
+    brand: "Samsung",
+    price: 1500000,
+    originalPrice: 2999000,
+    discount: 50,
+    rating: 4.4,
+    reviewCount: 56,
+    condition: "Grade A",
+    image: "/products/samsung-4k-32.jpg",
+    description: "Monitor Samsung 4K 32 inch untuk produktivitas. Ukuran besar, resolusi tajam.",
+    specs: ["32 inch 4K UHD", "IPS Panel", "60Hz", "HDMI + DisplayPort", "AMD FreeSync"],
+  },
+  {
+    id: "24",
+    name: "LG 55UN7300 55 inch Smart TV",
+    slug: "lg-55un7300-55-smart-tv",
+    category: "Monitor & TV",
+    subcategory: "TV",
+    brand: "LG",
+    price: 2800000,
+    originalPrice: 5499000,
+    discount: 49,
+    rating: 4.5,
+    reviewCount: 67,
+    condition: "Grade A",
+    badge: "HOT DEAL",
+    image: "/products/lg-55tv.jpg",
+    description: "Smart TV LG 55 inch 4K UHD. webOS, ThinQ AI, HDR10 Pro.",
+    specs: ["55 inch 4K UHD", "webOS", "ThinQ AI", "HDR10 Pro", "3x HDMI"],
+  },
+  {
+    id: "25",
+    name: "BenQ GW2480 24 inch",
+    slug: "benq-gw2480-24",
+    category: "Monitor & TV",
+    subcategory: "Monitor",
+    brand: "BenQ",
+    price: 900000,
+    originalPrice: 1799000,
+    discount: 50,
+    rating: 4.5,
+    reviewCount: 92,
+    condition: "Grade A",
+    badge: "BEST SELLER",
+    image: "/products/benq-gw2480.jpg",
+    description: "Monitor BenQ 24 inch eye-care. Low Blue Light, Flicker-Free, IPS panel.",
+    specs: ["24 inch FHD IPS", "60Hz", "Low Blue Light", "Flicker-Free", "Built-in Speakers"],
+  },
+  {
+    id: "26",
+    name: "Asus ProArt PA278QV 27 inch",
+    slug: "asus-proart-pa278qv-27",
+    category: "Monitor & TV",
+    subcategory: "Monitor",
+    brand: "ASUS",
+    price: 2200000,
+    originalPrice: 4299000,
+    discount: 49,
+    rating: 4.7,
+    reviewCount: 34,
+    condition: "Grade A",
+    image: "/products/asus-proart.jpg",
+    description: "Monitor ASUS ProArt untuk desainer. Warna akurat Calman Verified, 2K QHD.",
+    specs: ["27 inch QHD IPS", "100% sRGB", "Calman Verified", "USB-C", "65W PD"],
+  },
+  {
+    id: "27",
+    name: "Hisense 43A6500 43 inch Smart TV",
+    slug: "hisense-43a6500-43-smart-tv",
+    category: "Monitor & TV",
+    subcategory: "TV",
+    brand: "Hisense",
+    price: 1500000,
+    originalPrice: 2999000,
+    discount: 50,
+    rating: 4.3,
+    reviewCount: 23,
+    condition: "Grade A",
+    image: "/products/hisense-43tv.jpg",
+    description: "Smart TV Hisense 43 inch. VIDAA OS, HDR, DTS Virtual surround.",
+    specs: ["43 inch FHD", "VIDAA OS", "HDR", "DTS Virtual", "2x HDMI"],
+  },
+  {
+    id: "28",
+    name: "Samsung Odyssey G5 27 inch",
+    slug: "samsung-odyssey-g5-27",
+    category: "Monitor & TV",
+    subcategory: "Monitor Gaming",
+    brand: "Samsung",
+    price: 1900000,
+    originalPrice: 3799000,
+    discount: 50,
+    rating: 4.6,
+    reviewCount: 45,
+    condition: "Grade A",
+    badge: "HOT DEAL",
+    image: "/products/odyssey-g5.jpg",
+    description: "Monitor gaming Samsung Odyssey G5. Curved 1000R, 165Hz, 1ms.",
+    specs: ["27 inch QHD VA", "165Hz", "1ms", "1000R Curved", "FreeSync Premium"],
+  },
+  {
+    id: "29",
+    name: "Philips 242M1 24 inch",
+    slug: "philips-242m1-24",
+    category: "Monitor & TV",
+    subcategory: "Monitor Gaming",
+    brand: "Philips",
+    price: 1200000,
+    originalPrice: 2499000,
+    discount: 52,
+    rating: 4.4,
+    reviewCount: 28,
+    condition: "Grade A",
+    image: "/products/philips-242m1.jpg",
+    description: "Monitor Philips 24 inch gaming. 144Hz, 1ms MPRT, Adaptive Sync.",
+    specs: ["24 inch FHD VA", "144Hz", "1ms MPRT", "Adaptive Sync", "LowBlue Mode"],
+  },
+  {
+    id: "30",
+    name: "Coocaa 32S7G 32 inch Smart TV",
+    slug: "coocaa-32s7g-32-smart-tv",
+    category: "Monitor & TV",
+    subcategory: "TV",
+    brand: "Coocaa",
+    price: 1100000,
+    originalPrice: 2199000,
+    discount: 50,
+    rating: 4.2,
+    reviewCount: 18,
+    condition: "Grade A",
+    badge: "NEW",
+    image: "/products/coocaa-32tv.jpg",
+    description: "Smart TV Coocaa 32 inch Android TV. Google Assistant, Chromecast built-in.",
+    specs: ["32 inch HD", "Android TV", "Google Assistant", "Chromecast", "2x HDMI"],
+  },
+
+  // ══════════════════════════════════════════
+  // NETWORKING & IT (10 items)
+  // ══════════════════════════════════════════
+  {
+    id: "31",
+    name: "MikroTik RB750Gr3",
+    slug: "mikrotik-rb750gr3",
+    category: "Networking & IT",
+    subcategory: "Router",
+    brand: "MikroTik",
+    price: 380000,
+    originalPrice: 750000,
+    discount: 49,
+    rating: 4.6,
+    reviewCount: 88,
+    condition: "Grade A",
+    badge: "NEW",
+    image: "/products/mikrotik-rb750gr3.jpg",
+    description: "Router MikroTik gigabit untuk UMKM. RouterOS L4, performa stabil untuk jaringan kantor.",
+    specs: ["Gigabit Ethernet", "750MHz CPU", "256MB RAM", "RouterOS L4", "5 Port"],
+  },
+  {
+    id: "32",
+    name: "TP-Link Archer AX50",
+    slug: "tp-link-archer-ax50",
+    category: "Networking & IT",
+    subcategory: "Router",
+    brand: "TP-Link",
+    price: 420000,
+    originalPrice: 900000,
+    discount: 53,
+    rating: 4.4,
+    reviewCount: 62,
+    condition: "Grade A",
+    badge: "HOT DEAL",
+    image: "/products/tp-link-ax50.jpg",
+    description: "Router WiFi 6 TP-Link AX50. Kecepatan tinggi, cocok untuk streaming dan gaming.",
+    specs: ["WiFi 6 AX3000", "Gigabit", "MU-MIMO", "Beamforming", "4 Port LAN"],
+  },
+  {
+    id: "33",
+    name: "MikroTik hAP ac²",
+    slug: "mikrotik-hap-ac2",
+    category: "Networking & IT",
+    subcategory: "Router",
+    brand: "MikroTik",
+    price: 450000,
+    originalPrice: 850000,
+    discount: 47,
+    rating: 4.5,
+    reviewCount: 45,
+    condition: "Grade A",
+    image: "/products/mikrotik-hap-ac2.jpg",
+    description: "MikroTik hAP ac² dual-band. RouterOS, cocok untuk small office / UMKM.",
+    specs: ["Dual Band AC", "Quad-Core CPU", "256MB RAM", "RouterOS L4", "PoE Out"],
+  },
+  {
+    id: "34",
+    name: "Ubiquiti UniFi AP AC Lite",
+    slug: "ubiquiti-unifi-ap-ac-lite",
+    category: "Networking & IT",
+    subcategory: "Access Point",
+    brand: "Ubiquiti",
+    price: 550000,
+    originalPrice: 1100000,
+    discount: 50,
+    rating: 4.7,
+    reviewCount: 56,
+    condition: "Grade A",
+    badge: "BEST SELLER",
+    image: "/products/unifi-ap-lite.jpg",
+    description: "Access Point Ubiquiti UniFi AC Lite. Performa enterprise untuk kantor dan rumah.",
+    specs: ["Dual Band AC", "867Mbps 5GHz", "PoE Powered", "UniFi Controller", "2x2 MIMO"],
+  },
+  {
+    id: "35",
+    name: "TP-Link TL-SG1008D 8-Port Switch",
+    slug: "tp-link-tl-sg1008d-8port",
+    category: "Networking & IT",
+    subcategory: "Switch",
+    brand: "TP-Link",
+    price: 180000,
+    originalPrice: 350000,
+    discount: 49,
+    rating: 4.5,
+    reviewCount: 112,
+    condition: "Like New",
+    badge: "BEST SELLER",
+    image: "/products/tplink-switch8.jpg",
+    description: "Switch gigabit 8 port TP-Link. Plug and play, silent operation, green networking.",
+    specs: ["8 Port Gigabit", "Plug & Play", "Fanless", "MDI/MDIX", "48Gbps Backplane"],
+  },
+  {
+    id: "36",
+    name: "MikroTik RB951Ui-2nD",
+    slug: "mikrotik-rb951ui-2nd",
+    category: "Networking & IT",
+    subcategory: "Router",
+    brand: "MikroTik",
+    price: 320000,
+    originalPrice: 600000,
+    discount: 47,
+    rating: 4.3,
+    reviewCount: 34,
+    condition: "Grade A",
+    image: "/products/mikrotik-951ui.jpg",
+    description: "Router MikroTik hAP lite untuk rumah dan UMKM kecil. RouterOS level 4.",
+    specs: ["WiFi N300", "650MHz CPU", "64MB RAM", "RouterOS L4", "PoE In"],
+  },
+  {
+    id: "37",
+    name: "D-Link DIR-615 Wireless N300",
+    slug: "d-link-dir-615-wireless-n300",
+    category: "Networking & IT",
+    subcategory: "Router",
+    brand: "D-Link",
+    price: 150000,
+    originalPrice: 299000,
+    discount: 50,
+    rating: 4.1,
+    reviewCount: 87,
+    condition: "Grade B+",
+    image: "/products/dlink-dir615.jpg",
+    description: "Router D-Link DIR-615 untuk rumah. Wireless N300, mudah setup, harga terjangkau.",
+    specs: ["Wireless N300", "4 Port Fast Ethernet", "WPS Button", "WPA2", "Parental Control"],
+  },
+  {
+    id: "38",
+    name: "Ubiquiti UniFi USW-Lite-8-PoE",
+    slug: "ubiquiti-unifi-usw-lite-8-poe",
+    category: "Networking & IT",
+    subcategory: "Switch",
+    brand: "Ubiquiti",
+    price: 850000,
+    originalPrice: 1650000,
+    discount: 48,
+    rating: 4.6,
+    reviewCount: 23,
+    condition: "Grade A",
+    badge: "NEW",
+    image: "/products/unifi-switch.jpg",
+    description: "Switch managed UniFi 8 port PoE. Managed via UniFi Network Application.",
+    specs: ["8 Port Gigabit", "4 PoE Ports", "42W PoE Budget", "Fanless", "UniFi Managed"],
+  },
+  {
+    id: "39",
+    name: "Tenda AC10 WiFi Router",
+    slug: "tenda-ac10-wifi-router",
+    category: "Networking & IT",
+    subcategory: "Router",
+    brand: "Tenda",
+    price: 180000,
+    originalPrice: 350000,
+    discount: 49,
+    rating: 4.2,
+    reviewCount: 56,
+    condition: "Grade A",
+    image: "/products/tenda-ac10.jpg",
+    description: "Router Tenda AC10 dual-band. WiFi AC1200, MU-MIMO, harga sangat terjangkau.",
+    specs: ["WiFi AC1200", "Dual Band", "MU-MIMO", "4 Port Gigabit", "App Control"],
+  },
+  {
+    id: "40",
+    name: "MikroTik hEX S (RB760iGS)",
+    slug: "mikrotik-hex-s-rb760igs",
+    category: "Networking & IT",
+    subcategory: "Router",
+    brand: "MikroTik",
+    price: 550000,
+    originalPrice: 1050000,
+    discount: 48,
+    rating: 4.7,
+    reviewCount: 34,
+    condition: "Grade A",
+    badge: "HOT DEAL",
+    image: "/products/mikrotik-hex-s.jpg",
+    description: "MikroTik hEX S dengan SFP. RouterOS, USB, PoE output, enclored case.",
+    specs: ["880MHz CPU", "256MB RAM", "5 Gigabit + SFP", "USB 2.0", "RouterOS L5"],
+  },
+
+  // ══════════════════════════════════════════
+  // PERIPHERAL & AKSESORIS (10 items)
+  // ══════════════════════════════════════════
+  {
+    id: "41",
+    name: "Logitech MX Master 3",
+    slug: "logitech-mx-master-3",
+    category: "Peripheral & Aksesoris",
+    subcategory: "Mouse",
+    brand: "Logitech",
+    price: 650000,
+    originalPrice: 1299000,
+    discount: 50,
+    rating: 4.9,
+    reviewCount: 201,
+    condition: "Like New",
+    badge: "BEST SELLER",
+    image: "/products/mx-master-3.jpg",
+    description: "Mouse wireless premium Logitech MX Master 3. Ergonomis, multi-device, USB-C charging.",
+    specs: ["Wireless", "USB-C", "4000 DPI", "Multi-Device", "Thumb Wheel"],
+  },
+  {
+    id: "42",
+    name: "Logitech MX Keys Keyboard",
+    slug: "logitech-mx-keys-keyboard",
+    category: "Peripheral & Aksesoris",
+    subcategory: "Keyboard",
+    brand: "Logitech",
+    price: 750000,
+    originalPrice: 1499000,
+    discount: 50,
+    rating: 4.8,
+    reviewCount: 134,
+    condition: "Like New",
+    badge: "BEST SELLER",
+    image: "/products/mx-keys.jpg",
+    description: "Keyboard wireless Logitech MX Keys. Backlight, smart illumination, multi-device.",
+    specs: ["Wireless", "Backlight", "Multi-Device", "USB-C", "Perfect Stroke Keys"],
+  },
+  {
+    id: "43",
+    name: "Razer DeathAdder V2",
+    slug: "razer-deathadder-v2",
+    category: "Peripheral & Aksesoris",
+    subcategory: "Mouse Gaming",
+    brand: "Razer",
+    price: 350000,
+    originalPrice: 699000,
+    discount: 50,
+    rating: 4.7,
+    reviewCount: 89,
+    condition: "Grade A",
+    badge: "HOT DEAL",
+    image: "/products/deathadder-v2.jpg",
+    description: "Mouse gaming Razer DeathAdder V2. Sensor optical 20K DPI, switches optical.",
+    specs: ["20K DPI Optical", "8 Buttons", "Optical Switches", "Chroma RGB", "63g"],
+  },
+  {
+    id: "44",
+    name: "Keychron K2 V2 Mechanical",
+    slug: "keychron-k2-v2-mechanical",
+    category: "Peripheral & Aksesoris",
+    subcategory: "Keyboard",
+    brand: "Keychron",
+    price: 550000,
+    originalPrice: 999000,
+    discount: 45,
+    rating: 4.6,
+    reviewCount: 67,
+    condition: "Grade A",
+    image: "/products/keychron-k2.jpg",
+    description: "Keyboard mechanical Keychron K2. Wireless, hot-swappable, RGB, Mac & Windows.",
+    specs: ["Wireless BT 5.1", "Hot-Swappable", "RGB Backlit", "Gateron Switch", "75% Layout"],
+  },
+  {
+    id: "45",
+    name: "HyperX Cloud II Gaming Headset",
+    slug: "hyperx-cloud-ii-gaming-headset",
+    category: "Peripheral & Aksesoris",
+    subcategory: "Headphone",
+    brand: "HyperX",
+    price: 450000,
+    originalPrice: 999000,
+    discount: 55,
+    rating: 4.8,
+    reviewCount: 178,
+    condition: "Grade A",
+    badge: "HOT DEAL",
+    image: "/products/hyperx-cloud2.jpg",
+    description: "Headset gaming HyperX Cloud II. Virtual 7.1 surround, memory foam, aluminum frame.",
+    specs: ["Virtual 7.1 Surround", "53mm Drivers", "Memory Foam", "Detachable Mic", "USB DAC"],
+  },
+  {
+    id: "46",
+    name: "Logitech C920 HD Pro Webcam",
+    slug: "logitech-c920-hd-pro-webcam",
+    category: "Peripheral & Aksesoris",
+    subcategory: "Kamera",
+    brand: "Logitech",
+    price: 280000,
+    originalPrice: 599000,
+    discount: 53,
+    rating: 4.5,
+    reviewCount: 156,
+    condition: "Grade A",
+    badge: "BEST SELLER",
+    image: "/products/c920-webcam.jpg",
+    description: "Webcam Logitech C920 HD Pro. 1080p 30fps, stereo mic, autofocus.",
+    specs: ["1080p 30fps", "Stereo Mic", "Autofocus", "Wide 78° FOV", "USB 2.0"],
+  },
+  {
+    id: "47",
+    name: "SteelSeries Arctis 7",
+    slug: "steelseries-arctis-7",
+    category: "Peripheral & Aksesoris",
+    subcategory: "Headphone",
+    brand: "SteelSeries",
+    price: 550000,
+    originalPrice: 1299000,
+    discount: 58,
+    rating: 4.7,
+    reviewCount: 89,
+    condition: "Grade A",
+    image: "/products/arctis-7.jpg",
+    description: "Headset wireless SteelSeries Arctis 7. DTS Headphone:X v2, 24 jam battery.",
+    specs: ["Wireless 2.4GHz", "DTS v2", "24hr Battery", "ClearCast Mic", "Discord Certified"],
+  },
+  {
+    id: "48",
+    name: "Corsair K70 RGB Mechanical",
+    slug: "corsair-k70-rgb-mechanical",
+    category: "Peripheral & Aksesoris",
+    subcategory: "Keyboard",
+    brand: "Corsair",
+    price: 500000,
+    originalPrice: 1099000,
+    discount: 55,
+    rating: 4.6,
+    reviewCount: 45,
+    condition: "Grade A",
+    image: "/products/corsair-k70.jpg",
+    description: "Keyboard mechanical Corsair K70 RGB. Cherry MX, aluminum frame, per-key RGB.",
+    specs: ["Cherry MX Red", "Per-key RGB", "Aluminum Frame", "USB Pass-through", "Full N-Key"],
+  },
+  {
+    id: "49",
+    name: "Anker PowerPort III 65W GaN",
+    slug: "anker-powerport-iii-65w-gan",
+    category: "Peripheral & Aksesoris",
+    subcategory: "Charger",
+    brand: "Anker",
+    price: 250000,
+    originalPrice: 549000,
+    discount: 54,
+    rating: 4.5,
+    reviewCount: 78,
+    condition: "Like New",
+    badge: "NEW",
+    image: "/products/anker-65w.jpg",
+    description: "Charger GaN Anker 65W. Compact, 3 port (2 USB-C + 1 USB-A), fast charging.",
+    specs: ["65W Output", "GaN Tech", "2x USB-C + 1x USB-A", "PD 3.0", "Compact Size"],
+  },
+  {
+    id: "50",
+    name: "Logitech G304 Lightspeed Mouse",
+    slug: "logitech-g304-lightspeed",
+    category: "Peripheral & Aksesoris",
+    subcategory: "Mouse Gaming",
+    brand: "Logitech",
+    price: 280000,
+    originalPrice: 549000,
+    discount: 49,
+    rating: 4.7,
+    reviewCount: 134,
+    condition: "Grade A",
+    image: "/products/g304-lightspeed.jpg",
+    description: "Mouse gaming wireless Logitech G304. HERO sensor 12K DPI, 250 jam battery.",
+    specs: ["12K DPI HERO", "Wireless LIGHTSPEED", "250hr Battery", "6 Buttons", "100g"],
+  },
+];
+
+// ── Storage helpers (localStorage) ──
+
+const PRODUCTS_KEY = "beliseken_products";
+
+export function getProducts(): Product[] {
+  if (typeof window === "undefined") return initialProducts;
+  try {
+    const stored = localStorage.getItem(PRODUCTS_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch {}
+  return initialProducts;
+}
+
+export function saveProducts(products: Product[]) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+}
+
+export function getProductBySlug(slug: string): Product | undefined {
+  return getProducts().find((p) => p.slug === slug);
+}
+
+export function getProductById(id: string): Product | undefined {
+  return getProducts().find((p) => p.id === id);
+}
+
+export function addProduct(product: Omit<Product, "id">): Product {
+  const products = getProducts();
+  const newProduct: Product = {
+    ...product,
+    id: String(Date.now()),
+  };
+  products.push(newProduct);
+  saveProducts(products);
+  return newProduct;
+}
+
+export function updateProduct(id: string, updates: Partial<Product>): Product | null {
+  const products = getProducts();
+  const idx = products.findIndex((p) => p.id === id);
+  if (idx === -1) return null;
+  products[idx] = { ...products[idx], ...updates };
+  saveProducts(products);
+  return products[idx];
+}
+
+export function deleteProduct(id: string): boolean {
+  const products = getProducts();
+  const filtered = products.filter((p) => p.id !== id);
+  if (filtered.length === products.length) return false;
+  saveProducts(filtered);
+  return true;
+}
+
+// ── Static data (non-product) ──
+
+export const bestDealProducts: Product[] = initialProducts.filter((p) => p.badge === "HOT DEAL");
+export const newArrivalProducts: Product[] = initialProducts.filter((p) => p.badge === "NEW");
+
+export const testimonials: Testimonial[] = [
+  {
+    id: "1",
+    name: "Rizky Pratama",
+    role: "Freelancer, Jakarta",
+    rating: 5,
+    text: "MacBook yang saya beli di sini masih mulus seperti baru. Garansi 30 hari bikin tenang. Prosesnya cepat dan responsif!",
+    verified: true,
+  },
+  {
+    id: "2",
+    name: "Sari Dewi",
+    role: "Owner UMKM, Bekasi",
+    rating: 5,
+    text: "Router MikroTik yang saya beli kondisinya 95%! Harga cuma setengah dari baru. Sangat recommended untuk UMKM yang butuh jaringan stabil.",
+    verified: true,
+  },
+  {
+    id: "3",
+    name: "Andi Kurniawan",
+    role: "IT Manager, Jakarta",
+    rating: 5,
+    text: "Laptop HP bekas kantor masih keren banget buat kerja WFH. Spesifikasi sesuai deskripsi, tidak ada yang ditutup-tutupi.",
+    verified: true,
+  },
+  {
+    id: "4",
+    name: "Maya Sari",
+    role: "Mahasiswa, Depok",
+    rating: 5,
+    text: "MacBook Air M1 yang saya beli untuk kuliah masih sangat lancar. Hemat budget banget dibanding beli baru!",
+    verified: true,
+  },
+  {
+    id: "5",
+    name: "Budi Santoso",
+    role: "Network Engineer, Tangerang",
+    rating: 5,
+    text: "Switch & access point bekas yang saya beli untuk kantor semuanya berfungsi sempurna. Kualitas grading barangnya top!",
+    verified: true,
+  },
+  {
+    id: "6",
+    name: "Rina Hartati",
+    role: "Content Creator, Bekasi",
+    rating: 5,
+    text: "Monitor Dell 4K yang saya beli untuk editing warnanya akurat. Pengiriman same-day ke Bekasi, mantap!",
+    verified: true,
+  },
+];
+
+export const initialBlogPosts: BlogPost[] = [
+  {
+    id: "1",
+    title: "Panduan Lengkap Membeli Laptop Bekas Berkualitas di 2026",
+    slug: "panduan-beli-laptop-bekas-berkualitas-2026",
+    excerpt: "Membeli laptop bekas bukan berarti mengorbankan kualitas. Berikut panduan lengkap kami untuk membantu kamu mendapatkan laptop bekas terbaik dengan harga terjangkau.",
+    date: "20 Jul 2026",
+    readTime: "8 menit",
+    category: "Tips & Panduan",
+    image: "/blog/panduan-laptop.jpg",
+    featured: true,
+  },
+  {
+    id: "2",
+    title: "Tips Memilih Router MikroTik untuk UMKM",
+    slug: "tips-memilih-router-mikrotik-umkm",
+    excerpt: "Jaringan internet yang stabil adalah tulang punggung UMKM modern. Pelajari cara memilih router MikroTik yang tepat untuk kebutuhan bisnis Anda.",
+    date: "15 Jul 2026",
+    readTime: "5 menit",
+    category: "Networking",
+    image: "/blog/router-mikrotik.jpg",
+  },
+  {
+    id: "3",
+    title: "Review: iPhone 13 Pro Bekas — Masih Worth It di 2026?",
+    slug: "review-iphone-13-pro-bekas-2026",
+    excerpt: "Dengan harga yang terus turun, iPhone 13 Pro bekas menjadi pilihan menarik. Kami uji performa, baterai, dan kamera secara mendalam.",
+    date: "10 Jul 2026",
+    readTime: "6 menit",
+    category: "Review",
+    image: "/blog/iphone-13-pro-review.jpg",
+  },
+];
+
+// ── Blog CRUD helpers ──
+
+const BLOG_KEY = "beliseken_blog_posts";
+
+export function getBlogPosts(): BlogPost[] {
+  if (typeof window === "undefined") return initialBlogPosts;
+  try {
+    const stored = localStorage.getItem(BLOG_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch {}
+  return initialBlogPosts;
+}
+
+function saveBlogPosts(posts: BlogPost[]) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(BLOG_KEY, JSON.stringify(posts));
+}
+
+export function getBlogPostBySlug(slug: string): BlogPost | undefined {
+  return getBlogPosts().find((p) => p.slug === slug);
+}
+
+export function getBlogPostById(id: string): BlogPost | undefined {
+  return getBlogPosts().find((p) => p.id === id);
+}
+
+export function addBlogPost(post: Omit<BlogPost, "id">): BlogPost {
+  const posts = getBlogPosts();
+  const newPost: BlogPost = { ...post, id: String(Date.now()) };
+  posts.push(newPost);
+  saveBlogPosts(posts);
+  return newPost;
+}
+
+export function updateBlogPost(id: string, updates: Partial<BlogPost>): BlogPost | null {
+  const posts = getBlogPosts();
+  const idx = posts.findIndex((p) => p.id === id);
+  if (idx === -1) return null;
+  posts[idx] = { ...posts[idx], ...updates };
+  saveBlogPosts(posts);
+  return posts[idx];
+}
+
+export function deleteBlogPost(id: string): boolean {
+  const posts = getBlogPosts();
+  const filtered = posts.filter((p) => p.id !== id);
+  if (filtered.length === posts.length) return false;
+  saveBlogPosts(filtered);
+  return true;
+}
+
+export const storeInfo = {
+  name: "BeliSeken.com",
+  tagline: "Jual Beli Elektronik Bekas Premium",
+  description: "Laptop, HP, Monitor, & perangkat IT premium kondisi terbaik — garansi toko 30 hari",
+  address: "Griyaasri 2 Blok H6 No 30, Tambun Selatan, Kabupaten Bekasi, Jawa Barat",
+  phone: "085101256123",
+  phoneFormatted: "0851-0125-6123",
+  whatsappLink: "https://wa.me/6285101256123",
+  email: "hello@beliseken.com",
+  operatingHours: "Senin - Sabtu, 09:00 - 18:00 WIB",
+  website: "https://beliseken.com",
+  social: {
+    instagram: "https://instagram.com/beliseken.com",
+    facebook: "https://facebook.com/beliseken.com",
+    tiktok: "https://tiktok.com/@beliseken.com",
+    youtube: "https://youtube.com/@beliseken.com",
+  },
+  stats: {
+    customers: "2,500+",
+    rating: "4.8",
+    reviewCount: "2,500+",
+    productsSold: "5,000+",
+  },
+};
