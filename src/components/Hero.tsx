@@ -1,105 +1,189 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search } from "lucide-react";
-import { storeInfo } from "@/data/products";
+import { ChevronLeft, ChevronRight, Zap, Truck, Shield } from "lucide-react";
+import { getProducts, storeInfo } from "@/data/products";
+
+const banners = [
+  {
+    id: 1,
+    title: "Elektronik Bekas",
+    subtitle: "Berkualitas & Terjamin",
+    highlight: "Hemat Hingga 70%",
+    description: "Garansi 30 hari, pengiriman aman ke seluruh Indonesia",
+    cta: "Lihat Katalog",
+    href: "/products",
+    bg: "from-brand to-brand-dark",
+  },
+  {
+    id: 2,
+    title: "Flash Sale",
+    subtitle: "Hari Ini Saja",
+    highlight: "Mulai Rp100rb-an",
+    description: "Jangan sampai kehabisan, stok terbatas!",
+    cta: "Buruan Beli",
+    href: "/products",
+    bg: "from-rose-600 to-orange-500",
+  },
+  {
+    id: 3,
+    title: "Jual Barang Bekas",
+    subtitle: "Mudah & Cepat",
+    highlight: "Harga Terbaik",
+    description: "Foto, kirim, dapat uang. Praktis!",
+    cta: "Jual Sekarang",
+    href: "/sell",
+    bg: "from-emerald-600 to-teal-500",
+  },
+];
 
 export default function Hero() {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [currentBanner, setCurrentBanner] = useState(0);
+  const [products, setProducts] = useState<any[]>([]);
+
+  useEffect(() => {
+    const allProducts = getProducts();
+    setProducts(allProducts.slice(0, 6));
+  }, []);
+
+  // Auto-rotate banner
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentBanner((prev) => (prev + 1) % banners.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const nextBanner = () => setCurrentBanner((prev) => (prev + 1) % banners.length);
+  const prevBanner = () => setCurrentBanner((prev) => (prev - 1 + banners.length) % banners.length);
+
+  const banner = banners[currentBanner];
 
   return (
-    <section className="relative min-h-[100vh] md:min-h-[100vh] flex items-center overflow-hidden">
-      {/* Background Image */}
-      <div className="absolute inset-0">
-        <Image
-          src="/hero.webp"
-          alt="BeliSeken.com — Toko Elektronik Bekas Premium di Bekasi"
-          fill
-          className="object-cover"
-          priority
-          fetchPriority="high"
-        />
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-brand-navy/90 via-brand-navy/60 to-transparent" />
-      </div>
+    <section className="bg-brand-gray pt-4 pb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Main Banner (Left - 2/3 width) */}
+          <div className="lg:col-span-2 relative">
+            <div
+              className={`relative bg-gradient-to-r ${banner.bg} rounded-2xl overflow-hidden min-h-[320px] md:min-h-[400px] transition-all duration-500`}
+            >
+              {/* Content */}
+              <div className="relative z-10 p-8 md:p-12 flex flex-col justify-center h-full">
+                <p className="text-white/70 text-sm font-semibold mb-2 uppercase tracking-wider">
+                  {banner.subtitle}
+                </p>
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-2">
+                  {banner.title}
+                </h2>
+                <p className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-amber-300 mb-4">
+                  {banner.highlight}
+                </p>
+                <p className="text-white/80 mb-6 max-w-md">
+                  {banner.description}
+                </p>
+                <Link
+                  href={banner.href}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-white text-brand font-bold rounded-xl hover:bg-gray-100 transition-colors w-fit"
+                >
+                  {banner.cta} →
+                </Link>
+              </div>
 
-      {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pt-20">
-        <div className="max-w-2xl">
-          {/* Headline */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white leading-tight mb-6 opacity-0 animate-fade-in-up">
-            Beli Elektronik Bekas
-            <br />
-            <span className="text-brand">Berkualitas</span>, Hemat Hingga 70%
-          </h1>
-
-          {/* Subheadline */}
-          <p className="text-lg md:text-xl text-white/85 mb-8 max-w-lg opacity-0 animate-fade-in-up delay-200">
-            {storeInfo.description}
-          </p>
-
-          {/* Search Bar */}
-          <div className="mb-8 opacity-0 animate-fade-in-up delay-400">
-            <div className="flex items-center bg-white rounded-2xl shadow-2xl overflow-hidden max-w-lg">
-              <Search
-                size={20}
-                className="ml-4 text-brand-muted flex-shrink-0"
-              />
-              <input
-                type="text"
-                placeholder="Mau cari apa hari ini?"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-4 text-sm outline-none text-brand-navy placeholder:text-brand-muted/60 bg-transparent"
-              />
-              <button className="px-6 py-4 bg-brand hover:bg-brand-dark text-white font-semibold text-sm transition-colors whitespace-nowrap">
-                Cari
+              {/* Nav Arrows */}
+              <button
+                onClick={prevBanner}
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white backdrop-blur-sm transition-colors"
+              >
+                <ChevronLeft size={20} />
               </button>
+              <button
+                onClick={nextBanner}
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white backdrop-blur-sm transition-colors"
+              >
+                <ChevronRight size={20} />
+              </button>
+
+              {/* Dots */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                {banners.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentBanner(i)}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      i === currentBanner ? "bg-white w-6" : "bg-white/40"
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-wrap gap-4 mb-10 opacity-0 animate-fade-in-up delay-600">
+          {/* Promo Cards (Right - 1/3 width) */}
+          <div className="flex flex-col gap-4">
+            {/* Card 1 */}
             <Link
-              href="/sell"
-              className="px-8 py-4 bg-brand hover:bg-brand-dark text-white font-bold rounded-xl transition-all duration-200 hover:scale-105 text-base"
+              href="/category/laptop-notebook"
+              className="flex-1 relative bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 overflow-hidden hover:shadow-xl transition-shadow group"
             >
-              🟠 Jual Barang Anda
+              <div className="relative z-10">
+                <p className="text-white/80 text-sm font-semibold mb-1">💻 Laptop & Notebook</p>
+                <p className="text-2xl font-extrabold text-white mb-2">Mulai 3.5 Juta</p>
+                <p className="text-white/60 text-xs">MacBook, ThinkPad, ASUS ROG & lainnya</p>
+              </div>
+              <div className="absolute top-2 right-2 w-16 h-16 bg-white/10 rounded-full" />
+              <div className="absolute bottom-2 right-4 w-12 h-12 bg-white/5 rounded-full" />
             </Link>
-            <Link
-              href="/products"
-              className="px-8 py-4 bg-transparent border-2 border-white text-white hover:bg-white hover:text-brand-navy font-bold rounded-xl transition-all duration-200 text-base"
-            >
-              Lihat Katalog →
-            </Link>
-          </div>
 
-          {/* Trust Badges */}
-          <div className="flex items-center gap-4 opacity-0 animate-fade-in-up delay-800">
-            <div className="flex items-center gap-2 text-white/70">
-              <span className="text-2xl">⭐</span>
-              <span className="text-sm font-semibold">
-                Trusted by <span className="text-white">{storeInfo.stats.customers}</span> pelanggan
-              </span>
-            </div>
-            <div className="hidden sm:flex items-center gap-3 ml-4 opacity-60 hover:opacity-100 transition-opacity">
-              <span className="text-xs text-white/60">Tersedia di:</span>
-              <span className="text-sm font-bold text-white/80">Tokopedia</span>
-              <span className="text-white/30">|</span>
-              <span className="text-sm font-bold text-white/80">Shopee</span>
-              <span className="text-white/30">|</span>
-              <span className="text-sm font-bold text-white/80">Blibli</span>
-            </div>
+            {/* Card 2 */}
+            <Link
+              href="/category/smartphone-tablet"
+              className="flex-1 relative bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-6 overflow-hidden hover:shadow-xl transition-shadow group"
+            >
+              <div className="relative z-10">
+                <p className="text-white/80 text-sm font-semibold mb-1">📱 Smartphone & Tablet</p>
+                <p className="text-2xl font-extrabold text-white mb-2">Mulai 1.2 Juta</p>
+                <p className="text-white/60 text-xs">iPhone, Samsung, iPad & lainnya</p>
+              </div>
+              <div className="absolute top-2 right-2 w-16 h-16 bg-white/10 rounded-full" />
+              <div className="absolute bottom-2 right-4 w-12 h-12 bg-white/5 rounded-full" />
+            </Link>
+
+            {/* Card 3 */}
+            <Link
+              href="/category/networking-it"
+              className="flex-1 relative bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl p-6 overflow-hidden hover:shadow-xl transition-shadow group"
+            >
+              <div className="relative z-10">
+                <p className="text-white/80 text-sm font-semibold mb-1">🌐 Networking & IT</p>
+                <p className="text-2xl font-extrabold text-white mb-2">Mulai Rp150rb</p>
+                <p className="text-white/60 text-xs">MikroTik, TP-Link, Ubiquiti & lainnya</p>
+              </div>
+              <div className="absolute top-2 right-2 w-16 h-16 bg-white/10 rounded-full" />
+              <div className="absolute bottom-2 right-4 w-12 h-12 bg-white/5 rounded-full" />
+            </Link>
           </div>
         </div>
-      </div>
 
-      {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-        <div className="w-6 h-10 border-2 border-white/40 rounded-full flex justify-center pt-2">
-          <div className="w-1.5 h-3 bg-white/60 rounded-full animate-pulse" />
+        {/* Trust Bar */}
+        <div className="mt-6 bg-white rounded-2xl shadow-sm border border-brand-border">
+          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-brand-border">
+            {[
+              { icon: "🔍", label: "Grade Premium", sublabel: "Diuji & grading ketat" },
+              { icon: "🛡️", label: "Garansi 30 Hari", sublabel: "Retur jika tidak sesuai" },
+              { icon: "🚚", label: "Pengiriman Aman", sublabel: "Packing bubble wrap" },
+              { icon: "💬", label: "Konsultasi Gratis", sublabel: "Chat via WhatsApp" },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-3 p-4 hover:bg-brand/5 transition-colors">
+                <span className="text-2xl">{item.icon}</span>
+                <div>
+                  <p className="text-sm font-bold text-brand-navy">{item.label}</p>
+                  <p className="text-xs text-brand-muted">{item.sublabel}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

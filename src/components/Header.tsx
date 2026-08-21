@@ -7,13 +7,14 @@ import { useRouter } from "next/navigation";
 import {
   Search,
   ShoppingCart,
-  Bell,
   Menu,
   X,
   ChevronDown,
   User,
   LogOut,
   Heart,
+  MapPin,
+  Clock,
   Package,
   Settings,
 } from "lucide-react";
@@ -25,8 +26,8 @@ export default function Header() {
   const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isKatalogHovered, setIsKatalogHovered] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isKategoriOpen, setIsKategoriOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [user, setUser] = useState<UserType | null>(null);
   const { totalItems } = useCart();
@@ -48,448 +49,274 @@ export default function Header() {
   };
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? "bg-white shadow-lg h-16"
-          : "bg-white/95 backdrop-blur-sm h-20"
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
-        <div className="flex items-center justify-between h-full">
-          {/* Logo */}
-          <Link href="/" className="flex items-center flex-shrink-0">
-            <Image
-              src="/logo.png"
-              alt="BeliSeken.com — Jual Beli Elektronik Bekas Premium"
-              width={160}
-              height={60}
-              className={`transition-all duration-300 object-contain ${
-                isScrolled ? "h-10 w-auto" : "h-14 w-auto"
-              }`}
-              priority
-            />
-          </Link>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-1">
-            <Link
-              href="/"
-              className="px-4 py-2 text-sm font-semibold text-brand-navy hover:text-brand transition-colors rounded-lg hover:bg-brand/5"
-            >
-              Beranda
-            </Link>
-
-            {/* Katalog with Mega Menu */}
-            <div
-              className="relative"
-              onMouseEnter={() => setIsKatalogHovered(true)}
-              onMouseLeave={() => setIsKatalogHovered(false)}
-            >
-              <button className="px-4 py-2 text-sm font-semibold text-brand-navy hover:text-brand transition-colors rounded-lg hover:bg-brand/5 flex items-center gap-1">
-                Katalog
-                <ChevronDown
-                  size={14}
-                  className={`transition-transform duration-200 ${
-                    isKatalogHovered ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-
-              {/* Mega Menu */}
-              {isKatalogHovered && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 w-[700px] bg-white rounded-2xl shadow-2xl border border-brand-border p-6 mt-2 animate-fade-in-up">
-                  <div className="grid grid-cols-3 gap-6">
-                    <div>
-                      <h4 className="font-bold text-brand-navy mb-3 text-sm">
-                        💻 LAPTOP & NOTEBOOK
-                      </h4>
-                      <ul className="space-y-2">
-                        {["Laptop Gaming", "Laptop Kantor", "Ultrabook", "MacBook"].map(
-                          (item) => (
-                            <li key={item}>
-                              <Link
-                                href={`/category/laptop-notebook`}
-                                className="text-sm text-brand-muted hover:text-brand transition-colors"
-                              >
-                                {item}
-                              </Link>
-                            </li>
-                          )
-                        )}
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-brand-navy mb-3 text-sm">
-                        📱 SMARTPHONE & TABLET
-                      </h4>
-                      <ul className="space-y-2">
-                        {["Android", "iPhone", "Tablet", "HP Feature"].map(
-                          (item) => (
-                            <li key={item}>
-                              <Link
-                                href={`/category/smartphone-tablet`}
-                                className="text-sm text-brand-muted hover:text-brand transition-colors"
-                              >
-                                {item}
-                              </Link>
-                            </li>
-                          )
-                        )}
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-brand-navy mb-3 text-sm">
-                        🌐 NETWORKING & IT
-                      </h4>
-                      <ul className="space-y-2">
-                        {["Router & Modem", "Switch & Hub", "Access Point", "Kabel Jaringan"].map(
-                          (item) => (
-                            <li key={item}>
-                              <Link
-                                href={`/category/networking-it`}
-                                className="text-sm text-brand-muted hover:text-brand transition-colors"
-                              >
-                                {item}
-                              </Link>
-                            </li>
-                          )
-                        )}
-                      </ul>
-                    </div>
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-brand-border flex items-center justify-between">
-                    <div className="grid grid-cols-3 gap-6 w-full">
-                      <div>
-                        <h4 className="font-bold text-brand-navy mb-3 text-sm">
-                          🖥️ MONITOR & TV
-                        </h4>
-                        <ul className="space-y-2">
-                          {["Monitor Gaming", "Monitor Kantor", "TV LED/Smart"].map(
-                            (item) => (
-                              <li key={item}>
-                                <Link
-                                  href={`/category/monitor-tv`}
-                                  className="text-sm text-brand-muted hover:text-brand transition-colors"
-                                >
-                                  {item}
-                                </Link>
-                              </li>
-                            )
-                          )}
-                        </ul>
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-brand-navy mb-3 text-sm">
-                          ⌨️ PERIPHERAL
-                        </h4>
-                        <ul className="space-y-2">
-                          {["Keyboard & Mouse", "Headset & Speaker", "Kamera & Webcam"].map(
-                            (item) => (
-                              <li key={item}>
-                                <Link
-                                  href={`/category/peripheral-aksesoris`}
-                                  className="text-sm text-brand-muted hover:text-brand transition-colors"
-                                >
-                                  {item}
-                                </Link>
-                              </li>
-                            )
-                          )}
-                        </ul>
-                      </div>
-                      <div className="bg-gradient-to-br from-brand/10 to-brand-dark/10 rounded-xl p-4">
-                        <p className="font-bold text-brand text-sm">🔥 PROMO MINGGUAN</p>
-                        <p className="text-xs text-brand-muted mt-1">
-                          Diskon hingga 40% untuk produk pilihan
-                        </p>
-                        <Link
-                          href="/products"
-                          className="inline-block mt-2 text-xs font-semibold text-brand hover:underline"
-                        >
-                          Lihat Sekarang →
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <Link
-              href="/about"
-              className="px-4 py-2 text-sm font-semibold text-brand-navy hover:text-brand transition-colors rounded-lg hover:bg-brand/5"
-            >
-              Tentang Kami
-            </Link>
-            <Link
-              href="/blog"
-              className="px-4 py-2 text-sm font-semibold text-brand-navy hover:text-brand transition-colors rounded-lg hover:bg-brand/5"
-            >
-              Blog
-            </Link>
-            <Link
-              href="/contact"
-              className="px-4 py-2 text-sm font-semibold text-brand-navy hover:text-brand transition-colors rounded-lg hover:bg-brand/5"
-            >
-              Kontak
-            </Link>
-            <Link
-              href="/admin"
-              className="px-4 py-2 text-sm font-semibold text-brand-muted hover:text-brand transition-colors rounded-lg hover:bg-brand/5 border-l border-brand-border pl-5 ml-1"
-            >
-              ⚙️ Admin
-            </Link>
-          </nav>
-
-          {/* Right Side Actions */}
-          <div className="flex items-center gap-3">
-            {/* Search Bar */}
-            <div className="hidden md:flex items-center">
-              <div
-                className={`flex items-center bg-gray-100 rounded-xl transition-all duration-300 ${
-                  isSearchOpen ? "w-64 shadow-lg ring-2 ring-brand/30" : "w-48"
-                }`}
-              >
-                <Search size={16} className="ml-3 text-brand-muted flex-shrink-0" />
-                <input
-                  type="text"
-                  placeholder="Cari laptop, HP, monitor..."
-                  className="w-full bg-transparent px-3 py-2.5 text-sm outline-none placeholder:text-brand-muted/60"
-                  onFocus={() => setIsSearchOpen(true)}
-                  onBlur={() => setIsSearchOpen(false)}
-                />
+    <>
+      {/* Top Info Bar */}
+      <div className="bg-brand-navy text-white text-xs hidden md:block">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between py-2">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <MapPin size={12} className="text-brand" />
+                <span className="font-semibold">Bekasi</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock size={12} className="text-white/60" />
+                <span className="text-white/70">Senin - Sabtu, 09:00 - 18:00 WIB</span>
               </div>
             </div>
-
-            {/* Wishlist */}
-            <Link
-              href="/dashboard/wishlist"
-              className="hidden sm:flex p-2 text-brand-navy hover:text-brand transition-colors"
-            >
-              <Heart size={20} />
-            </Link>
-
-            {/* Notifications */}
-            <button className="relative p-2 text-brand-navy hover:text-brand transition-colors">
-              <Bell size={20} />
-              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-brand text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                3
-              </span>
-            </button>
-
-            {/* Cart */}
-            <Link
-              href="/dashboard/cart"
-              className="relative p-2 text-brand-navy hover:text-brand transition-colors"
-            >
-              <ShoppingCart size={20} />
-              {totalItems > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-brand text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                  {totalItems}
-                </span>
-              )}
-            </Link>
-
-            {/* Auth: Show profile if logged in, else show Masuk/Daftar */}
-            {user ? (
-              <div className="hidden sm:flex items-center relative">
-                <button
-                  onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-brand-gray transition-colors"
-                >
-                  <div className="w-8 h-8 bg-brand rounded-full flex items-center justify-center text-white text-sm font-bold">
-                    {user.name.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="text-sm font-semibold text-brand-navy max-w-[100px] truncate">
-                    {user.name.split(" ")[0]}
-                  </span>
-                  <ChevronDown size={14} className={`text-brand-muted transition-transform ${isProfileOpen ? "rotate-180" : ""}`} />
-                </button>
-
-                {/* Profile Dropdown */}
-                {isProfileOpen && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setIsProfileOpen(false)} />
-                    <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-2xl border border-brand-border py-2 z-50 animate-fade-in-up">
-                      <div className="px-4 py-3 border-b border-brand-border">
-                        <p className="font-semibold text-brand-navy text-sm truncate">{user.name}</p>
-                        <p className="text-xs text-brand-muted truncate">{user.email}</p>
-                      </div>
-                      <Link
-                        href="/dashboard"
-                        onClick={() => setIsProfileOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-brand-navy hover:bg-brand-gray transition-colors"
-                      >
-                        <User size={16} />
-                        Dashboard
-                      </Link>
-                      <Link
-                        href="/dashboard/orders"
-                        onClick={() => setIsProfileOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-brand-navy hover:bg-brand-gray transition-colors"
-                      >
-                        <Package size={16} />
-                        Pesanan Saya
-                      </Link>
-                      <Link
-                        href="/dashboard/cart"
-                        onClick={() => setIsProfileOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-brand-navy hover:bg-brand-gray transition-colors"
-                      >
-                        <ShoppingCart size={16} />
-                        Keranjang
-                      </Link>
-                      <div className="border-t border-brand-border mt-1 pt-1">
-                        <button
-                          onClick={handleLogout}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 w-full transition-colors"
-                        >
-                          <LogOut size={16} />
-                          Keluar
-                        </button>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            ) : (
-              <div className="hidden sm:flex items-center gap-2">
-                <Link
-                  href="/login"
-                  className="px-4 py-2 text-sm font-semibold text-brand-navy border border-brand-border rounded-lg hover:border-brand hover:text-brand transition-colors"
-                >
-                  Masuk
-                </Link>
-                <Link
-                  href="/register"
-                  className="px-4 py-2 text-sm font-semibold text-white bg-brand hover:bg-brand-dark rounded-lg transition-colors"
-                >
-                  Daftar
-                </Link>
-              </div>
-            )}
-
-            {/* Mobile Menu Toggle */}
-            <button
-              className="lg:hidden p-2 text-brand-navy"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
+            <div className="flex items-center gap-4">
+              <Link href="/how-to-buy" className="text-white/70 hover:text-white transition-colors">
+                Cara Beli
+              </Link>
+              <Link href="/dashboard/orders" className="text-white/70 hover:text-white transition-colors">
+                Lacak Pesanan
+              </Link>
+              <Link href="/warranty" className="text-white/70 hover:text-white transition-colors">
+                Garansi
+              </Link>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="lg:hidden bg-white border-t border-brand-border shadow-xl">
-          <div className="px-4 py-4 space-y-3">
-            {/* Mobile Search */}
-            <div className="flex items-center bg-gray-100 rounded-xl">
-              <Search size={16} className="ml-3 text-brand-muted" />
-              <input
-                type="text"
-                placeholder="Cari laptop, HP, monitor..."
-                className="w-full bg-transparent px-3 py-3 text-sm outline-none"
+      {/* Main Header */}
+      <header
+        className={`sticky top-0 z-50 transition-all duration-300 ${
+          isScrolled
+            ? "bg-white shadow-lg"
+            : "bg-white shadow-sm"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-4 h-16 lg:h-18">
+            {/* Logo */}
+            <Link href="/" className="flex-shrink-0">
+              <Image
+                src="/logo.png"
+                alt="BeliSeken.com"
+                width={140}
+                height={50}
+                className="h-10 w-auto object-contain"
+                priority
               />
-            </div>
-
-            {user && (
-              <div className="flex items-center gap-3 p-3 bg-brand/5 rounded-xl">
-                <div className="w-10 h-10 bg-brand rounded-full flex items-center justify-center text-white font-bold">
-                  {user.name.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <p className="font-semibold text-brand-navy text-sm">{user.name}</p>
-                  <p className="text-xs text-brand-muted">{user.email}</p>
-                </div>
-              </div>
-            )}
-
-            <Link
-              href="/"
-              className="block px-4 py-3 text-sm font-semibold text-brand-navy hover:bg-brand/5 rounded-lg"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Beranda
-            </Link>
-            <Link
-              href="/products"
-              className="block px-4 py-3 text-sm font-semibold text-brand-navy hover:bg-brand/5 rounded-lg"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Katalog
             </Link>
 
-            {user && (
-              <Link
-                href="/dashboard"
-                className="block px-4 py-3 text-sm font-semibold text-brand-navy hover:bg-brand/5 rounded-lg"
-                onClick={() => setIsMobileMenuOpen(false)}
+            {/* Kategori Button */}
+            <div className="hidden lg:block relative">
+              <button
+                onClick={() => setIsKategoriOpen(!isKategoriOpen)}
+                onMouseEnter={() => setIsKategoriOpen(true)}
+                className="flex items-center gap-2 px-4 py-2.5 border-2 border-brand rounded-xl hover:bg-brand/5 transition-colors"
               >
-                📊 Dashboard
-              </Link>
-            )}
-            <Link
-              href="/about"
-              className="block px-4 py-3 text-sm font-semibold text-brand-navy hover:bg-brand/5 rounded-lg"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Tentang Kami
-            </Link>
-            <Link
-              href="/blog"
-              className="block px-4 py-3 text-sm font-semibold text-brand-navy hover:bg-brand/5 rounded-lg"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Blog
-            </Link>
-            <Link
-              href="/contact"
-              className="block px-4 py-3 text-sm font-semibold text-brand-navy hover:bg-brand/5 rounded-lg"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Kontak
-            </Link>
-            <Link
-              href="/admin"
-              className="block px-4 py-3 text-sm font-semibold text-brand-muted hover:bg-brand/5 rounded-lg"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              ⚙️ Admin Panel
-            </Link>
+                <Menu size={18} className="text-brand" />
+                <span className="font-semibold text-brand-navy text-sm">Kategori</span>
+              </button>
 
-            <div className="pt-3 border-t border-brand-border">
-              {user ? (
-                <button
-                  onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}
-                  className="w-full px-4 py-3 text-sm font-semibold text-red-500 bg-red-50 rounded-lg text-center hover:bg-red-100 transition-colors"
+              {/* Kategori Dropdown */}
+              {isKategoriOpen && (
+                <div
+                  className="absolute top-full left-0 mt-1 w-64 bg-white rounded-xl shadow-2xl border border-brand-border py-2 z-50"
+                  onMouseLeave={() => setIsKategoriOpen(false)}
                 >
-                  Keluar
-                </button>
-              ) : (
-                <div className="flex gap-2">
-                  <Link
-                    href="/login"
-                    className="flex-1 px-4 py-3 text-sm font-semibold text-brand-navy border border-brand-border rounded-lg text-center hover:border-brand"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Masuk
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="flex-1 px-4 py-3 text-sm font-semibold text-white bg-brand hover:bg-brand-dark rounded-lg text-center"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Daftar
-                  </Link>
+                  {categories.map((cat) => (
+                    <Link
+                      key={cat.id}
+                      href={`/category/${cat.slug}`}
+                      className="flex items-center gap-3 px-4 py-2.5 hover:bg-brand/5 transition-colors"
+                      onClick={() => setIsKategoriOpen(false)}
+                    >
+                      <span className="text-xl">{cat.icon}</span>
+                      <div>
+                        <p className="text-sm font-semibold text-brand-navy">{cat.name}</p>
+                        <p className="text-xs text-brand-muted">{cat.itemCount} produk</p>
+                      </div>
+                    </Link>
+                  ))}
+                  <div className="border-t border-brand-border mt-2 pt-2 px-4">
+                    <Link
+                      href="/products"
+                      className="text-sm font-semibold text-brand hover:text-brand-dark"
+                      onClick={() => setIsKategoriOpen(false)}
+                    >
+                      Lihat Semua Produk →
+                    </Link>
+                  </div>
                 </div>
               )}
             </div>
+
+            {/* Search Bar */}
+            <div className="flex-1 max-w-2xl">
+              <div
+                className={`flex items-center bg-gray-100 rounded-xl transition-all duration-200 ${
+                  isSearchFocused ? "ring-2 ring-brand/30 bg-white shadow-lg" : ""
+                }`}
+              >
+                <Search size={18} className="ml-4 text-brand-muted flex-shrink-0" />
+                <input
+                  type="text"
+                  placeholder="Cari laptop, HP, monitor, router..."
+                  className="w-full px-4 py-3 text-sm outline-none bg-transparent text-brand-navy placeholder:text-brand-muted/60"
+                  onFocus={() => setIsSearchFocused(true)}
+                  onBlur={() => setIsSearchFocused(false)}
+                />
+                <button className="px-5 py-3 bg-brand hover:bg-brand-dark text-white font-semibold text-sm rounded-xl mr-1 transition-colors">
+                  Cari
+                </button>
+              </div>
+            </div>
+
+            {/* Right Side */}
+            <div className="flex items-center gap-2">
+              {/* Cart */}
+              <Link
+                href="/dashboard/cart"
+                className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-brand/5 transition-colors relative"
+              >
+                <ShoppingCart size={20} className="text-brand-navy" />
+                {totalItems > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-brand text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                    {totalItems}
+                  </span>
+                )}
+                <span className="hidden sm:block text-xs font-semibold text-brand-navy">
+                  Keranjang
+                </span>
+              </Link>
+
+              {/* Profile / Login */}
+              {user ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-brand/5 transition-colors"
+                  >
+                    <div className="w-8 h-8 bg-brand rounded-full flex items-center justify-center text-white text-sm font-bold">
+                      {user.name.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="hidden sm:block text-sm font-semibold text-brand-navy max-w-[80px] truncate">
+                      {user.name.split(" ")[0]}
+                    </span>
+                    <ChevronDown size={14} className={`text-brand-muted transition-transform ${isProfileOpen ? "rotate-180" : ""}`} />
+                  </button>
+
+                  {isProfileOpen && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setIsProfileOpen(false)} />
+                      <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-2xl border border-brand-border py-2 z-50">
+                        <div className="px-4 py-3 border-b border-brand-border">
+                          <p className="font-semibold text-brand-navy text-sm truncate">{user.name}</p>
+                          <p className="text-xs text-brand-muted truncate">{user.email}</p>
+                        </div>
+                        <Link href="/dashboard" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-brand/5">
+                          <User size={16} className="text-brand-muted" /> Dashboard
+                        </Link>
+                        <Link href="/dashboard/orders" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-brand/5">
+                          <Package size={16} className="text-brand-muted" /> Pesanan
+                        </Link>
+                        <div className="border-t border-brand-border mt-1 pt-1">
+                          <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 w-full">
+                            <LogOut size={16} /> Keluar
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  href="/login"
+                  className="flex items-center gap-2 px-4 py-2 border-2 border-brand text-brand font-semibold text-sm rounded-xl hover:bg-brand hover:text-white transition-colors"
+                >
+                  <User size={16} />
+                  <span className="hidden sm:block">Masuk / Daftar</span>
+                </Link>
+              )}
+
+              {/* Mobile Menu Toggle */}
+              <button
+                className="lg:hidden p-2 text-brand-navy"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              >
+                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            </div>
           </div>
         </div>
-      )}
-    </header>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden bg-white border-t border-brand-border shadow-xl max-h-[70vh] overflow-y-auto">
+            <div className="px-4 py-4 space-y-2">
+              {/* Mobile Search */}
+              <div className="flex items-center bg-gray-100 rounded-xl">
+                <Search size={16} className="ml-3 text-brand-muted" />
+                <input
+                  type="text"
+                  placeholder="Cari laptop, HP, monitor..."
+                  className="w-full bg-transparent px-3 py-3 text-sm outline-none"
+                />
+              </div>
+
+              {user && (
+                <div className="flex items-center gap-3 p-3 bg-brand/5 rounded-xl">
+                  <div className="w-10 h-10 bg-brand rounded-full flex items-center justify-center text-white font-bold">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-brand-navy text-sm">{user.name}</p>
+                    <p className="text-xs text-brand-muted">{user.email}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-2">
+                <p className="text-xs font-semibold text-brand-muted uppercase tracking-wider px-4 mb-2">Kategori</p>
+                {categories.map((cat) => (
+                  <Link
+                    key={cat.id}
+                    href={`/category/${cat.slug}`}
+                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-brand/5 rounded-lg"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <span className="text-xl">{cat.icon}</span>
+                    <span className="text-sm font-semibold text-brand-navy">{cat.name}</span>
+                  </Link>
+                ))}
+              </div>
+
+              <div className="border-t border-brand-border pt-2 mt-2">
+                <p className="text-xs font-semibold text-brand-muted uppercase tracking-wider px-4 mb-2">Menu</p>
+                <Link href="/" className="block px-4 py-2.5 text-sm font-semibold hover:bg-brand/5 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>Beranda</Link>
+                <Link href="/products" className="block px-4 py-2.5 text-sm font-semibold hover:bg-brand/5 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>Semua Produk</Link>
+                <Link href="/about" className="block px-4 py-2.5 text-sm font-semibold hover:bg-brand/5 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>Tentang Kami</Link>
+                <Link href="/blog" className="block px-4 py-2.5 text-sm font-semibold hover:bg-brand/5 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>Blog</Link>
+                <Link href="/contact" className="block px-4 py-2.5 text-sm font-semibold hover:bg-brand/5 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>Kontak</Link>
+              </div>
+
+              <div className="pt-3 border-t border-brand-border">
+                {user ? (
+                  <button
+                    onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}
+                    className="w-full px-4 py-3 text-sm font-semibold text-red-500 bg-red-50 rounded-lg"
+                  >
+                    Keluar
+                  </button>
+                ) : (
+                  <div className="flex gap-2">
+                    <Link href="/login" className="flex-1 px-4 py-3 text-sm font-semibold text-brand-navy border border-brand-border rounded-lg text-center" onClick={() => setIsMobileMenuOpen(false)}>
+                      Masuk
+                    </Link>
+                    <Link href="/register" className="flex-1 px-4 py-3 text-sm font-semibold text-white bg-brand rounded-lg text-center" onClick={() => setIsMobileMenuOpen(false)}>
+                      Daftar
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </header>
+    </>
   );
 }
