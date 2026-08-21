@@ -97,6 +97,16 @@ export default function AdminDashboardPage() {
           </div>
         </Link>
         <Link
+          href="/admin/banners"
+          className="bg-amber-500 hover:bg-amber-600 text-white rounded-xl p-5 flex items-center gap-3 transition-colors"
+        >
+          <span className="text-2xl">🖼️</span>
+          <div>
+            <p className="font-semibold">Banner & Promo</p>
+            <p className="text-white/70 text-xs">Kelola hero & kartu promo</p>
+          </div>
+        </Link>
+        <Link
           href="/products"
           target="_blank"
           className="bg-white border border-brand-border hover:border-brand hover:shadow-md rounded-xl p-5 flex items-center gap-3 transition-all"
