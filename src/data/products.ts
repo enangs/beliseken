@@ -17,6 +17,8 @@ export interface Product {
   imageBase64?: string;
   description?: string;
   specs: string[];
+  weight?: number; // gram
+  dimensions?: string; // PxLxT in cm
 }
 
 export interface Category {
@@ -84,6 +86,8 @@ export const initialProducts: Product[] = [
     image: "/products/macbook-air-m1.jpg",
     description: "MacBook Air M1 2020 kondisi like new. Sangat cocok untuk kerja dan kuliah. Baterai masih awet, performa responsif.",
     specs: ["8GB RAM", "256GB SSD", "M1 Chip", "13.3 inch Retina", "Baterai 95%"],
+    weight: 1290,
+    dimensions: "30.41 x 21.24 x 1.61 cm",
   },
   {
     id: "2",
@@ -102,6 +106,8 @@ export const initialProducts: Product[] = [
     image: "/products/thinkpad-x1.jpg",
     description: "Lenovo ThinkPad X1 Carbon Gen 9 untuk profesional IT. Ringan, performa tinggi, keyboard legendaris.",
     specs: ["i5-1135G7", "16GB RAM", "512GB SSD", "14 inch FHD", "Baterai 90%"],
+    weight: 1090,
+    dimensions: "32.3 x 21.7 x 1.49 cm",
   },
   {
     id: "3",
@@ -120,6 +126,8 @@ export const initialProducts: Product[] = [
     image: "/products/rog-strix-g14.jpg",
     description: "Laptop gaming ASUS ROG Strix G14 performa tinggi. Cocok untuk gaming dan editing video.",
     specs: ["Ryzen 9 5900HX", "16GB RAM", "RTX 3060", "512GB SSD", "14 inch 144Hz"],
+    weight: 1700,
+    dimensions: "32.4 x 22.2 x 1.99 cm",
   },
   {
     id: "4",
@@ -137,6 +145,8 @@ export const initialProducts: Product[] = [
     image: "/products/hp-probook.jpg",
     description: "Laptop bisnis HP ProBook 440 G8. Cocok untuk UMKM dan pekerja kantoran.",
     specs: ["i5-1135G7", "8GB RAM", "256GB SSD", "14 inch FHD", "Baterai 85%"],
+    weight: 1380,
+    dimensions: "32.4 x 22.5 x 1.90 cm",
   },
   {
     id: "5",
@@ -155,6 +165,8 @@ export const initialProducts: Product[] = [
     image: "/products/dell-latitude.jpg",
     description: "Dell Latitude 5420 untuk profesional. Layar FHD, performa handal, build quality premium.",
     specs: ["i5-1145G7", "8GB RAM", "256GB SSD", "14 inch FHD", "Baterai 88%"],
+    weight: 1410,
+    dimensions: "32.1 x 21.3 x 1.84 cm",
   },
   {
     id: "6",
@@ -172,6 +184,8 @@ export const initialProducts: Product[] = [
     image: "/products/ideapad-slim3.jpg",
     description: "Lenovo IdeaPad Slim 3 ringan dan tipis. Cocok untuk pelajar dan pekerja ringan.",
     specs: ["i3-1115G4", "4GB RAM", "256GB SSD", "14 inch HD", "Baterai 80%"],
+    weight: 1410,
+    dimensions: "32.7 x 24.1 x 1.99 cm",
   },
   {
     id: "7",
@@ -190,6 +204,8 @@ export const initialProducts: Product[] = [
     image: "/products/macbook-pro-14.jpg",
     description: "MacBook Pro 14 M1 Pro untuk kreator konten. Layar Liquid Retina XDR, performa monster.",
     specs: ["M1 Pro", "16GB RAM", "512GB SSD", "14.2 inch Liquid Retina XDR", "Baterai 92%"],
+    weight: 1600,
+    dimensions: "31.26 x 22.12 x 1.55 cm",
   },
   {
     id: "8",
@@ -207,6 +223,8 @@ export const initialProducts: Product[] = [
     image: "/products/vivobook-14.jpg",
     description: "ASUS VivoBook 14 untuk sehari-hari. Ringan, mudah dibawa ke mana-mana.",
     specs: ["i5-1035G1", "8GB RAM", "256GB SSD", "14 inch FHD", "Baterai 78%"],
+    weight: 1400,
+    dimensions: "32.5 x 21.6 x 1.90 cm",
   },
   {
     id: "9",
@@ -224,6 +242,8 @@ export const initialProducts: Product[] = [
     image: "/products/acer-aspire5.jpg",
     description: "Acer Aspire 5 performa solid untuk multitasking. Cocok untuk kantor dan pelajar.",
     specs: ["Ryzen 5 3500U", "8GB RAM", "256GB SSD", "15.6 inch FHD", "Baterai 82%"],
+    weight: 1740,
+    dimensions: "36.3 x 25.1 x 1.80 cm",
   },
   {
     id: "10",
@@ -242,6 +262,8 @@ export const initialProducts: Product[] = [
     image: "/products/thinkpad-t480.jpg",
     description: "ThinkPad T480 legendary durability. Keyboard terbaik, build quality militer.",
     specs: ["i5-8250U", "8GB RAM", "256GB SSD", "14 inch FHD", "Dual Battery"],
+    weight: 1650,
+    dimensions: "33.6 x 23.2 x 1.99 cm",
   },
 
   // ══════════════════════════════════════════
@@ -264,6 +286,8 @@ export const initialProducts: Product[] = [
     image: "/products/iphone-13-pro.jpg",
     description: "iPhone 13 Pro 128GB kondisi Grade A. ProMotion 120Hz, performa A15 Bionic masih kencang.",
     specs: ["128GB", "A15 Bionic", "ProMotion 120Hz", "Kondisi 93%", "Baterai 89%"],
+    weight: 203,
+    dimensions: "14.67 x 7.15 x 0.77 cm",
   },
   {
     id: "12",
@@ -281,6 +305,8 @@ export const initialProducts: Product[] = [
     image: "/products/galaxy-s22-ultra.jpg",
     description: "Samsung Galaxy S22 Ultra dengan S Pen. Kondisi 88%, masih sangat layak pakai.",
     specs: ["256GB", "Snapdragon 8 Gen 1", "S Pen", "Kondisi 88%", "Layar AMOLED"],
+    weight: 228,
+    dimensions: "16.33 x 7.79 x 0.89 cm",
   },
   {
     id: "13",
@@ -299,6 +325,8 @@ export const initialProducts: Product[] = [
     image: "/products/iphone-14.jpg",
     description: "iPhone 14 128GB kondisi Grade A. Layar OLED, performa A15, kamera ganda.",
     specs: ["128GB", "A15 Bionic", "6.1 inch OLED", "Kondisi 95%", "Baterai 91%"],
+    weight: 172,
+    dimensions: "14.67 x 7.15 x 0.78 cm",
   },
   {
     id: "14",
@@ -316,6 +344,8 @@ export const initialProducts: Product[] = [
     image: "/products/galaxy-a54.jpg",
     description: "Samsung Galaxy A54 mid-range premium. Layar Super AMOLED, tahan air IP67.",
     specs: ["128GB", "Exynos 1380", "6.4 inch AMOLED 120Hz", "IP67", "Baterai 90%"],
+    weight: 202,
+    dimensions: "15.82 x 7.67 x 0.82 cm",
   },
   {
     id: "15",
@@ -334,6 +364,8 @@ export const initialProducts: Product[] = [
     image: "/products/ipad-air-m1.jpg",
     description: "iPad Air M1 untuk produktivitas dan kreativitas. Chip M1 performa desktop.",
     specs: ["64GB", "M1 Chip", "10.9 inch Liquid Retina", "Apple Pencil 2", "Baterai 95%"],
+    weight: 461,
+    dimensions: "24.76 x 17.85 x 0.61 cm",
   },
   {
     id: "16",
@@ -351,6 +383,8 @@ export const initialProducts: Product[] = [
     image: "/products/tab-s8.jpg",
     description: "Samsung Galaxy Tab S8 untuk multitasking. S Pen included, layar 120Hz.",
     specs: ["128GB", "Snapdragon 8 Gen 1", "11 inch LTPS 120Hz", "S Pen", "Baterai 88%"],
+    weight: 502,
+    dimensions: "25.38 x 16.53 x 0.63 cm",
   },
   {
     id: "17",
@@ -369,6 +403,8 @@ export const initialProducts: Product[] = [
     image: "/products/redmi-note12.jpg",
     description: "Xiaomi Redmi Note 12 value for money. Layar AMOLED 120Hz, kamera 50MP.",
     specs: ["128GB", "Snapdragon 685", "6.67 inch AMOLED 120Hz", "50MP Camera", "Baterai 87%"],
+    weight: 183,
+    dimensions: "16.59 x 7.62 x 0.80 cm",
   },
   {
     id: "18",
@@ -386,6 +422,8 @@ export const initialProducts: Product[] = [
     image: "/products/iphone-12-mini.jpg",
     description: "iPhone 12 Mini compact flagship. Cocok untuk yang suka ukuran kecil tapi powerful.",
     specs: ["64GB", "A14 Bionic", "5.4 inch OLED", "Kondisi 85%", "Baterai 82%"],
+    weight: 135,
+    dimensions: "13.15 x 6.42 x 0.74 cm",
   },
   {
     id: "19",
@@ -403,6 +441,8 @@ export const initialProducts: Product[] = [
     image: "/products/tab-a8.jpg",
     description: "Samsung Galaxy Tab A8 untuk hiburan dan belajar. Layar 10.5 inch, speaker quad.",
     specs: ["64GB", "Unisoc T618", "10.5 inch TFT", "Speaker Quad", "Baterai 85%"],
+    weight: 508,
+    dimensions: "24.68 x 16.13 x 0.69 cm",
   },
   {
     id: "20",
@@ -421,6 +461,8 @@ export const initialProducts: Product[] = [
     image: "/products/realme-gt-neo3.jpg",
     description: "Realme GT Neo 3 performa gaming. Charging 150W, layar AMOLED 120Hz.",
     specs: ["128GB", "Dimensity 8100", "6.7 inch AMOLED 120Hz", "150W Charging", "Baterai 90%"],
+    weight: 194,
+    dimensions: "16.33 x 7.56 x 0.82 cm",
   },
 
   // ══════════════════════════════════════════
@@ -443,6 +485,8 @@ export const initialProducts: Product[] = [
     image: "/products/dell-u2720q.jpg",
     description: "Monitor 4K 27 inch untuk desain dan editing. USB-C 90W charging, warna akurat.",
     specs: ["27 inch 4K IPS", "USB-C 90W", "HDR 400", "100% sRGB", "60Hz"],
+    weight: 6600,
+    dimensions: "61.1 x 22.0 x 51.5 cm",
   },
   {
     id: "22",
@@ -461,6 +505,8 @@ export const initialProducts: Product[] = [
     image: "/products/lg-ultragear.jpg",
     description: "Monitor gaming LG UltraGear 27 inch. Nano IPS, 144Hz, 1ms response time.",
     specs: ["27 inch QHD Nano IPS", "144Hz", "1ms GTG", "HDR 10", "G-Sync Compatible"],
+    weight: 5800,
+    dimensions: "61.3 x 23.7 x 45.8 cm",
   },
   {
     id: "23",
@@ -478,6 +524,8 @@ export const initialProducts: Product[] = [
     image: "/products/samsung-4k-32.jpg",
     description: "Monitor Samsung 4K 32 inch untuk produktivitas. Ukuran besar, resolusi tajam.",
     specs: ["32 inch 4K UHD", "IPS Panel", "60Hz", "HDMI + DisplayPort", "AMD FreeSync"],
+    weight: 7500,
+    dimensions: "73.0 x 22.0 x 59.7 cm",
   },
   {
     id: "24",
@@ -496,6 +544,8 @@ export const initialProducts: Product[] = [
     image: "/products/lg-55tv.jpg",
     description: "Smart TV LG 55 inch 4K UHD. webOS, ThinQ AI, HDR10 Pro.",
     specs: ["55 inch 4K UHD", "webOS", "ThinQ AI", "HDR10 Pro", "3x HDMI"],
+    weight: 14400,
+    dimensions: "123.5 x 71.9 x 25.9 cm",
   },
   {
     id: "25",
@@ -514,6 +564,8 @@ export const initialProducts: Product[] = [
     image: "/products/benq-gw2480.jpg",
     description: "Monitor BenQ 24 inch eye-care. Low Blue Light, Flicker-Free, IPS panel.",
     specs: ["24 inch FHD IPS", "60Hz", "Low Blue Light", "Flicker-Free", "Built-in Speakers"],
+    weight: 3700,
+    dimensions: "54.0 x 22.5 x 40.2 cm",
   },
   {
     id: "26",
@@ -531,6 +583,8 @@ export const initialProducts: Product[] = [
     image: "/products/asus-proart.jpg",
     description: "Monitor ASUS ProArt untuk desainer. Warna akurat Calman Verified, 2K QHD.",
     specs: ["27 inch QHD IPS", "100% sRGB", "Calman Verified", "USB-C", "65W PD"],
+    weight: 7120,
+    dimensions: "61.4 x 23.0 x 50.5 cm",
   },
   {
     id: "27",
@@ -548,6 +602,8 @@ export const initialProducts: Product[] = [
     image: "/products/hisense-43tv.jpg",
     description: "Smart TV Hisense 43 inch. VIDAA OS, HDR, DTS Virtual surround.",
     specs: ["43 inch FHD", "VIDAA OS", "HDR", "DTS Virtual", "2x HDMI"],
+    weight: 7800,
+    dimensions: "96.5 x 56.2 x 18.5 cm",
   },
   {
     id: "28",
@@ -566,6 +622,8 @@ export const initialProducts: Product[] = [
     image: "/products/odyssey-g5.jpg",
     description: "Monitor gaming Samsung Odyssey G5. Curved 1000R, 165Hz, 1ms.",
     specs: ["27 inch QHD VA", "165Hz", "1ms", "1000R Curved", "FreeSync Premium"],
+    weight: 5500,
+    dimensions: "61.7 x 24.4 x 47.3 cm",
   },
   {
     id: "29",
@@ -583,6 +641,8 @@ export const initialProducts: Product[] = [
     image: "/products/philips-242m1.jpg",
     description: "Monitor Philips 24 inch gaming. 144Hz, 1ms MPRT, Adaptive Sync.",
     specs: ["24 inch FHD VA", "144Hz", "1ms MPRT", "Adaptive Sync", "LowBlue Mode"],
+    weight: 4200,
+    dimensions: "55.5 x 22.0 x 40.2 cm",
   },
   {
     id: "30",
@@ -601,6 +661,8 @@ export const initialProducts: Product[] = [
     image: "/products/coocaa-32tv.jpg",
     description: "Smart TV Coocaa 32 inch Android TV. Google Assistant, Chromecast built-in.",
     specs: ["32 inch HD", "Android TV", "Google Assistant", "Chromecast", "2x HDMI"],
+    weight: 4500,
+    dimensions: "73.0 x 45.6 x 18.0 cm",
   },
 
   // ══════════════════════════════════════════
@@ -623,6 +685,8 @@ export const initialProducts: Product[] = [
     image: "/products/mikrotik-rb750gr3.jpg",
     description: "Router MikroTik gigabit untuk UMKM. RouterOS L4, performa stabil untuk jaringan kantor.",
     specs: ["Gigabit Ethernet", "750MHz CPU", "256MB RAM", "RouterOS L4", "5 Port"],
+    weight: 280,
+    dimensions: "11.4 x 13.7 x 3.6 cm",
   },
   {
     id: "32",
@@ -641,6 +705,8 @@ export const initialProducts: Product[] = [
     image: "/products/tp-link-ax50.jpg",
     description: "Router WiFi 6 TP-Link AX50. Kecepatan tinggi, cocok untuk streaming dan gaming.",
     specs: ["WiFi 6 AX3000", "Gigabit", "MU-MIMO", "Beamforming", "4 Port LAN"],
+    weight: 550,
+    dimensions: "25.7 x 16.8 x 8.0 cm",
   },
   {
     id: "33",
@@ -658,6 +724,8 @@ export const initialProducts: Product[] = [
     image: "/products/mikrotik-hap-ac2.jpg",
     description: "MikroTik hAP ac² dual-band. RouterOS, cocok untuk small office / UMKM.",
     specs: ["Dual Band AC", "Quad-Core CPU", "256MB RAM", "RouterOS L4", "PoE Out"],
+    weight: 280,
+    dimensions: "11.4 x 13.7 x 3.6 cm",
   },
   {
     id: "34",
@@ -676,6 +744,8 @@ export const initialProducts: Product[] = [
     image: "/products/unifi-ap-lite.jpg",
     description: "Access Point Ubiquiti UniFi AC Lite. Performa enterprise untuk kantor dan rumah.",
     specs: ["Dual Band AC", "867Mbps 5GHz", "PoE Powered", "UniFi Controller", "2x2 MIMO"],
+    weight: 185,
+    dimensions: "16.0 x 16.0 x 3.1 cm",
   },
   {
     id: "35",
@@ -694,6 +764,8 @@ export const initialProducts: Product[] = [
     image: "/products/tplink-switch8.jpg",
     description: "Switch gigabit 8 port TP-Link. Plug and play, silent operation, green networking.",
     specs: ["8 Port Gigabit", "Plug & Play", "Fanless", "MDI/MDIX", "48Gbps Backplane"],
+    weight: 340,
+    dimensions: "19.0 x 12.8 x 2.7 cm",
   },
   {
     id: "36",
@@ -711,6 +783,8 @@ export const initialProducts: Product[] = [
     image: "/products/mikrotik-951ui.jpg",
     description: "Router MikroTik hAP lite untuk rumah dan UMKM kecil. RouterOS level 4.",
     specs: ["WiFi N300", "650MHz CPU", "64MB RAM", "RouterOS L4", "PoE In"],
+    weight: 200,
+    dimensions: "11.3 x 8.9 x 2.8 cm",
   },
   {
     id: "37",
@@ -728,6 +802,8 @@ export const initialProducts: Product[] = [
     image: "/products/dlink-dir615.jpg",
     description: "Router D-Link DIR-615 untuk rumah. Wireless N300, mudah setup, harga terjangkau.",
     specs: ["Wireless N300", "4 Port Fast Ethernet", "WPS Button", "WPA2", "Parental Control"],
+    weight: 220,
+    dimensions: "19.2 x 12.5 x 3.2 cm",
   },
   {
     id: "38",
@@ -746,6 +822,8 @@ export const initialProducts: Product[] = [
     image: "/products/unifi-switch.jpg",
     description: "Switch managed UniFi 8 port PoE. Managed via UniFi Network Application.",
     specs: ["8 Port Gigabit", "4 PoE Ports", "42W PoE Budget", "Fanless", "UniFi Managed"],
+    weight: 460,
+    dimensions: "16.0 x 12.0 x 3.2 cm",
   },
   {
     id: "39",
@@ -763,6 +841,8 @@ export const initialProducts: Product[] = [
     image: "/products/tenda-ac10.jpg",
     description: "Router Tenda AC10 dual-band. WiFi AC1200, MU-MIMO, harga sangat terjangkau.",
     specs: ["WiFi AC1200", "Dual Band", "MU-MIMO", "4 Port Gigabit", "App Control"],
+    weight: 310,
+    dimensions: "24.0 x 15.8 x 3.8 cm",
   },
   {
     id: "40",
@@ -781,6 +861,8 @@ export const initialProducts: Product[] = [
     image: "/products/mikrotik-hex-s.jpg",
     description: "MikroTik hEX S dengan SFP. RouterOS, USB, PoE output, enclored case.",
     specs: ["880MHz CPU", "256MB RAM", "5 Gigabit + SFP", "USB 2.0", "RouterOS L5"],
+    weight: 440,
+    dimensions: "11.4 x 13.7 x 3.6 cm",
   },
 
   // ══════════════════════════════════════════
@@ -803,6 +885,8 @@ export const initialProducts: Product[] = [
     image: "/products/mx-master-3.jpg",
     description: "Mouse wireless premium Logitech MX Master 3. Ergonomis, multi-device, USB-C charging.",
     specs: ["Wireless", "USB-C", "4000 DPI", "Multi-Device", "Thumb Wheel"],
+    weight: 141,
+    dimensions: "12.4 x 8.4 x 5.1 cm",
   },
   {
     id: "42",
@@ -821,6 +905,8 @@ export const initialProducts: Product[] = [
     image: "/products/mx-keys.jpg",
     description: "Keyboard wireless Logitech MX Keys. Backlight, smart illumination, multi-device.",
     specs: ["Wireless", "Backlight", "Multi-Device", "USB-C", "Perfect Stroke Keys"],
+    weight: 810,
+    dimensions: "43.0 x 13.0 x 2.0 cm",
   },
   {
     id: "43",
@@ -839,6 +925,8 @@ export const initialProducts: Product[] = [
     image: "/products/deathadder-v2.jpg",
     description: "Mouse gaming Razer DeathAdder V2. Sensor optical 20K DPI, switches optical.",
     specs: ["20K DPI Optical", "8 Buttons", "Optical Switches", "Chroma RGB", "63g"],
+    weight: 82,
+    dimensions: "12.7 x 6.17 x 4.27 cm",
   },
   {
     id: "44",
@@ -856,6 +944,8 @@ export const initialProducts: Product[] = [
     image: "/products/keychron-k2.jpg",
     description: "Keyboard mechanical Keychron K2. Wireless, hot-swappable, RGB, Mac & Windows.",
     specs: ["Wireless BT 5.1", "Hot-Swappable", "RGB Backlit", "Gateron Switch", "75% Layout"],
+    weight: 770,
+    dimensions: "31.5 x 12.6 x 3.1 cm",
   },
   {
     id: "45",
@@ -874,6 +964,8 @@ export const initialProducts: Product[] = [
     image: "/products/hyperx-cloud2.jpg",
     description: "Headset gaming HyperX Cloud II. Virtual 7.1 surround, memory foam, aluminum frame.",
     specs: ["Virtual 7.1 Surround", "53mm Drivers", "Memory Foam", "Detachable Mic", "USB DAC"],
+    weight: 309,
+    dimensions: "22.0 x 10.5 x 21.0 cm",
   },
   {
     id: "46",
@@ -892,6 +984,8 @@ export const initialProducts: Product[] = [
     image: "/products/c920-webcam.jpg",
     description: "Webcam Logitech C920 HD Pro. 1080p 30fps, stereo mic, autofocus.",
     specs: ["1080p 30fps", "Stereo Mic", "Autofocus", "Wide 78° FOV", "USB 2.0"],
+    weight: 162,
+    dimensions: "10.0 x 7.0 x 5.0 cm",
   },
   {
     id: "47",
@@ -909,6 +1003,8 @@ export const initialProducts: Product[] = [
     image: "/products/arctis-7.jpg",
     description: "Headset wireless SteelSeries Arctis 7. DTS Headphone:X v2, 24 jam battery.",
     specs: ["Wireless 2.4GHz", "DTS v2", "24hr Battery", "ClearCast Mic", "Discord Certified"],
+    weight: 353,
+    dimensions: "18.5 x 10.0 x 20.0 cm",
   },
   {
     id: "48",
@@ -926,6 +1022,8 @@ export const initialProducts: Product[] = [
     image: "/products/corsair-k70.jpg",
     description: "Keyboard mechanical Corsair K70 RGB. Cherry MX, aluminum frame, per-key RGB.",
     specs: ["Cherry MX Red", "Per-key RGB", "Aluminum Frame", "USB Pass-through", "Full N-Key"],
+    weight: 1250,
+    dimensions: "43.8 x 16.6 x 3.7 cm",
   },
   {
     id: "49",
@@ -944,6 +1042,8 @@ export const initialProducts: Product[] = [
     image: "/products/anker-65w.jpg",
     description: "Charger GaN Anker 65W. Compact, 3 port (2 USB-C + 1 USB-A), fast charging.",
     specs: ["65W Output", "GaN Tech", "2x USB-C + 1x USB-A", "PD 3.0", "Compact Size"],
+    weight: 155,
+    dimensions: "5.0 x 5.0 x 3.2 cm",
   },
   {
     id: "50",
@@ -961,6 +1061,8 @@ export const initialProducts: Product[] = [
     image: "/products/g304-lightspeed.jpg",
     description: "Mouse gaming wireless Logitech G304. HERO sensor 12K DPI, 250 jam battery.",
     specs: ["12K DPI HERO", "Wireless LIGHTSPEED", "250hr Battery", "6 Buttons", "100g"],
+    weight: 99,
+    dimensions: "11.6 x 6.2 x 3.8 cm",
   },
 ];
 

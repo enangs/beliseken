@@ -65,7 +65,7 @@ export default function CheckoutPage() {
           body: JSON.stringify({
             origin: STORE_ORIGIN,
             destination: address.cityId,
-            weight: 1000,
+            weight: items.reduce((total, item) => total + (item.product.weight || 500) * item.quantity, 0),
             courier: "jne:sicepat:jnt:pos:tiki",
           }),
         });

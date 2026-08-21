@@ -162,6 +162,26 @@ export default function ProductClient({ slug }: { slug: string }) {
                 </div>
               </div>
 
+              {(product.weight || product.dimensions) && (
+                <div className="mb-6">
+                  <h3 className="font-semibold text-brand-navy mb-3">📦 Informasi Pengiriman</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {product.weight && (
+                      <div className="bg-brand-gray rounded-lg p-3">
+                        <p className="text-xs text-brand-muted">Berat</p>
+                        <p className="font-semibold text-brand-navy">{product.weight >= 1000 ? `${(product.weight / 1000).toFixed(1)} kg` : `${product.weight} gram`}</p>
+                      </div>
+                    )}
+                    {product.dimensions && (
+                      <div className="bg-brand-gray rounded-lg p-3">
+                        <p className="text-xs text-brand-muted">Dimensi (PxLxT)</p>
+                        <p className="font-semibold text-brand-navy">{product.dimensions}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="mb-6">
                 <h3 className="font-semibold text-brand-navy mb-2">Jumlah</h3>
                 <div className="flex items-center gap-3">

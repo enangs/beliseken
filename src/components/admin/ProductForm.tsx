@@ -52,6 +52,8 @@ export default function ProductForm({
   const [reviewCount, setReviewCount] = useState(initialData?.reviewCount?.toString() || "0");
   const [description, setDescription] = useState(initialData?.description || "");
   const [specs, setSpecs] = useState(initialData?.specs?.join(", ") || "");
+  const [weight, setWeight] = useState(initialData?.weight?.toString() || "");
+  const [dimensions, setDimensions] = useState(initialData?.dimensions || "");
   const [imageBase64, setImageBase64] = useState(initialData?.imageBase64 || "");
   const [imagePreview, setImagePreview] = useState(initialData?.imageBase64 || "");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -154,6 +156,8 @@ export default function ProductForm({
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean),
+      weight: weight ? parseInt(weight) : undefined,
+      dimensions: dimensions.trim() || undefined,
     };
 
     onSubmit(data);
@@ -341,6 +345,39 @@ export default function ProductForm({
               className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all bg-gray-50"
               readOnly
             />
+          </div>
+        </div>
+      </div>
+
+      {/* Weight & Dimensions */}
+      <div className="bg-white rounded-xl border border-brand-border p-5">
+        <h2 className="font-bold text-brand-navy mb-4">📦 Berat & Dimensi (untuk Pengiriman)</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-semibold text-brand-navy mb-1">
+              Berat (gram)
+            </label>
+            <input
+              type="number"
+              value={weight}
+              onChange={(e) => setWeight(e.target.value)}
+              placeholder="Contoh: 1290 (untuk MacBook Air)"
+              className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
+            />
+            <p className="text-xs text-brand-muted mt-1">Digunakan untuk menghitung ongkos kirim</p>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-brand-navy mb-1">
+              Dimensi (PxLxT)
+            </label>
+            <input
+              type="text"
+              value={dimensions}
+              onChange={(e) => setDimensions(e.target.value)}
+              placeholder="Contoh: 30.41 x 21.24 x 1.61 cm"
+              className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
+            />
+            <p className="text-xs text-brand-muted mt-1">Panjang x Lebar x Tinggi dalam cm</p>
           </div>
         </div>
       </div>
