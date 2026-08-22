@@ -3,12 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ShoppingCart, Star, Check } from "lucide-react";
-import { Product } from "@/data/products";
+import { type ProductResponse } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
 import { useCart } from "@/lib/cart";
 
 interface ProductCardProps {
-  product: Product;
+  product: ProductResponse;
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
@@ -100,10 +100,10 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Price */}
         <div className="flex items-baseline gap-2 mb-3">
           <span className="text-lg font-bold text-brand">
-            {formatPrice(product.price)}
+            {formatPrice(product.sellingPrice)}
           </span>
           <span className="text-sm text-brand-muted line-through">
-            {formatPrice(product.originalPrice)}
+            {formatPrice(product.sellingPrice * (1 + product.discount / 100))}
           </span>
         </div>
 

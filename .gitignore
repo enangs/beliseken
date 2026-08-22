@@ -50,3 +50,5 @@ public/hero.jpeg
 # env files
 .env.local
 .env.production
+
+/src/generated/prisma

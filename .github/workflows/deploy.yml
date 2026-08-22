@@ -26,10 +26,68 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build static export
+      - name: Setup Prisma
+        run: |
+          npx prisma generate
+          npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Build Next.js
         run: npm run build
         env:
-          NEXT_PUBLIC_SITE_URL: https://beliseken.com
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Create deployment package
+        run: |
+          # Create deployment artifact
+          mkdir -p deploy
+          # Copy necessary files
+          cp -r .next deploy/
+          cp -r node_modules deploy/
+          cp -r prisma deploy/
+          cp package.json deploy/
+          cp next.config.mjs deploy/
+          cp .env.production deploy/ 2>/dev/null || true
+          # Create .env for production
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > deploy/.env
+          echo "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}" >> deploy/.env
+          echo "NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}" >> deploy/.env
+          echo "NODE_ENV=production" >> deploy/.env
+          # Create startup script
+          cat > deploy/start.sh << 'EOF'
+          #!/bin/bash
+          cd /home/beliseken/public_html
+          export NODE_ENV=production
+          export DATABASE_URL="${{ secrets.DATABASE_URL }}"
+          export NEXTAUTH_SECRET="${{ secrets.NEXTAUTH_SECRET }}"
+          export NEXTAUTH_URL="${{ secrets.NEXTAUTH_URL }}"
+          node node_modules/.bin/next start -p 3000
+          EOF
+          chmod +x deploy/start.sh
+          # Create package.json scripts for cPanel
+          cat > deploy/package.json << 'EOF'
+          {
+            "name": "beliseken",
+            "version": "1.0.0",
+            "private": true,
+            "scripts": {
+              "start": "next start -p 3000",
+              "postinstall": "npx prisma generate"
+            },
+            "dependencies": {
+              "@prisma/client": "^6.19.3",
+              "bcryptjs": "^3.0.3",
+              "jsonwebtoken": "^9.0.3",
+              "next": "14.2.35",
+              "next-auth": "^5.0.0-beta.32",
+              "react": "^18",
+              "react-dom": "^18"
+            }
+          }
+          EOF
 
       - name: Deploy to cPanel via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -39,6 +97,10 @@ jobs:
           password: ${{ secrets.CPANEL_FTP_PASSWORD }}
           port: 21
           server-dir: /public_html/
-          local-dir: ./out/
+          local-dir: ./deploy/
           security: loose
           timeout: 60000
+          exclude: |
+            .git/*
+            node_modules/*
+            .next/cache/*

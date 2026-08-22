@@ -1,0 +1,684 @@
+// ══════════════════════════════════════════════════════════════
+// BeliSeken.com — Prisma Schema v1.0
+// E-commerce Elektronik Bekas Premium
+// ══════════════════════════════════════════════════════════════
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ══════════════════════════════════════════════════════════════
+// MODULE 1: MASTER DATA
+// ══════════════════════════════════════════════════════════════
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  icon        String?
+  color       String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  subcategories SubCategory[]
+  products      Product[]
+
+  @@map("categories")
+}
+
+model SubCategory {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  categoryId  String
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category  Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  products  Product[]
+
+  @@unique([categoryId, name])
+  @@map("subcategories")
+}
+
+model Brand {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  logoUrl     String?
+  website     String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  models  BrandModel[]
+  products Product[]
+
+  @@map("brands")
+}
+
+model BrandModel {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  brandId     String
+  imageUrl    String?
+  specs       String?  // JSON string: Default specs template
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  brand     Brand     @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  products  Product[]
+
+  @@unique([brandId, name])
+  @@map("brand_models")
+}
+
+model ConditionGrade {
+  id            String   @id @default(cuid())
+  code          String   @unique  // "A+", "A", "B+", "B", "C", "D"
+  name          String             // "Mulus (Grade A)"
+  description   String             // Deskripsi standar kondisi
+  minScore      Int                // Skor minimum (1-100)
+  maxScore      Int                // Skor maksimum
+  priceModifier Float   @default(1.0) // Multiplier harga
+  sortOrder     Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  units ProductUnit[]
+
+  @@map("condition_grades")
+}
+
+// ══════════════════════════════════════════════════════════════
+// MODULE 2: PRODUCT (Template) vs UNIT (Per-Item SKU)
+// ══════════════════════════════════════════════════════════════
+
+model Product {
+  id              String   @id @default(cuid())
+  name            String
+  slug            String   @unique
+  sku             String   @unique
+  description     String?
+  shortDesc       String?
+
+  // Relasi Master Data
+  categoryId      String
+  subcategoryId   String?
+  brandId         String?
+  modelId         String?
+
+  // Pricing (HPP & Margin)
+  basePrice       Float    @default(0)    // HPP / Harga beli dari supplier
+  sellingPrice    Float    @default(0)    // Harga jual normal
+  minPrice        Float?                  // Harga minimum
+  discount        Int      @default(0)    // Persen diskon
+
+  // Physical Info
+  weight          Int?                    // gram
+  dimensions      String?                 // PxLxT cm
+
+  // SEO & Meta
+  metaTitle       String?
+  metaDesc        String?
+  ogImage         String?
+
+  // Status
+  isActive        Boolean  @default(true)
+  isFeatured      Boolean  @default(false)
+  badge           String?                 // "HOT DEAL", "BEST SELLER", "NEW"
+  sortOrder       Int      @default(0)
+
+  // Stats
+  avgRating       Float    @default(0)
+  reviewCount     Int      @default(0)
+  soldCount       Int      @default(0)
+  viewCount       Int      @default(0)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  publishedAt     DateTime?
+
+  // Relations
+  category        Category       @relation(fields: [categoryId], references: [id])
+  subcategory     SubCategory?   @relation(fields: [subcategoryId], references: [id])
+  brand           Brand?         @relation(fields: [brandId], references: [id])
+  model           BrandModel?    @relation(fields: [modelId], references: [id])
+
+  units           ProductUnit[]
+  images          ProductImage[]
+  specs           ProductSpec[]
+  reviews         Review[]
+  orderItems      OrderItem[]
+  purchaseOrderItems PurchaseOrderItem[]
+  wishlistItems   WishlistItem[]
+  priceHistory    PriceHistory[]
+
+  @@index([categoryId])
+  @@index([brandId])
+  @@index([sellingPrice])
+  @@index([isActive, isFeatured])
+  @@map("products")
+}
+
+model ProductUnit {
+  id              String   @id @default(cuid())
+  productId       String
+  unitSku         String   @unique
+  serialNumber    String?
+
+  // Kondisi
+  conditionGradeId String
+  conditionScore   Int
+  conditionNotes   String?
+  batteryHealth    Int?
+  cosmeticNotes    String?
+
+  // Harga Per Unit
+  purchasePrice    Float
+  sellingPrice     Float
+  originalPrice    Float?
+
+  // Status
+  status           String   @default("AVAILABLE") // AVAILABLE, RESERVED, SOLD, IN_REPAIR, QUARANTINE, RETURNED
+
+  // Foto Unit
+  mainPhoto        String?
+  additionalPhotos String @default("[]") // JSON array
+
+  // Inspeksi
+  inspectedAt      DateTime?
+  inspectedBy      String?
+  warrantyExpiry   DateTime?
+
+  // Supplier Info
+  supplierId       String?
+  purchaseDate     DateTime?
+  purchaseOrderId  String?
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  product           Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  conditionGrade    ConditionGrade   @relation(fields: [conditionGradeId], references: [id])
+  supplier          Supplier?        @relation(fields: [supplierId], references: [id])
+  purchaseOrder     PurchaseOrder?   @relation(fields: [purchaseOrderId], references: [id])
+  inventoryLogs     InventoryLog[]
+  orderItems        OrderItem[]
+  reservations      StockReservation[]
+
+  @@index([productId, status])
+  @@index([status])
+  @@index([unitSku])
+  @@map("product_units")
+}
+
+model ProductImage {
+  id          String   @id @default(cuid())
+  productId   String
+  url         String
+  alt         String?
+  sortOrder   Int      @default(0)
+  isPrimary   Boolean  @default(false)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+model ProductSpec {
+  id          String   @id @default(cuid())
+  productId   String
+  key         String
+  value       String
+  sortOrder   Int      @default(0)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, key])
+  @@map("product_specs")
+}
+
+model PriceHistory {
+  id          String   @id @default(cuid())
+  productId   String
+  oldPrice    Float
+  newPrice    Float
+  reason      String?
+  changedBy   String?
+
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+
+  @@map("price_history")
+}
+
+// ══════════════════════════════════════════════════════════════
+// MODULE 3: SUPPLIER & PENGADAAN (PROCUREMENT)
+// ══════════════════════════════════════════════════════════════
+
+model Supplier {
+  id          String   @id @default(cuid())
+  name        String
+  code        String   @unique
+  type        String   @default("BORONGAN") // BORONGAN, INDIVIDUAL, TRADE_IN
+
+  contactName String?
+  phone       String?
+  email       String?
+  address     String?
+  city        String?
+
+  rating      Float    @default(0)
+  totalDeals  Int      @default(0)
+  totalValue  Float    @default(0)
+
+  isActive    Boolean  @default(true)
+  notes       String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  units            ProductUnit[]
+  purchaseOrders   PurchaseOrder[]
+  purchaseOrderItems PurchaseOrderItem[]
+
+  @@map("suppliers")
+}
+
+model PurchaseOrder {
+  id              String   @id @default(cuid())
+  poNumber        String   @unique
+  supplierId      String
+
+  status          String   @default("DRAFT") // DRAFT, SENT, RECEIVED, INSPECTING, COMPLETED, CANCELLED
+
+  totalCost       Float    @default(0)
+  totalItems      Int      @default(0)
+  paymentStatus   String   @default("UNPAID") // UNPAID, PARTIAL, PAID
+  paidAmount      Float    @default(0)
+
+  notes           String?
+  expectedDate    DateTime?
+  receivedAt      DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  supplier        Supplier    @relation(fields: [supplierId], references: [id])
+  items           PurchaseOrderItem[]
+  units           ProductUnit[]
+
+  @@index([supplierId])
+  @@index([status])
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id              String   @id @default(cuid())
+  purchaseOrderId String
+  supplierId      String
+  productId       String?
+  productName     String
+  quantity        Int
+  unitCost        Float
+  totalCost       Float
+  conditionGrade  String?
+  notes           String?
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  supplier      Supplier      @relation(fields: [supplierId], references: [id])
+  product       Product?      @relation(fields: [productId], references: [id])
+
+  @@map("purchase_order_items")
+}
+
+// ══════════════════════════════════════════════════════════════
+// MODULE 4: INVENTORY MANAGEMENT
+// ══════════════════════════════════════════════════════════════
+
+model InventoryLog {
+  id          String   @id @default(cuid())
+  unitId      String
+  action      String   // CREATED, INSPECTED, STATUS_CHANGE, PRICE_CHANGE, SOLD, RETURNED, ADJUSTED
+  fromStatus  String?
+  toStatus    String?
+  notes       String?
+  performedBy String?
+  metadata    String?  // JSON string
+
+  unit      ProductUnit @relation(fields: [unitId], references: [id])
+  createdAt DateTime    @default(now())
+
+  @@index([unitId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("inventory_logs")
+}
+
+model StockReservation {
+  id          String   @id @default(cuid())
+  unitId      String
+  userId      String?
+  sessionId   String?
+  orderId     String?
+
+  expiresAt   DateTime
+  isActive    Boolean  @default(true)
+
+  unit      ProductUnit @relation(fields: [unitId], references: [id])
+  createdAt DateTime    @default(now())
+
+  @@index([unitId, isActive])
+  @@index([expiresAt])
+  @@map("stock_reservations")
+}
+
+// ══════════════════════════════════════════════════════════════
+// MODULE 5: USER & AUTH
+// ══════════════════════════════════════════════════════════════
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  password    String
+  name        String
+  phone       String?
+  role        String   @default("CUSTOMER") // CUSTOMER, ADMIN, SUPER_ADMIN
+  avatarUrl   String?
+  isActive    Boolean  @default(true)
+  lastLoginAt DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  addresses   UserAddress[]
+  orders      Order[]
+  reviews     Review[]
+  wishlistItems WishlistItem[]
+
+  @@map("users")
+}
+
+model UserAddress {
+  id          String   @id @default(cuid())
+  userId      String
+  label       String
+  name        String
+  phone       String
+  email       String?
+  address     String
+  city        String
+  cityId      String
+  district    String?
+  districtId  String?
+  province    String
+  provinceId  String
+  postcode    String?
+  isDefault   Boolean  @default(false)
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_addresses")
+}
+
+// ══════════════════════════════════════════════════════════════
+// MODULE 6: ORDER MANAGEMENT SYSTEM (OMS)
+// ══════════════════════════════════════════════════════════════
+
+model Order {
+  id              String   @id @default(cuid())
+  orderNumber     String   @unique
+  userId          String?
+
+  status          String   @default("PENDING") // PENDING, WAITING_PAYMENT, PAID, PROCESSING, SHIPPING, DELIVERED, COMPLETED, CANCELLED, REFUNDED
+  paymentStatus   String   @default("UNPAID") // UNPAID, PAID, PARTIAL, REFUNDED
+  paymentMethod   String   // BANK_TRANSFER, E_WALLET, QRIS, COD
+  paymentProvider String?  // MIDTRANS, XENDIT, MANUAL
+  paymentRef      String?
+  paidAt          DateTime?
+
+  subtotal        Float
+  discount        Float    @default(0)
+  shippingCost    Float    @default(0)
+  insuranceCost   Float    @default(0)
+  total           Float
+
+  courier         String?
+  shippingService String?
+  shippingEtd     String?
+  trackingNumber  String?
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
+
+  addressSnapshot String  // JSON: Alamat lengkap
+
+  customerNotes   String?
+  adminNotes      String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  expiresAt       DateTime?
+
+  user            User?          @relation(fields: [userId], references: [id])
+  items           OrderItem[]
+  statusHistory   OrderStatusLog[]
+  paymentLogs     PaymentLog[]
+  shipments       ShipmentLog[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([orderNumber])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String
+  unitId      String
+  productId   String
+
+  productName String
+  productSlug String
+  productImage String?
+  unitSku     String
+  gradeCode   String?
+  price       Float
+  quantity    Int      @default(1)
+  subtotal    Float
+
+  purchasePrice Float?
+  margin        Float?
+
+  order   Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  unit    ProductUnit  @relation(fields: [unitId], references: [id])
+  product Product      @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+model OrderStatusLog {
+  id          String   @id @default(cuid())
+  orderId     String
+  status      String
+  note        String?
+  changedBy   String?
+  createdAt   DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("order_status_logs")
+}
+
+model PaymentLog {
+  id          String   @id @default(cuid())
+  orderId     String
+  amount      Float
+  method      String
+  provider    String?
+  reference   String?
+  status      String
+  rawResponse String?
+  createdAt   DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@index([orderId])
+  @@map("payment_logs")
+}
+
+model ShipmentLog {
+  id          String   @id @default(cuid())
+  orderId     String
+  courier     String
+  service     String
+  trackingNo  String
+  status      String
+  location    String?
+  timestamp   DateTime
+  rawPayload  String?
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@index([orderId])
+  @@index([trackingNo])
+  @@map("shipment_logs")
+}
+
+// ══════════════════════════════════════════════════════════════
+// MODULE 7: REVIEW & WISHLIST
+// ══════════════════════════════════════════════════════════════
+
+model Review {
+  id          String   @id @default(cuid())
+  productId   String
+  userId      String
+  orderId     String?
+  rating      Int
+  comment     String?
+  photos      String @default("[]") // JSON array
+  isVerified  Boolean  @default(false)
+  isApproved  Boolean  @default(true)
+  helpful     Int      @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@unique([productId, userId, orderId])
+  @@map("reviews")
+}
+
+model WishlistItem {
+  id          String   @id @default(cuid())
+  userId      String
+  productId   String
+
+  createdAt   DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("wishlist_items")
+}
+
+// ══════════════════════════════════════════════════════════════
+// MODULE 8: CMS (Content Management)
+// ══════════════════════════════════════════════════════════════
+
+model Banner {
+  id          String   @id @default(cuid())
+  type        String   @default("HERO") // HERO, PROMO_CARD, POPUP, SIDEBAR
+  title       String
+  subtitle    String?
+  description String?
+  imageUrl    String?
+  gradient    String?
+  ctaText     String?
+  ctaLink     String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+
+  startDate   DateTime?
+  endDate     DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("banners")
+}
+
+model BlogPost {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  excerpt     String?
+  content     String?
+  imageUrl    String?
+  category    String?
+  tags        String @default("[]") // JSON array
+  isPublished Boolean  @default(false)
+  isFeatured  Boolean  @default(false)
+  viewCount   Int      @default(0)
+
+  authorId    String?
+  authorName  String   @default("Admin")
+
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("blog_posts")
+}
+
+model StoreSetting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  type        String   @default("text")
+  group       String   @default("general")
+  updatedAt   DateTime @updatedAt
+
+  @@map("store_settings")
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  action      String
+  entityType  String
+  entityId    String
+  oldValues   String?
+  newValues   String?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

@@ -18,9 +18,14 @@ import {
   Package,
   Settings,
 } from "lucide-react";
-import { categories, storeInfo } from "@/data/products";
+import { getCategories, type CategoryResponse } from "@/lib/api";
 import { useCart } from "@/lib/cart";
 import { getCurrentUser, logoutUser, type User as UserType } from "@/lib/user-auth";
+
+const storeInfo = {
+  phoneFormatted: '0851-0125-6123',
+  operatingHours: 'Senin - Sabtu, 09:00 - 18:00 WIB',
+};
 
 export default function Header() {
   const router = useRouter();
@@ -31,10 +36,14 @@ export default function Header() {
   const [isKategoriOpen, setIsKategoriOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [user, setUser] = useState<UserType | null>(null);
+  const [categories, setCategories] = useState<CategoryResponse[]>([]);
   const { totalItems } = useCart();
 
   useEffect(() => {
     setUser(getCurrentUser());
+    getCategories()
+      .then((res) => setCategories(res.data))
+      .catch(() => {});
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 100);
     };

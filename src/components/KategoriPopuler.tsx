@@ -1,9 +1,18 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { categories } from "@/data/products";
+import { getCategories, type CategoryResponse } from "@/lib/api";
 
 export default function KategoriPopuler() {
+  const [categories, setCategories] = useState<CategoryResponse[]>([]);
+
+  useEffect(() => {
+    getCategories()
+      .then((res) => setCategories(res.data))
+      .catch(() => {});
+  }, []);
+
   return (
     <section className="py-6 bg-white border-b border-brand-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

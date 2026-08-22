@@ -5,8 +5,7 @@ import { Search, SlidersHorizontal, Grid3X3, List, ChevronDown } from "lucide-re
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
-import { getProducts, categories } from "@/data/products";
-import type { Product } from "@/data/products";
+import { getProducts as fetchProductsAPI, getCategories, type ProductResponse, type CategoryResponse } from "@/lib/api";
 
 const sortOptions = [
   { value: "newest", label: "Terbaru" },
@@ -19,7 +18,8 @@ const sortOptions = [
 const conditionOptions = ["Semua", "Like New", "Grade A", "Grade B+", "Grade B"];
 
 export default function ProductsPage() {
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<ProductResponse[]>([]);
+  const [categories, setCategories] = useState<CategoryResponse[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("semua");
   const [selectedSort, setSelectedSort] = useState("newest");
@@ -28,22 +28,27 @@ export default function ProductsPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   useEffect(() => {
-    setAllProducts(getProducts());
+    fetchProductsAPI({ limit: 50 })
+      .then((res) => setAllProducts(res.data))
+      .catch(() => {});
+    getCategories()
+      .then((res) => setCategories(res.data))
+      .catch(() => {});
   }, []);
 
   const filteredProducts = allProducts
     .filter((p) => {
-      const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.brand.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = selectedCategory === "semua" || p.category.toLowerCase().includes(selectedCategory);
+      const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || (p.brand?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = selectedCategory === "semua" || (p.category?.name || '').toLowerCase().includes(selectedCategory);
       const matchesCondition = selectedCondition === "Semua" || p.condition === selectedCondition;
       return matchesSearch && matchesCategory && matchesCondition;
     })
     .sort((a, b) => {
       switch (selectedSort) {
-        case "price-low": return a.price - b.price;
-        case "price-high": return b.price - a.price;
-        case "popular": return b.reviewCount - a.reviewCount;
-        case "rating": return b.rating - a.rating;
+        case "price-low": return a.sellingPrice - b.sellingPrice;
+        case "price-high": return b.sellingPrice - a.sellingPrice;
+        case "popular": return b.soldCount - a.soldCount;
+        case "rating": return b.avgRating - a.avgRating;
         default: return 0;
       }
     });
@@ -138,7 +143,7 @@ export default function ProductsPage() {
                 <div className="p-3 bg-brand/5 rounded-lg">
                   <p className="text-xs text-brand-muted">Harga</p>
                   <p className="text-sm font-semibold text-brand">
-                    Mulai dari {allProducts.length > 0 ? `Rp ${Math.min(...allProducts.map((p) => p.price)).toLocaleString("id-ID")}` : "Rp 0"}
+                    Mulai dari {allProducts.length > 0 ? `Rp ${Math.min(...allProducts.map((p) => p.sellingPrice)).toLocaleString("id-ID")}` : "Rp 0"}
                   </p>
                 </div>
               </div>

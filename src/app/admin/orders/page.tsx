@@ -2,41 +2,51 @@
 
 import { useEffect, useState } from "react";
 import { Package, ChevronDown, ChevronUp, Truck, CheckCircle, XCircle, Clock, CreditCard } from "lucide-react";
-import { getOrders, updateOrderStatus, type Order, type OrderStatus } from "@/lib/orders";
+import { getAdminOrders, updateOrderStatus as updateOrderStatusAPI } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
 
-const statusConfig: Record<OrderStatus, { label: string; color: string; bg: string; icon: React.ElementType }> = {
-  pending: { label: "Menunggu", color: "text-amber-600", bg: "bg-amber-50", icon: Clock },
-  waiting_payment: { label: "Bayar Pending", color: "text-amber-600", bg: "bg-amber-50", icon: CreditCard },
-  paid: { label: "Dibayar", color: "text-blue-600", bg: "bg-blue-50", icon: CheckCircle },
-  processing: { label: "Diproses", color: "text-blue-600", bg: "bg-blue-50", icon: Package },
-  shipping: { label: "Dikirim", color: "text-purple-600", bg: "bg-purple-50", icon: Truck },
-  delivered: { label: "Diterima", color: "text-emerald-600", bg: "bg-emerald-50", icon: CheckCircle },
-  completed: { label: "Selesai", color: "text-emerald-600", bg: "bg-emerald-50", icon: CheckCircle },
-  cancelled: { label: "Dibatalkan", color: "text-red-600", bg: "bg-red-50", icon: XCircle },
+const statusConfig: Record<string, { label: string; color: string; bg: string; icon: React.ElementType }> = {
+  PENDING: { label: "Menunggu", color: "text-amber-600", bg: "bg-amber-50", icon: Clock },
+  WAITING_PAYMENT: { label: "Bayar Pending", color: "text-amber-600", bg: "bg-amber-50", icon: CreditCard },
+  PAID: { label: "Dibayar", color: "text-blue-600", bg: "bg-blue-50", icon: CheckCircle },
+  PROCESSING: { label: "Diproses", color: "text-blue-600", bg: "bg-blue-50", icon: Package },
+  SHIPPING: { label: "Dikirim", color: "text-purple-600", bg: "bg-purple-50", icon: Truck },
+  DELIVERED: { label: "Diterima", color: "text-emerald-600", bg: "bg-emerald-50", icon: CheckCircle },
+  COMPLETED: { label: "Selesai", color: "text-emerald-600", bg: "bg-emerald-50", icon: CheckCircle },
+  CANCELLED: { label: "Dibatalkan", color: "text-red-600", bg: "bg-red-50", icon: XCircle },
 };
 
-const nextStatuses: Partial<Record<OrderStatus, OrderStatus[]>> = {
-  waiting_payment: ["paid", "cancelled"],
-  paid: ["processing", "cancelled"],
-  processing: ["shipping", "cancelled"],
-  shipping: ["delivered"],
-  delivered: ["completed"],
+const nextStatuses: Record<string, string[]> = {
+  WAITING_PAYMENT: ["PAID", "CANCELLED"],
+  PAID: ["PROCESSING", "CANCELLED"],
+  PROCESSING: ["SHIPPING", "CANCELLED"],
+  SHIPPING: ["DELIVERED"],
+  DELIVERED: ["COMPLETED"],
 };
 
 export default function AdminOrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
-  const [filter, setFilter] = useState<OrderStatus | "all">("all");
+  const [filter, setFilter] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
 
-  const loadOrders = () => setOrders(getOrders());
-  useEffect(() => { loadOrders(); }, []);
+  const loadOrders = async () => {
+    try {
+      const res = await getAdminOrders({ status: filter === "all" ? undefined : filter, limit: 100 });
+      setOrders(res.data);
+    } catch (e) { console.error(e); }
+    setLoading(false);
+  };
 
-  const filtered = filter === "all" ? orders : orders.filter((o) => o.status === filter);
+  useEffect(() => { loadOrders(); }, [filter]);
 
-  const handleStatusUpdate = (orderId: string, newStatus: OrderStatus) => {
-    updateOrderStatus(orderId, newStatus);
-    loadOrders();
+  const filtered = orders;
+
+  const handleStatusUpdate = async (orderId: string, newStatus: string) => {
+    try {
+      await updateOrderStatusAPI(orderId, newStatus);
+      loadOrders();
+    } catch (e) { console.error(e); }
   };
 
   return (
@@ -48,127 +58,116 @@ export default function AdminOrdersPage() {
 
       {/* Status Filter */}
       <div className="flex flex-wrap gap-2 mb-6">
-        <button onClick={() => setFilter("all")} className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${filter === "all" ? "bg-brand text-white" : "bg-white border border-brand-border text-brand-muted hover:bg-brand-gray"}`}>
-          Semua ({orders.length})
-        </button>
-        {(["waiting_payment", "paid", "processing", "shipping", "delivered", "completed", "cancelled"] as OrderStatus[]).map((s) => {
-          const count = orders.filter((o) => o.status === s).length;
-          if (count === 0) return null;
-          const sc = statusConfig[s];
-          return (
-            <button key={s} onClick={() => setFilter(s)} className={`px-3 py-2 text-xs font-semibold rounded-lg transition-colors ${filter === s ? "bg-brand text-white" : "bg-white border border-brand-border text-brand-muted hover:bg-brand-gray"}`}>
-              {sc.label} ({count})
-            </button>
-          );
-        })}
+        {[{ key: "all", label: "Semua" }, ...Object.entries(statusConfig).map(([key, val]) => ({ key, label: val.label }))].map((s) => (
+          <button
+            key={s.key}
+            onClick={() => setFilter(s.key)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              filter === s.key
+                ? "bg-brand text-white"
+                : "bg-white border border-brand-border text-brand-navy hover:bg-brand-gray"
+            }`}
+          >
+            {s.label}
+          </button>
+        ))}
       </div>
 
-      {/* Orders List */}
-      <div className="space-y-3">
-        {filtered.map((order) => {
-          const sc = statusConfig[order.status];
-          const StatusIcon = sc.icon;
-          const isExpanded = expandedOrder === order.id;
-          const nextOptions = nextStatuses[order.status] || [];
+      {/* Orders Table */}
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="animate-spin h-8 w-8 border-4 border-brand border-t-transparent rounded-full mx-auto mb-4" />
+          <p className="text-brand-muted">Memuat pesanan...</p>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-12 bg-white rounded-xl border border-brand-border">
+          <Package size={48} className="mx-auto text-brand-muted mb-4" />
+          <p className="text-brand-muted">Belum ada pesanan</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filtered.map((order: any) => {
+            const config = statusConfig[order.status] || statusConfig.PENDING;
+            const Icon = config.icon;
+            const isExpanded = expandedOrder === order.id;
+            const nexts = nextStatuses[order.status] || [];
 
-          return (
-            <div key={order.id} className="bg-white rounded-xl border border-brand-border overflow-hidden">
-              {/* Order Row */}
-              <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-bold text-brand-navy text-sm">{order.orderNumber}</span>
-                    <span className={`px-2 py-0.5 rounded text-xs font-semibold ${sc.bg} ${sc.color}`}>
-                      {sc.label}
-                    </span>
+            return (
+              <div key={order.id} className="bg-white rounded-xl border border-brand-border overflow-hidden">
+                {/* Order Header */}
+                <div
+                  className="flex items-center justify-between p-4 cursor-pointer hover:bg-brand-gray/50 transition-colors"
+                  onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${config.bg}`}>
+                      <Icon size={20} className={config.color} />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-brand-navy text-sm">{order.orderNumber}</p>
+                      <p className="text-xs text-brand-muted mt-0.5">
+                        {order.user?.name || "Guest"} • {new Date(order.createdAt).toLocaleDateString("id-ID")}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-xs text-brand-muted">
-                    {new Date(order.createdAt).toLocaleDateString("id-ID")} · {order.items.length} item · {order.shipping.courier} {order.shipping.service}
-                  </p>
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <p className="font-bold text-brand-navy">{formatPrice(order.total)}</p>
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${config.bg} ${config.color}`}>
+                        {config.label}
+                      </span>
+                    </div>
+                    {isExpanded ? <ChevronUp size={18} className="text-brand-muted" /> : <ChevronDown size={18} className="text-brand-muted" />}
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="font-bold text-brand">{formatPrice(order.total)}</span>
-                  {nextOptions.length > 0 && (
-                    <div className="flex gap-1">
-                      {nextOptions.map((ns) => {
-                        const nsc = statusConfig[ns];
-                        return (
+
+                {/* Expanded Details */}
+                {isExpanded && (
+                  <div className="border-t border-brand-border p-4">
+                    {/* Items */}
+                    <div className="mb-4">
+                      <h4 className="text-sm font-semibold text-brand-navy mb-2">Item:</h4>
+                      {order.items?.map((item: any, i: number) => (
+                        <div key={i} className="flex justify-between text-sm py-1">
+                          <span className="text-brand-muted">{item.productName} × {item.quantity}</span>
+                          <span className="font-medium">{formatPrice(item.subtotal)}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Address */}
+                    {order.addressSnapshot && (
+                      <div className="mb-4 p-3 bg-brand-gray rounded-lg">
+                        <p className="text-xs text-brand-muted mb-1">Alamat Pengiriman:</p>
+                        <p className="text-sm">{(() => { try { return JSON.parse(order.addressSnapshot).address; } catch { return "-"; } })()}</p>
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    {nexts.length > 0 && (
+                      <div className="flex gap-2">
+                        {nexts.map((ns) => (
                           <button
                             key={ns}
                             onClick={() => handleStatusUpdate(order.id, ns)}
-                            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
-                              ns === "cancelled" ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-brand/10 text-brand hover:bg-brand/20"
+                            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                              ns === "CANCELLED"
+                                ? "bg-red-50 text-red-600 hover:bg-red-100"
+                                : "bg-brand text-white hover:bg-brand-dark"
                             }`}
                           >
-                            {ns === "cancelled" ? "✕ Batal" : `→ ${nsc.label}`}
+                            {statusConfig[ns]?.label || ns}
                           </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                  <button onClick={() => setExpandedOrder(isExpanded ? null : order.id)} className="p-2 hover:bg-brand-gray rounded-lg transition-colors">
-                    {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Expanded Details */}
-              {isExpanded && (
-                <div className="border-t p-4 sm:p-5 bg-brand-gray/30">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    {/* Items */}
-                    <div>
-                      <h4 className="font-semibold text-brand-navy text-sm mb-2">Item</h4>
-                      <div className="space-y-2">
-                        {order.items.map((item) => (
-                          <div key={item.productId} className="flex justify-between text-sm">
-                            <span className="text-brand-muted">{item.productName} × {item.quantity}</span>
-                            <span className="font-medium">{formatPrice(item.subtotal)}</span>
-                          </div>
                         ))}
                       </div>
-                    </div>
-
-                    {/* Address & Shipping */}
-                    <div>
-                      <h4 className="font-semibold text-brand-navy text-sm mb-2">Pengiriman</h4>
-                      <p className="text-sm text-brand-muted">{order.address.name} · {order.address.phone}</p>
-                      <p className="text-sm text-brand-muted">{order.address.address}</p>
-                      <p className="text-sm text-brand-muted">{order.address.city}</p>
-                      <p className="text-sm text-brand-muted mt-2">{order.shipping.courier} {order.shipping.service} — {order.shipping.etd}</p>
-                      <p className="text-sm text-brand font-semibold mt-1">Ongkir: {formatPrice(order.shippingCost)}</p>
-                    </div>
+                    )}
                   </div>
-
-                  {/* Status Timeline */}
-                  <div className="mt-4 pt-4 border-t">
-                    <h4 className="font-semibold text-brand-navy text-sm mb-2">Riwayat Status</h4>
-                    <div className="space-y-2">
-                      {[...order.statusHistory].reverse().map((h, i) => {
-                        const hc = statusConfig[h.status];
-                        return (
-                          <div key={i} className="flex items-center gap-2 text-sm">
-                            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${hc.bg} ${hc.color}`}>{hc.label}</span>
-                            <span className="text-brand-muted">{new Date(h.date).toLocaleString("id-ID")}</span>
-                            <span className="text-brand-muted">— {h.note}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
-
-        {filtered.length === 0 && (
-          <div className="text-center py-16">
-            <div className="text-5xl mb-4">📦</div>
-            <p className="text-brand-muted">Belum ada pesanan</p>
-          </div>
-        )}
-      </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

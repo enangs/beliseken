@@ -3,34 +3,40 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
-import { getProducts, deleteProduct } from "@/data/products";
+import { getAdminProducts, deleteProduct } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
-import type { Product } from "@/data/products";
 
 export default function AdminProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const loadProducts = () => {
-    setProducts(getProducts());
+  const loadProducts = async () => {
+    try {
+      const res = await getAdminProducts({ limit: 100, search: search || undefined });
+      setProducts(res.data);
+    } catch (e) { console.error(e); }
+    setLoading(false);
   };
 
   useEffect(() => {
     loadProducts();
   }, []);
 
-  const handleDelete = (id: string) => {
-    deleteProduct(id);
-    loadProducts();
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteProduct(id);
+      loadProducts();
+    } catch (e) { console.error(e); }
     setDeleteConfirm(null);
   };
 
   const filtered = products.filter(
     (p) =>
       p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.brand.toLowerCase().includes(search.toLowerCase()) ||
-      p.category.toLowerCase().includes(search.toLowerCase())
+      (p.brand?.name || '').toLowerCase().includes(search.toLowerCase()) ||
+      (p.category?.name || '').toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -84,23 +90,17 @@ export default function AdminProductsPage() {
                 <tr key={product.id} className="border-b border-brand-border last:border-0 hover:bg-brand-gray/30 transition-colors">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-xl flex-shrink-0 overflow-hidden">
-                        {product.imageBase64 ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={product.imageBase64} alt={product.name} className="w-full h-full object-cover" />
-                        ) : (
-                          "📦"
-                        )}
+                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-xl flex-shrink-0">
+                        📦
                       </div>
                       <div>
                         <p className="font-semibold text-brand-navy">{product.name}</p>
-                        <p className="text-xs text-brand-muted">{product.brand} · {product.category}</p>
+                        <p className="text-xs text-brand-muted">{product.brand?.name || '-'} · {product.category?.name || '-'}</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-5 py-4">
-                    <p className="font-semibold text-brand">{formatPrice(product.price)}</p>
-                    <p className="text-xs text-brand-muted line-through">{formatPrice(product.originalPrice)}</p>
+                    <p className="font-semibold text-brand">{formatPrice(product.sellingPrice)}</p>
                   </td>
                   <td className="px-5 py-4">
                     <span className="px-2 py-0.5 bg-red-50 text-red-500 text-xs font-bold rounded-full">
@@ -109,7 +109,7 @@ export default function AdminProductsPage() {
                   </td>
                   <td className="px-5 py-4">
                     <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-xs font-semibold rounded-full">
-                      {product.condition}
+                      {product.badge || 'Aktif'}
                     </span>
                   </td>
                   <td className="px-5 py-4">

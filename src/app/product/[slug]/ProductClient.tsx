@@ -5,23 +5,29 @@ import Link from "next/link";
 import { Star, ShoppingCart, Heart, Share2, Shield, Truck, RotateCcw, ChevronRight, Minus, Plus } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { getProducts, getProductBySlug, storeInfo } from "@/data/products";
+import { getProductBySlug as fetchProductBySlug, getProducts as fetchProductsAPI, type ProductDetailResponse, type ProductResponse } from "@/lib/api";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/utils";
-import type { Product } from "@/data/products";
+
+const storeInfo = {
+  whatsappLink: 'https://wa.me/6285101256123',
+};
 
 export default function ProductClient({ slug }: { slug: string }) {
   const { addItem } = useCart();
-  const [product, setProduct] = useState<Product | undefined>(undefined);
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [product, setProduct] = useState<ProductDetailResponse | undefined>(undefined);
+  const [allProducts, setAllProducts] = useState<ProductResponse[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [added, setAdded] = useState(false);
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
-    setProduct(getProductBySlug(slug));
-    setAllProducts(getProducts());
-    setLoaded(true);
+    fetchProductBySlug(slug)
+      .then((res) => { setProduct(res.data); setLoaded(true); })
+      .catch(() => setLoaded(true));
+    fetchProductsAPI({ limit: 4 })
+      .then((res) => setAllProducts(res.data))
+      .catch(() => {});
   }, [slug]);
 
   const handleAddToCart = () => {
@@ -82,12 +88,7 @@ export default function ProductClient({ slug }: { slug: string }) {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             <div>
               <div className="bg-brand-gray rounded-2xl aspect-square flex items-center justify-center relative overflow-hidden">
-                {product.imageBase64 ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={product.imageBase64} alt={product.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="text-8xl opacity-20">📦</div>
-                )}
+                <div className="text-8xl opacity-20">📦</div>
                 {product.badge && (
                   <span className={`absolute top-4 left-4 px-3 py-1.5 text-sm font-bold rounded-lg ${
                     product.badge === "HOT DEAL" ? "bg-brand text-white" :
@@ -101,12 +102,7 @@ export default function ProductClient({ slug }: { slug: string }) {
               <div className="grid grid-cols-4 gap-3 mt-4">
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="bg-brand-gray rounded-xl aspect-square flex items-center justify-center border-2 border-brand-border hover:border-brand cursor-pointer transition-colors">
-                    {product.imageBase64 ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={product.imageBase64} alt={`${product.name} ${i}`} className="w-full h-full object-cover rounded-xl" />
-                    ) : (
-                      <span className="text-2xl opacity-30">📷</span>
-                    )}
+                    <span className="text-2xl opacity-30">📷</span>
                   </div>
                 ))}
               </div>
@@ -114,26 +110,26 @@ export default function ProductClient({ slug }: { slug: string }) {
 
             <div>
               <span className="text-sm font-semibold text-brand bg-brand/10 px-3 py-1 rounded-md">
-                {product.category}
+                {product.category?.name}
               </span>
               <h1 className="text-3xl font-bold text-brand-navy mt-4 mb-3">{product.name}</h1>
 
               <div className="flex items-center gap-3 mb-4">
                 <div className="flex items-center gap-0.5">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={18} className={i < Math.floor(product.rating) ? "fill-amber-400 text-amber-400" : "fill-gray-200 text-gray-200"} />
+                    <Star key={i} size={18} className={i < Math.floor(product.avgRating) ? "fill-amber-400 text-amber-400" : "fill-gray-200 text-gray-200"} />
                   ))}
                 </div>
-                <span className="text-sm text-brand-muted">{product.rating}/5 ({product.reviewCount} ulasan)</span>
+                <span className="text-sm text-brand-muted">{product.avgRating}/5 ({product.reviewCount} ulasan)</span>
               </div>
 
               <div className="bg-brand/5 rounded-xl p-5 mb-6">
                 <div className="flex items-baseline gap-3">
-                  <span className="text-3xl font-extrabold text-brand">{formatPrice(product.price)}</span>
-                  <span className="text-lg text-brand-muted line-through">{formatPrice(product.originalPrice)}</span>
+                  <span className="text-3xl font-extrabold text-brand">{formatPrice(product.sellingPrice)}</span>
+                  <span className="text-lg text-brand-muted line-through">{formatPrice(product.sellingPrice * (1 + product.discount / 100))}</span>
                   <span className="bg-brand text-white text-sm font-bold px-2 py-1 rounded-md">-{product.discount}%</span>
                 </div>
-                <p className="text-sm text-brand-muted mt-1">Hemat {formatPrice(product.originalPrice - product.price)}</p>
+                <p className="text-sm text-brand-muted mt-1">Hemat {formatPrice(Math.round(product.sellingPrice * product.discount / 100))}</p>
               </div>
 
               {product.description && (
@@ -146,17 +142,17 @@ export default function ProductClient({ slug }: { slug: string }) {
               <div className="mb-6">
                 <h3 className="font-semibold text-brand-navy mb-2">Kondisi</h3>
                 <span className="px-4 py-2 bg-emerald-50 text-emerald-700 font-semibold rounded-lg text-sm border border-emerald-200">
-                  ✅ {product.condition}
+                  ✅ {product.units?.[0]?.conditionGrade?.name || product.badge || 'Grade A'}
                 </span>
               </div>
 
               <div className="mb-6">
                 <h3 className="font-semibold text-brand-navy mb-3">Spesifikasi</h3>
                 <div className="grid grid-cols-2 gap-2">
-                  {product.specs.map((spec, i) => (
+                  {(product.specs || []).map((spec: any, i: number) => (
                     <div key={i} className="flex items-center gap-2 text-sm text-brand-muted">
                       <span className="w-1.5 h-1.5 bg-brand rounded-full flex-shrink-0" />
-                      {spec}
+                      {spec.value || spec}
                     </div>
                   ))}
                 </div>
@@ -213,7 +209,7 @@ export default function ProductClient({ slug }: { slug: string }) {
               </div>
 
               <a
-                href={`${storeInfo.whatsappLink}?text=Halo, saya tertarik dengan ${product.name} seharga ${formatPrice(product.price)}. Apakah masih tersedia?`}
+                href={`${storeInfo.whatsappLink}?text=Halo, saya tertarik dengan ${product.name} seharga ${formatPrice(product.sellingPrice)}. Apakah masih tersedia?`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block w-full py-4 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold rounded-xl text-center transition-colors mb-6"
@@ -242,12 +238,7 @@ export default function ProductClient({ slug }: { slug: string }) {
               {allProducts.filter((p) => p.id !== product.id).slice(0, 4).map((p) => (
                 <Link key={p.id} href={`/product/${p.slug}`} className="group bg-white rounded-xl border border-brand-border overflow-hidden hover:shadow-lg transition-all">
                   <div className="aspect-[4/3] bg-brand-gray flex items-center justify-center overflow-hidden">
-                    {p.imageBase64 ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.imageBase64} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                    ) : (
-                      <span className="text-4xl opacity-20">📦</span>
-                    )}
+                    <span className="text-4xl opacity-20">📦</span>
                   </div>
                   <div className="p-4">
                     <h3 className="font-semibold text-brand-navy text-sm group-hover:text-brand transition-colors line-clamp-2">{p.name}</h3>

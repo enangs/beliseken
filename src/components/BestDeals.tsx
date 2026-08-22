@@ -3,17 +3,18 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Flame } from "lucide-react";
-import { getProducts } from "@/data/products";
+import { getProducts as fetchProductsAPI, type ProductResponse } from "@/lib/api";
 import ProductCard from "./ProductCard";
-import type { Product } from "@/data/products";
 
 export default function BestDeals() {
   const [activeTab, setActiveTab] = useState("semua");
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductResponse[]>([]);
   const [countdown, setCountdown] = useState({ hours: 2, minutes: 14, seconds: 37 });
 
   useEffect(() => {
-    setProducts(getProducts());
+    fetchProductsAPI({ limit: 20 })
+      .then((res) => setProducts(res.data))
+      .catch(() => {});
   }, []);
 
   // Flash sale countdown

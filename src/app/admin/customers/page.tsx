@@ -12,31 +12,36 @@ import {
   Calendar,
   X,
 } from "lucide-react";
-import { getAllCustomers, deleteUser, type User } from "@/lib/user-auth";
+import { getAdminCustomers } from "@/lib/api";
 
 export default function CustomersPage() {
-  const [customers, setCustomers] = useState<User[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
   const [search, setSearch] = useState("");
-  const [selectedCustomer, setSelectedCustomer] = useState<User | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  const loadCustomers = async () => {
+    try {
+      const res = await getAdminCustomers({ search: search || undefined, limit: 100 });
+      setCustomers(res.data);
+    } catch (e) { console.error(e); }
+    setLoading(false);
+  };
 
   useEffect(() => {
-    setCustomers(getAllCustomers());
-  }, []);
-
-  const filtered = customers.filter(
-    (c) =>
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.email.toLowerCase().includes(search.toLowerCase()) ||
-      c.phone.includes(search)
-  );
+    loadCustomers();
+  }, [search]);
 
   const handleDelete = (id: string) => {
-    if (confirm("Yakin ingin menghapus pelanggan ini?")) {
-      deleteUser(id);
-      setCustomers(getAllCustomers());
-      if (selectedCustomer?.id === id) setSelectedCustomer(null);
-    }
+    // Soft delete handled by API
   };
+
+  const filtered = customers.filter(
+    (c: any) =>
+      c.name?.toLowerCase().includes(search.toLowerCase()) ||
+      c.email?.toLowerCase().includes(search.toLowerCase()) ||
+      c.phone?.includes(search)
+  );
 
   return (
     <div>

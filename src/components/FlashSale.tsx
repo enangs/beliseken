@@ -3,12 +3,11 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Zap, ChevronLeft, ChevronRight } from "lucide-react";
-import { getProducts } from "@/data/products";
+import { getProducts as fetchProductsAPI, type ProductResponse } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
-import type { Product } from "@/data/products";
 
 export default function FlashSale() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductResponse[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -17,12 +16,9 @@ export default function FlashSale() {
   const [countdown, setCountdown] = useState({ hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
-    const allProducts = getProducts();
-    // Filter produk dengan badge HOT DEAL atau diskon > 45%
-    const flashProducts = allProducts
-      .filter((p) => p.badge === "HOT DEAL" || p.discount > 45)
-      .slice(0, 12);
-    setProducts(flashProducts);
+    fetchProductsAPI({ badge: 'HOT DEAL', limit: 12 })
+      .then((res) => setProducts(res.data))
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -136,16 +132,7 @@ export default function FlashSale() {
               >
                 {/* Image */}
                 <div className="relative aspect-square bg-brand-gray flex items-center justify-center overflow-hidden">
-                  {product.imageBase64 ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={product.imageBase64}
-                      alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                  ) : (
-                    <span className="text-5xl opacity-20">📦</span>
-                  )}
+                  <span className="text-5xl opacity-20">📦</span>
 
                   {/* Discount Badge */}
                   <div className="absolute top-2 left-2 bg-brand text-white text-xs font-bold px-2 py-1 rounded-lg">
@@ -156,10 +143,10 @@ export default function FlashSale() {
                 {/* Info */}
                 <div className="p-3">
                   <p className="text-brand font-bold text-base">
-                    {formatPrice(product.price)}
+                    {formatPrice(product.sellingPrice)}
                   </p>
                   <p className="text-xs text-brand-muted line-through">
-                    {formatPrice(product.originalPrice)}
+                    {formatPrice(product.sellingPrice * (1 + product.discount / 100))}
                   </p>
                   <p className="text-xs text-brand-navy mt-1 line-clamp-2 leading-tight">
                     {product.name}

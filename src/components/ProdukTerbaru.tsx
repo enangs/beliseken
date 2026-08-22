@@ -3,15 +3,16 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Clock } from "lucide-react";
-import { getProducts } from "@/data/products";
+import { getProducts as fetchProductsAPI, type ProductResponse } from "@/lib/api";
 import ProductCard from "./ProductCard";
-import type { Product } from "@/data/products";
 
 export default function ProdukTerbaru() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductResponse[]>([]);
 
   useEffect(() => {
-    setProducts(getProducts());
+    fetchProductsAPI({ sort: 'newest', limit: 8 })
+      .then((res) => setProducts(res.data))
+      .catch(() => {});
   }, []);
 
   return (
