@@ -234,7 +234,7 @@ export default function CustomersPage() {
                 </h4>
                 {selectedCustomer.addresses && selectedCustomer.addresses.length > 0 ? (
                   <div className="space-y-2">
-                    {selectedCustomer.addresses.map((addr) => (
+                    {selectedCustomer.addresses.map((addr: any) => (
                       <div
                         key={addr.id}
                         className="p-3 bg-brand-gray rounded-lg text-sm"
