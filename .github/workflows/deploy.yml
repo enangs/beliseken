@@ -26,40 +26,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Setup Prisma
+      - name: Build static export
         run: |
-          npx prisma generate
-          npx prisma migrate deploy
-        env:
-          DATABASE_URL: "file:./prisma/prod.db"
-
-      - name: Seed database
-        run: |
-          npx tsx prisma/seed.ts
-          npx tsx prisma/migrate-products.ts
-        env:
-          DATABASE_URL: "file:./prisma/prod.db"
-
-      - name: Build Next.js
-        run: npm run build
-        env:
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
-          DATABASE_URL: "file:./prisma/prod.db"
-
-      - name: Create deployment package
-        run: |
-          mkdir -p deploy
-          cp -r .next deploy/
-          cp -r node_modules deploy/
-          cp -r prisma deploy/
-          cp package.json deploy/
-          cp next.config.mjs deploy/
-          cp -r public deploy/
-          echo 'DATABASE_URL="file:./prisma/prod.db"' > deploy/.env
-          echo "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}" >> deploy/.env
-          echo "NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}" >> deploy/.env
-          echo "NODE_ENV=production" >> deploy/.env
+          sed -i 's/const nextConfig = {/const nextConfig = {\n  output: "export",/' next.config.mjs
+          npm run build
 
       - name: Deploy to cPanel via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -69,6 +39,6 @@ jobs:
           password: ${{ secrets.CPANEL_FTP_PASSWORD }}
           port: 21
           server-dir: /public_html/
-          local-dir: ./deploy/
+          local-dir: ./out/
           security: loose
           timeout: 60000
