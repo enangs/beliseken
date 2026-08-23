@@ -153,7 +153,40 @@ export async function updateProduct(id: string, u: any) { return { success: true
 export async function deleteProduct(id: string) { return { success: true, message: 'Deleted' }; }
 export async function getAdminOrders() { return { success: true, data: [], meta: { page: 1, limit: 20, total: 0, totalPages: 0 }, stats: { totalRevenue: 0, totalOrders: 0 } }; }
 export async function updateOrderStatus(id: string, status: string) { return { success: true, data: {} }; }
-export async function getAdminCustomers() { return { success: true, data: [], meta: { page: 1, limit: 20, total: 0, totalPages: 0 }, stats: { totalCustomers: 0, withAddresses: 0, newThisMonth: 0 } }; }
+export async function getAdminCustomers(options?: { search?: string; limit?: number }) {
+  // Import from localStorage
+  try {
+    const { getAllCustomers } = await import('./user-auth');
+    let customers = getAllCustomers();
+    
+    // Filter by search if provided
+    if (options?.search) {
+      const s = options.search.toLowerCase();
+      customers = customers.filter(c => 
+        c.name?.toLowerCase().includes(s) || 
+        c.email?.toLowerCase().includes(s) || 
+        c.phone?.includes(s)
+      );
+    }
+    
+    return { 
+      success: true, 
+      data: customers, 
+      meta: { page: 1, limit: options?.limit || 100, total: customers.length, totalPages: 1 }, 
+      stats: { 
+        totalCustomers: customers.length, 
+        withAddresses: customers.filter(c => c.addresses && c.addresses.length > 0).length, 
+        newThisMonth: customers.filter(c => {
+          const d = new Date(c.createdAt);
+          const now = new Date();
+          return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        }).length 
+      } 
+    };
+  } catch {
+    return { success: true, data: [], meta: { page: 1, limit: 20, total: 0, totalPages: 0 }, stats: { totalCustomers: 0, withAddresses: 0, newThisMonth: 0 } };
+  }
+}
 export async function validateCart(items: any[]) { return { success: true, data: { valid: true, items } }; }
 export async function createOrder(d: any) { return { success: true, data: { orderId: String(Date.now()), orderNumber: `BS-${Date.now()}`, total: 0, status: 'pending' } }; }
 export async function getOrders(userId: string) { return { success: true, data: [] }; }
