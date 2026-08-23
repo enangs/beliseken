@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Package, ChevronDown, ChevronUp, Truck, CheckCircle, XCircle, Clock, CreditCard, User, ExternalLink, Loader2, AlertCircle } from "lucide-react";
+import { Package, ChevronDown, ChevronUp, Truck, CheckCircle, XCircle, Clock, CreditCard, User, ExternalLink, Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import { fetchOrders, updateOrderStatus, updateTrackingNumber } from "@/lib/orders-api";
 import { formatPrice } from "@/lib/utils";
 import type { Order } from "@/lib/orders";
@@ -46,6 +46,7 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [dataSource, setDataSource] = useState<string>("");
 
   const loadOrders = async () => {
     try {
@@ -53,6 +54,10 @@ export default function AdminOrdersPage() {
       setError(null);
       const data = await fetchOrders({ admin: true, status: filter === "all" ? undefined : filter });
       setOrders(data || []);
+      
+      // Check data source
+      const localOrders = JSON.parse(localStorage.getItem('beliseken_orders') || '[]');
+      setDataSource(`${data?.length || 0} orders (local: ${localOrders.length})`);
     } catch (err) {
       console.error('Failed to load orders:', err);
       setError('Gagal memuat pesanan. Silakan coba lagi.');
@@ -100,11 +105,20 @@ export default function AdminOrdersPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-brand-navy">Pesanan</h1>
-        <p className="text-brand-muted text-sm mt-1">
-          {loading ? "Memuat..." : `${orders.length} pesanan ditampilkan`}
-        </p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-brand-navy">Pesanan</h1>
+          <p className="text-brand-muted text-sm mt-1">
+            {loading ? "Memuat..." : dataSource}
+          </p>
+        </div>
+        <button
+          onClick={loadOrders}
+          className="px-4 py-2 bg-brand text-white text-sm font-semibold rounded-lg hover:bg-brand-dark flex items-center gap-2"
+        >
+          <RefreshCw size={14} />
+          Refresh
+        </button>
       </div>
 
       {/* Error State */}
@@ -181,6 +195,7 @@ export default function AdminOrdersPage() {
           <Package size={48} className="mx-auto text-brand-muted mb-4" />
           <p className="text-brand-muted font-medium">Belum ada pesanan</p>
           <p className="text-xs text-brand-muted mt-1">Pesanan akan muncul di sini setelah pelanggan checkout</p>
+          <p className="text-xs text-red-500 mt-3">⚠️ Jika sudah pesan tapi tidak muncul, kemungkinan DATABASE_URL belum terhubung di Vercel</p>
         </div>
       ) : (
         <div className="space-y-4">

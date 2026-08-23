@@ -1,14 +1,15 @@
 // Client-side API helper for orders
-// Uses Supabase database with localStorage fallback
+// MERGES data from Supabase API + localStorage so nothing is lost
 
 import type { Order, OrderStatus } from './orders';
 
 const API_BASE = '/api';
-
-// Check if we're on client side
 const isClient = typeof window !== 'undefined';
 
-// localStorage helpers
+// ═══════════════════════════════════════════════════════════
+// LOCALSTORAGE HELPERS
+// ═══════════════════════════════════════════════════════════
+
 function getLocalOrders(): Order[] {
   if (!isClient) return [];
   try {
@@ -23,12 +24,88 @@ function saveLocalOrders(orders: Order[]) {
   localStorage.setItem('beliseken_orders', JSON.stringify(orders));
 }
 
+function addLocalOrder(order: Order) {
+  const orders = getLocalOrders();
+  // Avoid duplicates by orderNumber
+  const exists = orders.find(o => o.orderNumber === order.orderNumber);
+  if (!exists) {
+    orders.push(order);
+  } else {
+    // Update with server data if available
+    const idx = orders.findIndex(o => o.orderNumber === order.orderNumber);
+    if (idx !== -1 && order.id !== String(Date.now())) {
+      orders[idx] = { ...orders[idx], ...order };
+    }
+  }
+  saveLocalOrders(orders);
+}
+
+// ═══════════════════════════════════════════════════════════
+// MERGE: Combine API data + localStorage data (deduplicated)
+// ═══════════════════════════════════════════════════════════
+
+function mergeOrders(apiOrders: Order[], localOrders: Order[]): Order[] {
+  const merged = new Map<string, Order>();
+
+  // Add local orders first
+  for (const order of localOrders) {
+    const key = order.orderNumber || order.id;
+    merged.set(key, order);
+  }
+
+  // API orders override local (more authoritative)
+  for (const order of apiOrders) {
+    const key = order.orderNumber || order.id;
+    merged.set(key, order);
+  }
+
+  return Array.from(merged.values()).sort((a, b) =>
+    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+}
+
+function filterOrders(orders: Order[], options?: {
+  userId?: string;
+  email?: string;
+  status?: string;
+}): Order[] {
+  let filtered = [...orders];
+
+  if (options?.email) {
+    const emailLower = options.email.toLowerCase();
+    filtered = filtered.filter(o =>
+      o.address?.email?.toLowerCase() === emailLower ||
+      o.userId?.toLowerCase() === emailLower
+    );
+  }
+
+  if (options?.userId) {
+    filtered = filtered.filter(o => o.userId === options.userId);
+  }
+
+  if (options?.status && options.status !== 'all') {
+    filtered = filtered.filter(o => o.status === options.status);
+  }
+
+  return filtered.sort((a, b) =>
+    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// FETCH ORDERS (admin or user) — MERGES both sources
+// ═══════════════════════════════════════════════════════════
+
 export async function fetchOrders(options?: {
   userId?: string;
   email?: string;
   admin?: boolean;
   status?: string;
 }): Promise<Order[]> {
+  const localOrders = getLocalOrders();
+  let apiOrders: Order[] = [];
+
+  // Try API (non-blocking)
   try {
     const params = new URLSearchParams();
     if (options?.userId) params.set('userId', options.userId);
@@ -37,51 +114,51 @@ export async function fetchOrders(options?: {
     if (options?.status) params.set('status', options.status);
 
     const response = await fetch(`${API_BASE}/orders?${params.toString()}`, {
-      signal: AbortSignal.timeout(5000), // 5 second timeout
+      signal: AbortSignal.timeout(5000),
     });
     const data = await response.json();
 
-    if (!data.success) {
-      throw new Error(data.error || 'Failed to fetch orders');
+    if (data.success && Array.isArray(data.data)) {
+      apiOrders = data.data;
     }
-
-    return data.data;
   } catch (error) {
-    console.warn('API fetch failed, using localStorage fallback:', error);
-    // Fallback to localStorage
-    let orders = getLocalOrders();
-    
-    if (options?.email) {
-      orders = orders.filter(o => o.address?.email === options.email);
-    }
-    if (options?.status && options.status !== 'all') {
-      orders = orders.filter(o => o.status === options.status);
-    }
-    
-    return orders.sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    console.warn('API fetch failed, using localStorage only:', error);
   }
+
+  // Merge both sources
+  const merged = mergeOrders(apiOrders, localOrders);
+
+  // Apply filters (email, status, etc.)
+  return filterOrders(merged, options);
 }
 
+// ═══════════════════════════════════════════════════════════
+// FETCH SINGLE ORDER
+// ═══════════════════════════════════════════════════════════
+
 export async function fetchOrderById(id: string): Promise<Order | null> {
+  // Check localStorage first
+  const localOrders = getLocalOrders();
+  const local = localOrders.find(o => o.id === id || o.orderNumber === id);
+  if (local) return local;
+
+  // Try API
   try {
     const response = await fetch(`${API_BASE}/orders/${id}`, {
       signal: AbortSignal.timeout(5000),
     });
     const data = await response.json();
-
-    if (!data.success) {
-      throw new Error(data.error || 'Order not found');
-    }
-
-    return data.data;
+    if (data.success) return data.data;
   } catch (error) {
-    console.warn('API fetch failed, using localStorage fallback:', error);
-    const orders = getLocalOrders();
-    return orders.find(o => o.id === id || o.orderNumber === id) || null;
+    console.warn('API fetch failed:', error);
   }
+
+  return null;
 }
+
+// ═══════════════════════════════════════════════════════════
+// CREATE ORDER — saves to localStorage + tries API
+// ═══════════════════════════════════════════════════════════
 
 export async function createOrder(orderData: {
   items: Array<{
@@ -114,7 +191,7 @@ export async function createOrder(orderData: {
   paymentMethod: string;
   userId?: string;
 }): Promise<Order | null> {
-  // Generate order number locally
+  // Generate order number
   const date = new Date();
   const dateStr = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`;
   const orders = getLocalOrders();
@@ -145,11 +222,10 @@ export async function createOrder(orderData: {
     updatedAt: date.toISOString(),
   };
 
-  // Save to localStorage
-  orders.push(newOrder);
-  saveLocalOrders(orders);
+  // 1. Save to localStorage FIRST (always works)
+  addLocalOrder(newOrder);
 
-  // Try to save to API (background)
+  // 2. Try to save to API (background, non-blocking)
   try {
     const response = await fetch(`${API_BASE}/orders`, {
       method: 'POST',
@@ -160,19 +236,27 @@ export async function createOrder(orderData: {
     const data = await response.json();
     if (data.success && data.data) {
       // Update with server-generated ID
-      const idx = orders.findIndex(o => o.orderNumber === orderNumber);
+      const localOrders2 = getLocalOrders();
+      const idx = localOrders2.findIndex(o => o.orderNumber === orderNumber);
       if (idx !== -1) {
-        orders[idx] = { ...orders[idx], id: data.data.id };
-        saveLocalOrders(orders);
+        localOrders2[idx] = { ...localOrders2[idx], id: data.data.id };
+        saveLocalOrders(localOrders2);
       }
+      console.log('✅ Order saved to Supabase:', orderNumber);
       return data.data;
+    } else {
+      console.warn('⚠️ API returned error:', data.error);
     }
   } catch (error) {
-    console.warn('API save failed, order saved locally:', error);
+    console.warn('⚠️ API save failed, order saved locally:', error);
   }
 
   return newOrder;
 }
+
+// ═══════════════════════════════════════════════════════════
+// UPDATE ORDER STATUS
+// ═══════════════════════════════════════════════════════════
 
 export async function updateOrderStatus(
   id: string,
@@ -182,10 +266,10 @@ export async function updateOrderStatus(
   courier?: string,
   service?: string
 ): Promise<Order | null> {
-  // Update locally first
+  // Update localStorage first
   const orders = getLocalOrders();
   const idx = orders.findIndex(o => o.id === id);
-  
+
   if (idx !== -1) {
     const now = new Date().toISOString();
     orders[idx].status = status;
