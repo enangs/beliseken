@@ -200,7 +200,6 @@ export default function CheckoutPage() {
     
     const order = await createOrder({
       items: items.map(item => ({
-        productId: item.product.id,
         productName: item.product.name,
         productSlug: item.product.slug,
         productImage: item.product.imageBase64,

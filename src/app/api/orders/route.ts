@@ -17,8 +17,8 @@ export async function GET(request: NextRequest) {
     if (isAdmin) {
       // Admin can see all orders
     } else if (email) {
-      // Filter by email (for anonymous users)
-      where.address = { contains: email };
+      // Filter by email (stored in addressSnapshot JSON)
+      where.addressSnapshot = { contains: email };
     } else if (userId) {
       where.userId = userId;
     }
@@ -134,8 +134,6 @@ export async function POST(request: NextRequest) {
           addressSnapshot: JSON.stringify(address),
           items: {
             create: items.map((item: any) => ({
-              productId: item.productId || 'unknown',
-              unitId: item.unitId || 'unknown',
               productName: item.productName,
               productSlug: item.productSlug || '',
               productImage: item.productImage,

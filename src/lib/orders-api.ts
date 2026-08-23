@@ -85,8 +85,6 @@ export async function fetchOrderById(id: string): Promise<Order | null> {
 
 export async function createOrder(orderData: {
   items: Array<{
-    productId: string;
-    unitId?: string;
     productName: string;
     productSlug?: string;
     productImage?: string;

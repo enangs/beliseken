@@ -494,13 +494,13 @@ model Order {
 model OrderItem {
   id          String   @id @default(cuid())
   orderId     String
-  unitId      String
-  productId   String
+  unitId      String?
+  productId   String?
 
   productName String
   productSlug String
   productImage String?
-  unitSku     String
+  unitSku     String?
   gradeCode   String?
   price       Float
   quantity    Int      @default(1)
@@ -510,8 +510,8 @@ model OrderItem {
   margin        Float?
 
   order   Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  unit    ProductUnit  @relation(fields: [unitId], references: [id])
-  product Product      @relation(fields: [productId], references: [id])
+  unit    ProductUnit? @relation(fields: [unitId], references: [id])
+  product Product?     @relation(fields: [productId], references: [id])
 
   @@map("order_items")
 }
