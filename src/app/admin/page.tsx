@@ -2,21 +2,29 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Package, TrendingUp, Star, Eye, ShoppingCart, Users } from "lucide-react";
+import { Package, TrendingUp, Star, Eye, ShoppingCart, Users, Loader2 } from "lucide-react";
 import { getProducts } from "@/data/products";
 import { formatPrice } from "@/lib/utils";
-import { getOrders } from "@/lib/orders";
+import { fetchOrders } from "@/lib/orders-api";
 import { getAllCustomers } from "@/lib/user-auth";
 import type { Product } from "@/data/products";
+import type { Order } from "@/lib/orders";
 
 export default function AdminDashboardPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setProducts(getProducts());
+    const loadData = async () => {
+      setProducts(getProducts());
+      const ordersData = await fetchOrders({ admin: true });
+      setOrders(ordersData);
+      setLoading(false);
+    };
+    loadData();
   }, []);
 
-  const orders = getOrders();
   const customers = getAllCustomers();
   const totalStock = products.reduce((sum, p) => sum + (p.stock || 0), 0);
   const soldOutCount = products.filter((p) => p.stock === 0).length;
@@ -25,13 +33,13 @@ export default function AdminDashboardPage() {
   const stats = [
     {
       label: "Total Pesanan",
-      value: orders.length,
+      value: loading ? "..." : orders.length,
       icon: ShoppingCart,
       color: "bg-blue-500",
     },
     {
       label: "Pendapatan",
-      value: formatPrice(totalRevenue),
+      value: loading ? "..." : formatPrice(totalRevenue),
       icon: TrendingUp,
       color: "bg-emerald-500",
     },

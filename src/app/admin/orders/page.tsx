@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Package, ChevronDown, ChevronUp, Truck, CheckCircle, XCircle, Clock, CreditCard, User, ExternalLink } from "lucide-react";
-import { getOrders, updateOrderStatus as updateOrderStatusLocal, updateTrackingNumber, type Order } from "@/lib/orders";
+import { Package, ChevronDown, ChevronUp, Truck, CheckCircle, XCircle, Clock, CreditCard, User, ExternalLink, Loader2 } from "lucide-react";
+import { fetchOrders, updateOrderStatus, updateTrackingNumber } from "@/lib/orders-api";
 import { formatPrice } from "@/lib/utils";
+import type { Order } from "@/lib/orders";
 
 const statusConfig: Record<string, { label: string; color: string; bg: string; icon: React.ElementType }> = {
   pending: { label: "Menunggu", color: "text-amber-600", bg: "bg-amber-50", icon: Clock },
@@ -42,29 +43,34 @@ export default function AdminOrdersPage() {
   const [editingTracking, setEditingTracking] = useState<string | null>(null);
   const [trackingInput, setTrackingInput] = useState("");
   const [courierInput, setCourierInput] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState<string | null>(null);
 
-  const loadOrders = () => {
-    let allOrders = getOrders();
-    if (filter !== "all") {
-      allOrders = allOrders.filter((o) => o.status === filter);
-    }
-    setOrders(allOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+  const loadOrders = async () => {
+    setLoading(true);
+    const data = await fetchOrders({ admin: true, status: filter === "all" ? undefined : filter });
+    setOrders(data);
+    setLoading(false);
   };
 
   useEffect(() => { loadOrders(); }, [filter]);
 
-  const handleStatusUpdate = (orderId: string, newStatus: string) => {
-    updateOrderStatusLocal(orderId, newStatus as any);
-    loadOrders();
+  const handleStatusUpdate = async (orderId: string, newStatus: string) => {
+    setUpdating(orderId);
+    await updateOrderStatus(orderId, newStatus as any);
+    await loadOrders();
+    setUpdating(null);
   };
 
-  const handleSaveTracking = (orderId: string) => {
+  const handleSaveTracking = async (orderId: string) => {
     if (trackingInput.trim()) {
-      updateTrackingNumber(orderId, trackingInput.trim(), courierInput);
+      setUpdating(orderId);
+      await updateTrackingNumber(orderId, trackingInput.trim(), courierInput);
       setEditingTracking(null);
       setTrackingInput("");
       setCourierInput("");
-      loadOrders();
+      await loadOrders();
+      setUpdating(null);
     }
   };
 
@@ -75,19 +81,19 @@ export default function AdminOrdersPage() {
   };
 
   const stats = {
-    total: getOrders().length,
-    waiting: getOrders().filter((o) => o.status === "waiting_payment").length,
-    processing: getOrders().filter((o) => o.status === "processing").length,
-    shipping: getOrders().filter((o) => o.status === "shipping").length,
-    completed: getOrders().filter((o) => o.status === "completed" || o.status === "delivered").length,
-    totalRevenue: getOrders().filter((o) => o.status === "completed" || o.status === "delivered").reduce((sum, o) => sum + o.total, 0),
+    total: orders.length,
+    waiting: orders.filter((o) => o.status === "waiting_payment").length,
+    processing: orders.filter((o) => o.status === "processing").length,
+    shipping: orders.filter((o) => o.status === "shipping").length,
+    completed: orders.filter((o) => o.status === "completed" || o.status === "delivered").length,
+    totalRevenue: orders.filter((o) => o.status === "completed" || o.status === "delivered").reduce((sum, o) => sum + o.total, 0),
   };
 
   return (
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-brand-navy">Pesanan</h1>
-        <p className="text-brand-muted text-sm mt-1">{orders.length} pesanan ditampilkan</p>
+        <p className="text-brand-muted text-sm mt-1">{loading ? "Memuat..." : `${orders.length} pesanan ditampilkan`}</p>
       </div>
 
       {/* Stats */}
@@ -137,8 +143,13 @@ export default function AdminOrdersPage() {
         ))}
       </div>
 
-      {/* Orders */}
-      {orders.length === 0 ? (
+      {/* Loading State */}
+      {loading ? (
+        <div className="text-center py-12 bg-white rounded-xl border border-brand-border">
+          <Loader2 size={48} className="mx-auto text-brand-muted mb-4 animate-spin" />
+          <p className="text-brand-muted font-medium">Memuat pesanan...</p>
+        </div>
+      ) : orders.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-xl border border-brand-border">
           <Package size={48} className="mx-auto text-brand-muted mb-4" />
           <p className="text-brand-muted font-medium">Belum ada pesanan</p>
@@ -152,6 +163,7 @@ export default function AdminOrdersPage() {
             const isExpanded = expandedOrder === order.id;
             const nexts = nextStatuses[order.status] || [];
             const isEditingTracking = editingTracking === order.id;
+            const isUpdating = updating === order.id;
 
             return (
               <div key={order.id} className="bg-white rounded-xl border border-brand-border overflow-hidden">
@@ -161,15 +173,19 @@ export default function AdminOrdersPage() {
                 >
                   <div className="flex items-center gap-4">
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${config.bg}`}>
-                      <Icon size={20} className={config.color} />
+                      {isUpdating ? (
+                        <Loader2 size={20} className={`${config.color} animate-spin`} />
+                      ) : (
+                        <Icon size={20} className={config.color} />
+                      )}
                     </div>
                     <div>
                       <p className="font-semibold text-brand-navy text-sm">{order.orderNumber}</p>
                       <div className="flex items-center gap-2 text-xs text-brand-muted mt-0.5">
                         <User size={12} />
-                        <span>{order.address.name}</span>
+                        <span>{order.address?.name || '-'}</span>
                         <span>•</span>
-                        <span>{order.address.email || '-'}</span>
+                        <span>{order.address?.email || '-'}</span>
                         <span>•</span>
                         <span>{new Date(order.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
                       </div>
@@ -227,10 +243,10 @@ export default function AdminOrdersPage() {
                       <div>
                         <h4 className="text-sm font-semibold text-brand-navy mb-2">📍 Alamat Pengiriman:</h4>
                         <div className="bg-white rounded-lg p-3 border border-brand-border text-sm">
-                          <p className="font-semibold">{order.address.name}</p>
-                          <p className="text-brand-muted text-xs">{order.address.phone} • {order.address.email}</p>
-                          <p className="text-brand-muted text-xs mt-1">{order.address.address}</p>
-                          <p className="text-brand-muted text-xs">{order.address.city}, {order.address.province} {order.address.postcode}</p>
+                          <p className="font-semibold">{order.address?.name}</p>
+                          <p className="text-brand-muted text-xs">{order.address?.phone} • {order.address?.email}</p>
+                          <p className="text-brand-muted text-xs mt-1">{order.address?.address}</p>
+                          <p className="text-brand-muted text-xs">{order.address?.city}, {order.address?.province} {order.address?.postcode}</p>
                         </div>
 
                         <h4 className="text-sm font-semibold text-brand-navy mb-2 mt-3">💳 Pembayaran:</h4>
@@ -274,9 +290,10 @@ export default function AdminOrdersPage() {
                                 <div className="flex gap-2">
                                   <button
                                     onClick={() => handleSaveTracking(order.id)}
-                                    className="px-3 py-1.5 bg-brand text-white text-xs font-semibold rounded-lg hover:bg-brand-dark"
+                                    disabled={isUpdating}
+                                    className="px-3 py-1.5 bg-brand text-white text-xs font-semibold rounded-lg hover:bg-brand-dark disabled:opacity-50 flex items-center gap-1"
                                   >
-                                    💾 Simpan
+                                    {isUpdating ? <Loader2 size={12} className="animate-spin" /> : '💾'} Simpan
                                   </button>
                                   <button
                                     onClick={() => setEditingTracking(null)}
@@ -349,12 +366,14 @@ export default function AdminOrdersPage() {
                           <button
                             key={ns.status}
                             onClick={() => handleStatusUpdate(order.id, ns.status)}
-                            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                            disabled={isUpdating}
+                            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 ${
                               ns.status === "cancelled"
                                 ? "bg-red-50 text-red-600 hover:bg-red-100"
                                 : "bg-brand text-white hover:bg-brand-dark"
-                            }`}
+                            } disabled:opacity-50`}
                           >
+                            {isUpdating && <Loader2 size={14} className="animate-spin" />}
                             {ns.label}
                           </button>
                         ))}

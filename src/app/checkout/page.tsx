@@ -7,7 +7,8 @@ import { MapPin, Truck, CreditCard, CheckCircle, ChevronRight, Package, ArrowLef
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useCart } from "@/lib/cart";
-import { createOrder, PROVINCES, CITIES, STORE_ORIGIN, type OrderAddress, type ShippingOption } from "@/lib/orders";
+import { createOrder } from "@/lib/orders-api";
+import { PROVINCES, CITIES, STORE_ORIGIN, type OrderAddress, type ShippingOption } from "@/lib/orders";
 import { formatPrice } from "@/lib/utils";
 import { storeInfo } from "@/data/products";
 import { getCurrentUser, getDefaultAddress, saveUserAddress } from "@/lib/user-auth";
@@ -60,7 +61,7 @@ export default function CheckoutPage() {
       phone: user?.phone || "",
       email: user?.email || "",
       address: "",
-      city: user?.city || "",
+      city: "",
       cityId: "",
       district: "",
       districtId: "",
@@ -175,7 +176,7 @@ export default function CheckoutPage() {
                 : "Silakan lakukan pembayaran sesuai instruksi yang dikirim ke WhatsApp Anda."}
             </p>
             <div className="flex gap-3 justify-center">
-              <Link href="/dashboard" className="px-6 py-3 bg-brand text-white font-semibold rounded-xl hover:bg-brand-dark transition-colors">
+              <Link href="/dashboard/orders" className="px-6 py-3 bg-brand text-white font-semibold rounded-xl hover:bg-brand-dark transition-colors">
                 Lihat Pesanan
               </Link>
               <Link href="/" className="px-6 py-3 border border-brand-border text-brand-navy font-semibold rounded-xl hover:bg-white transition-colors">
@@ -194,19 +195,27 @@ export default function CheckoutPage() {
 
   const handlePlaceOrder = async () => {
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1000));
 
-    const order = createOrder({
-      items,
+    const user = getCurrentUser();
+    
+    const order = await createOrder({
+      items: items.map(item => ({
+        productId: item.product.id,
+        productName: item.product.name,
+        productSlug: item.product.slug,
+        productImage: item.product.imageBase64,
+        price: item.product.price,
+        quantity: item.quantity,
+      })),
       address,
       shipping: selectedShipping!,
       paymentMethod,
+      userId: user?.id,
     });
 
     // Save address if checkbox is checked
     if (saveAddress && address.name && address.phone && address.address) {
       try {
-        const user = getCurrentUser();
         if (user) {
           saveUserAddress({
             label: "Alamat Utama",
@@ -225,7 +234,7 @@ export default function CheckoutPage() {
     }
 
     clearCart();
-    setOrderId(order.orderNumber);
+    setOrderId(order?.orderNumber || 'BS-UNKNOWN');
     setOrderPlaced(true);
     setLoading(false);
   };

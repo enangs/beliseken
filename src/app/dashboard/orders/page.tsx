@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Package, ChevronRight, Clock, Truck, CheckCircle, XCircle, CreditCard, MapPin, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import { Package, ChevronRight, Clock, Truck, CheckCircle, XCircle, CreditCard, MapPin, ChevronDown, ChevronUp, ExternalLink, Loader2 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { getUserOrders, type Order, type OrderStatus } from "@/lib/orders";
+import { fetchOrders } from "@/lib/orders-api";
 import { formatPrice } from "@/lib/utils";
 import { storeInfo } from "@/data/products";
+import { getCurrentUser } from "@/lib/user-auth";
+import type { Order, OrderStatus } from "@/lib/orders";
 
 const statusConfig: Record<OrderStatus, { label: string; color: string; icon: React.ElementType; step: number }> = {
   pending: { label: "Menunggu", color: "text-amber-500 bg-amber-50", icon: Clock, step: 0 },
@@ -33,10 +35,24 @@ const trackingSteps = [
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setOrders(getUserOrders());
+    loadOrders();
   }, []);
+
+  const loadOrders = async () => {
+    setLoading(true);
+    const user = getCurrentUser();
+    const email = user?.email || localStorage.getItem('beliseken_user_email');
+    
+    const data = await fetchOrders({ 
+      userId: user?.id,
+      email: email || undefined,
+    });
+    setOrders(data);
+    setLoading(false);
+  };
 
   const toggleOrder = (id: string) => {
     setSelectedOrder(selectedOrder === id ? null : id);
@@ -51,14 +67,19 @@ export default function OrdersPage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold text-brand-navy">Pesanan Saya</h1>
-              <p className="text-brand-muted text-sm mt-1">{orders.length} pesanan</p>
+              <p className="text-brand-muted text-sm mt-1">{loading ? "Memuat..." : `${orders.length} pesanan`}</p>
             </div>
             <Link href="/products" className="px-4 py-2 bg-brand text-white text-sm font-semibold rounded-lg hover:bg-brand-dark transition-colors">
               + Belanja Lagi
             </Link>
           </div>
 
-          {orders.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-20 bg-white rounded-xl border border-brand-border">
+              <Loader2 size={48} className="mx-auto text-brand-muted mb-4 animate-spin" />
+              <p className="text-brand-muted font-medium">Memuat pesanan Anda...</p>
+            </div>
+          ) : orders.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-xl border border-brand-border">
               <div className="text-6xl mb-4">📦</div>
               <h2 className="text-xl font-bold text-brand-navy mb-2">Belum Ada Pesanan</h2>
@@ -70,7 +91,7 @@ export default function OrdersPage() {
           ) : (
             <div className="space-y-4">
               {orders.map((order) => {
-                const sc = statusConfig[order.status];
+                const sc = statusConfig[order.status as OrderStatus] || statusConfig.pending;
                 const StatusIcon = sc.icon;
                 const isExpanded = selectedOrder === order.id;
                 const currentStep = sc.step;
@@ -162,7 +183,7 @@ export default function OrdersPage() {
                                 <h4 className="font-semibold text-purple-900 text-sm mb-1 flex items-center gap-2">
                                   🚚 Informasi Pengiriman
                                 </h4>
-                                <p className="text-xs text-purple-700">Kurir: {order.shipping.courier} {order.shipping.service}</p>
+                                <p className="text-xs text-purple-700">Kurir: {order.shipping?.courier} {order.shipping?.service}</p>
                                 <p className="text-lg font-mono font-bold text-purple-900 mt-1">{order.trackingNumber}</p>
                               </div>
                               {order.trackingUrl && (
@@ -186,8 +207,8 @@ export default function OrdersPage() {
                         <div className="bg-white rounded-xl p-4 border border-brand-border mb-4">
                           <h4 className="font-semibold text-brand-navy text-sm mb-3">📦 Item Pesanan</h4>
                           <div className="space-y-3">
-                            {order.items.map((item) => (
-                              <div key={item.productId} className="flex items-center gap-3">
+                            {order.items.map((item, idx) => (
+                              <div key={idx} className="flex items-center gap-3">
                                 <div className="w-12 h-12 bg-brand-gray rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-bold text-brand">
                                   {item.quantity}×
                                 </div>
@@ -205,7 +226,7 @@ export default function OrdersPage() {
                               <span>{formatPrice(order.subtotal)}</span>
                             </div>
                             <div className="flex justify-between text-sm">
-                              <span className="text-brand-muted">Ongkir ({order.shipping.courier} {order.shipping.service})</span>
+                              <span className="text-brand-muted">Ongkir ({order.shipping?.courier} {order.shipping?.service})</span>
                               <span>{formatPrice(order.shippingCost)}</span>
                             </div>
                             <div className="flex justify-between font-bold text-brand-navy border-t pt-2">
@@ -221,10 +242,10 @@ export default function OrdersPage() {
                             <h4 className="font-semibold text-brand-navy text-sm mb-2 flex items-center gap-2">
                               <MapPin size={14} className="text-brand" /> Alamat Pengiriman
                             </h4>
-                            <p className="text-sm font-medium">{order.address.name}</p>
-                            <p className="text-xs text-brand-muted">{order.address.phone}</p>
-                            <p className="text-xs text-brand-muted mt-1">{order.address.address}</p>
-                            <p className="text-xs text-brand-muted">{order.address.city}, {order.address.province} {order.address.postcode}</p>
+                            <p className="text-sm font-medium">{order.address?.name}</p>
+                            <p className="text-xs text-brand-muted">{order.address?.phone}</p>
+                            <p className="text-xs text-brand-muted mt-1">{order.address?.address}</p>
+                            <p className="text-xs text-brand-muted">{order.address?.city}, {order.address?.province} {order.address?.postcode}</p>
                           </div>
                           <div className="bg-white rounded-xl p-4 border border-brand-border">
                             <h4 className="font-semibold text-brand-navy text-sm mb-2">💳 Pembayaran</h4>
@@ -234,7 +255,7 @@ export default function OrdersPage() {
                                "💵 COD (Bayar di Tempat)"}
                             </p>
                             <p className="text-xs text-brand-muted mt-2">
-                              {order.shipping.etd}
+                              {order.shipping?.etd}
                             </p>
                           </div>
                         </div>
@@ -244,7 +265,7 @@ export default function OrdersPage() {
                           <h4 className="font-semibold text-brand-navy text-sm mb-3">📋 Riwayat Status</h4>
                           <div className="space-y-2">
                             {[...order.statusHistory].reverse().map((h, i) => {
-                              const hc = statusConfig[h.status];
+                              const hc = statusConfig[h.status as OrderStatus] || statusConfig.pending;
                               const HIcon = hc.icon;
                               return (
                                 <div key={i} className="flex items-start gap-3">

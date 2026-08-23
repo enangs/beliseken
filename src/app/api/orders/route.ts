@@ -3,223 +3,243 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-// Generate order number
-function generateOrderNumber(): string {
-  const date = new Date();
-  const dateStr = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`;
-  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-  return `BS-${dateStr}-${random}`;
+// GET all orders for a user (or all orders for admin)
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+    const email = searchParams.get('email');
+    const isAdmin = searchParams.get('admin') === 'true';
+    const status = searchParams.get('status');
+
+    let where: any = {};
+
+    if (isAdmin) {
+      // Admin can see all orders
+    } else if (email) {
+      // Filter by email (for anonymous users)
+      where.address = { contains: email };
+    } else if (userId) {
+      where.userId = userId;
+    }
+
+    if (status && status !== 'all') {
+      where.status = status.toUpperCase();
+    }
+
+    const orders = await prisma.order.findMany({
+      where,
+      include: {
+        items: true,
+        statusHistory: {
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // Transform to match frontend format
+    const transformedOrders = orders.map(order => ({
+      id: order.id,
+      orderNumber: order.orderNumber,
+      userId: order.userId,
+      items: order.items.map(item => ({
+        productId: item.productId,
+        productName: item.productName,
+        productSlug: item.productSlug,
+        productImage: item.productImage,
+        price: item.price,
+        quantity: item.quantity,
+        subtotal: item.subtotal,
+      })),
+      address: JSON.parse(order.addressSnapshot || '{}'),
+      shipping: {
+        courier: order.courier,
+        service: order.shippingService,
+        description: '',
+        cost: order.shippingCost,
+        etd: order.shippingEtd,
+      },
+      subtotal: order.subtotal,
+      shippingCost: order.shippingCost,
+      total: order.total,
+      status: order.status.toLowerCase(),
+      statusHistory: order.statusHistory.map(h => ({
+        status: h.status.toLowerCase(),
+        date: h.createdAt.toISOString(),
+        note: h.note,
+      })),
+      paymentMethod: order.paymentMethod,
+      trackingNumber: order.trackingNumber,
+      trackingUrl: order.trackingNumber ? generateTrackingUrl(order.trackingNumber, order.courier) : null,
+      createdAt: order.createdAt.toISOString(),
+      updatedAt: order.updatedAt.toISOString(),
+    }));
+
+    return NextResponse.json({ success: true, data: transformedOrders });
+  } catch (error) {
+    console.error('Get orders error:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to fetch orders' },
+      { status: 500 }
+    );
+  }
 }
 
+// POST create new order
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { items, address, shipping, paymentMethod, userId } = body;
 
-    if (!items || !address || !shipping || !paymentMethod) {
+    if (!items || items.length === 0) {
       return NextResponse.json(
-        { success: false, error: 'Data tidak lengkap' },
+        { success: false, error: 'No items in order' },
         { status: 400 }
       );
     }
 
-    // Validate stock for all items
-    const validatedItems: any[] = [];
-    let subtotal = 0;
+    // Generate order number
+    const date = new Date();
+    const dateStr = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`;
+    
+    // Count existing orders today
+    const todayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const todayCount = await prisma.order.count({
+      where: { createdAt: { gte: todayStart } },
+    });
+    
+    const orderNumber = `BS-${dateStr}-${String(todayCount + 1).padStart(4, '0')}`;
 
-    for (const item of items) {
-      const { productId, unitId, quantity } = item;
+    // Calculate totals
+    const subtotal = items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
+    const shippingCost = shipping.cost || 0;
+    const total = subtotal + shippingCost;
 
-      // Find available unit
-      const unit = await prisma.productUnit.findFirst({
-        where: {
-          id: unitId,
-          productId: productId,
-          status: 'AVAILABLE',
-        },
-        include: {
-          product: true,
-          conditionGrade: true,
-        },
-      });
-
-      if (!unit) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: `Unit ${unitId} tidak tersedia`,
-          },
-          { status: 400 }
-        );
-      }
-
-      const itemSubtotal = unit.sellingPrice * quantity;
-      subtotal += itemSubtotal;
-
-      validatedItems.push({
-        unit,
-        quantity,
-        subtotal: itemSubtotal,
-      });
-    }
-
-    // Create order in transaction
+    // Create order in database
     const order = await prisma.$transaction(async (tx) => {
-      // Create order
       const newOrder = await tx.order.create({
         data: {
-          orderNumber: generateOrderNumber(),
+          orderNumber,
           userId: userId || null,
-          status: paymentMethod === 'COD' ? 'PROCESSING' : 'WAITING_PAYMENT',
-          paymentStatus: paymentMethod === 'COD' ? 'PAID' : 'UNPAID',
-          paymentMethod,
+          status: paymentMethod === 'cod' ? 'PROCESSING' : 'WAITING_PAYMENT',
+          paymentStatus: 'UNPAID',
+          paymentMethod: paymentMethod || 'bank_transfer',
           subtotal,
-          shippingCost: shipping.cost,
-          total: subtotal + shipping.cost,
+          shippingCost,
+          total,
           courier: shipping.courier,
           shippingService: shipping.service,
           shippingEtd: shipping.etd,
           addressSnapshot: JSON.stringify(address),
-          expiresAt: paymentMethod !== 'COD' 
-            ? new Date(Date.now() + 30 * 60 * 1000) // 30 minutes
-            : null,
+          items: {
+            create: items.map((item: any) => ({
+              productId: item.productId || 'unknown',
+              unitId: item.unitId || 'unknown',
+              productName: item.productName,
+              productSlug: item.productSlug || '',
+              productImage: item.productImage,
+              price: item.price,
+              quantity: item.quantity,
+              subtotal: item.price * item.quantity,
+            })),
+          },
+          statusHistory: {
+            create: {
+              status: paymentMethod === 'cod' ? 'PROCESSING' : 'WAITING_PAYMENT',
+              note: 'Pesanan dibuat',
+              changedBy: 'system',
+            },
+          },
+        },
+        include: {
+          items: true,
+          statusHistory: true,
         },
       });
 
-      // Create order items and reserve stock
-      for (const item of validatedItems) {
-        await tx.orderItem.create({
-          data: {
-            orderId: newOrder.id,
-            unitId: item.unit.id,
-            productId: item.unit.productId,
-            productName: item.unit.product.name,
-            productSlug: item.unit.product.slug,
-            unitSku: item.unit.unitSku,
-            gradeCode: item.unit.conditionGrade?.code,
-            price: item.unit.sellingPrice,
-            quantity: item.quantity,
-            subtotal: item.subtotal,
-            purchasePrice: item.unit.purchasePrice,
-            margin: item.unit.sellingPrice - item.unit.purchasePrice,
-          },
-        });
+      // Reserve stock for each item
+      for (const item of items) {
+        if (item.unitId && item.unitId !== 'unknown') {
+          await tx.productUnit.update({
+            where: { id: item.unitId },
+            data: { status: 'RESERVED' },
+          });
 
-        // Reserve stock
-        await tx.productUnit.update({
-          where: { id: item.unit.id },
-          data: { status: 'RESERVED' },
-        });
-
-        // Create reservation
-        await tx.stockReservation.create({
-          data: {
-            unitId: item.unit.id,
-            userId: userId || null,
-            orderId: newOrder.id,
-            expiresAt: new Date(Date.now() + 30 * 60 * 1000),
-          },
-        });
-
-        // Log inventory
-        await tx.inventoryLog.create({
-          data: {
-            unitId: item.unit.id,
-            action: 'STATUS_CHANGE',
-            fromStatus: 'AVAILABLE',
-            toStatus: 'RESERVED',
-            notes: `Reserved for order ${newOrder.orderNumber}`,
-            performedBy: userId || 'anonymous',
-          },
-        });
+          await tx.inventoryLog.create({
+            data: {
+              unitId: item.unitId,
+              action: 'STATUS_CHANGE',
+              fromStatus: 'AVAILABLE',
+              toStatus: 'RESERVED',
+              notes: `Reserved for order ${orderNumber}`,
+              performedBy: 'system',
+            },
+          });
+        }
       }
-
-      // Create initial status log
-      await tx.orderStatusLog.create({
-        data: {
-          orderId: newOrder.id,
-          status: newOrder.status,
-          note: 'Pesanan dibuat',
-          changedBy: userId || 'system',
-        },
-      });
 
       return newOrder;
     });
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        orderId: order.id,
-        orderNumber: order.orderNumber,
-        total: order.total,
-        status: order.status,
+    // Transform response
+    const transformedOrder = {
+      id: order.id,
+      orderNumber: order.orderNumber,
+      userId: order.userId,
+      items: order.items.map(item => ({
+        productId: item.productId,
+        productName: item.productName,
+        productSlug: item.productSlug,
+        productImage: item.productImage,
+        price: item.price,
+        quantity: item.quantity,
+        subtotal: item.subtotal,
+      })),
+      address: JSON.parse(order.addressSnapshot || '{}'),
+      shipping: {
+        courier: order.courier,
+        service: order.shippingService,
+        description: '',
+        cost: order.shippingCost,
+        etd: order.shippingEtd,
       },
-    });
+      subtotal: order.subtotal,
+      shippingCost: order.shippingCost,
+      total: order.total,
+      status: order.status.toLowerCase(),
+      statusHistory: order.statusHistory.map(h => ({
+        status: h.status.toLowerCase(),
+        date: h.createdAt.toISOString(),
+        note: h.note,
+      })),
+      paymentMethod: order.paymentMethod,
+      createdAt: order.createdAt.toISOString(),
+      updatedAt: order.updatedAt.toISOString(),
+    };
+
+    return NextResponse.json({ success: true, data: transformedOrder }, { status: 201 });
   } catch (error) {
     console.error('Create order error:', error);
     return NextResponse.json(
-      { success: false, error: 'Gagal membuat pesanan' },
+      { success: false, error: 'Failed to create order' },
       { status: 500 }
     );
   }
 }
 
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-    const orderNumber = searchParams.get('orderNumber');
-
-    if (orderNumber) {
-      const order = await prisma.order.findUnique({
-        where: { orderNumber },
-        include: {
-          items: {
-            include: {
-              product: true,
-              unit: {
-                include: { conditionGrade: true },
-              },
-            },
-          },
-          statusHistory: {
-            orderBy: { createdAt: 'desc' },
-          },
-        },
-      });
-
-      if (!order) {
-        return NextResponse.json(
-          { success: false, error: 'Pesanan tidak ditemukan' },
-          { status: 404 }
-        );
-      }
-
-      return NextResponse.json({ success: true, data: order });
-    }
-
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'User ID required' },
-        { status: 400 }
-      );
-    }
-
-    const orders = await prisma.order.findMany({
-      where: { userId },
-      include: {
-        items: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    return NextResponse.json({ success: true, data: orders });
-  } catch (error) {
-    console.error('Get orders error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Gagal mengambil data pesanan' },
-      { status: 500 }
-    );
+function generateTrackingUrl(trackingNumber: string, courier?: string | null): string {
+  const courierLower = (courier || '').toLowerCase();
+  if (courierLower.includes('jne')) {
+    return `https://www.jne.co.id/tracking/waybill/${trackingNumber}`;
+  } else if (courierLower.includes('sicepat')) {
+    return `https://www.sicepat.com/checkAWB/${trackingNumber}`;
+  } else if (courierLower.includes('j&t') || courierLower.includes('jnt')) {
+    return `https://www.jtexpress.co.id/tracking?billCode=${trackingNumber}`;
+  } else if (courierLower.includes('pos')) {
+    return `https://tracking.posindonesia.co.id/?nos=${trackingNumber}`;
+  } else if (courierLower.includes('tiki')) {
+    return `https://www.tiki.id/tracking?airwaybill=${trackingNumber}`;
   }
+  return '';
 }
