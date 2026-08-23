@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Package, ChevronDown, ChevronUp, Truck, CheckCircle, XCircle, Clock, CreditCard, User, ExternalLink, Loader2 } from "lucide-react";
+import { Package, ChevronDown, ChevronUp, Truck, CheckCircle, XCircle, Clock, CreditCard, User, ExternalLink, Loader2, AlertCircle } from "lucide-react";
 import { fetchOrders, updateOrderStatus, updateTrackingNumber } from "@/lib/orders-api";
 import { formatPrice } from "@/lib/utils";
 import type { Order } from "@/lib/orders";
@@ -45,12 +45,21 @@ export default function AdminOrdersPage() {
   const [courierInput, setCourierInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const loadOrders = async () => {
-    setLoading(true);
-    const data = await fetchOrders({ admin: true, status: filter === "all" ? undefined : filter });
-    setOrders(data);
-    setLoading(false);
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await fetchOrders({ admin: true, status: filter === "all" ? undefined : filter });
+      setOrders(data || []);
+    } catch (err) {
+      console.error('Failed to load orders:', err);
+      setError('Gagal memuat pesanan. Silakan coba lagi.');
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { loadOrders(); }, [filter]);
@@ -93,8 +102,26 @@ export default function AdminOrdersPage() {
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-brand-navy">Pesanan</h1>
-        <p className="text-brand-muted text-sm mt-1">{loading ? "Memuat..." : `${orders.length} pesanan ditampilkan`}</p>
+        <p className="text-brand-muted text-sm mt-1">
+          {loading ? "Memuat..." : `${orders.length} pesanan ditampilkan`}
+        </p>
       </div>
+
+      {/* Error State */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-center gap-3">
+          <AlertCircle size={20} className="text-red-500 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+          <button 
+            onClick={loadOrders}
+            className="px-3 py-1 bg-red-100 text-red-700 text-sm font-semibold rounded-lg hover:bg-red-200"
+          >
+            Coba Lagi
+          </button>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
