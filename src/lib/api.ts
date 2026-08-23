@@ -52,7 +52,7 @@ export interface CategoryResponse {
 
 function toProductResponse(p: LocalProduct): ProductResponse {
   return {
-    id: p.id, name: p.name, slug: p.slug, sku: `SKU-${p.id}`,
+    id: p.id, name: p.name, slug: p.slug, sku: p.sku || `BS-${p.id}`,
     description: p.description || null, sellingPrice: p.price,
     basePrice: Math.round(p.price * 0.65), originalPrice: p.originalPrice,
     discount: p.discount, weight: p.weight || null, dimensions: p.dimensions || null,

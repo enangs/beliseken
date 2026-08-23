@@ -1,5 +1,6 @@
 export interface Product {
   id: string;
+  sku: string; // SKU unik: BS-LP-001, BS-SP-001, dst
   name: string;
   slug: string;
   category: string;
@@ -76,6 +77,7 @@ export const initialProducts: Product[] = [
   // ══════════════════════════════════════════
   {
     id: "1",
+    sku: "BS-LP-001",
     name: "MacBook Air M1 2020",
     slug: "macbook-air-m1-2020",
     category: "Laptop & Notebook",
@@ -99,6 +101,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "2",
+    sku: "BS-LP-002",
     name: "ThinkPad X1 Carbon Gen 9",
     slug: "thinkpad-x1-carbon-gen9",
     category: "Laptop & Notebook",
@@ -122,6 +125,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "3",
+    sku: "BS-LP-003",
     name: "ASUS ROG Strix G14",
     slug: "asus-rog-strix-g14",
     category: "Laptop & Notebook",
@@ -145,6 +149,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "4",
+    sku: "BS-LP-004",
     name: "HP ProBook 440 G8",
     slug: "hp-probook-440-g8",
     category: "Laptop & Notebook",
@@ -167,6 +172,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "5",
+    sku: "BS-LP-005",
     name: "Dell Latitude 5420",
     slug: "dell-latitude-5420",
     category: "Laptop & Notebook",
@@ -190,6 +196,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "6",
+    sku: "BS-LP-006",
     name: "Lenovo IdeaPad Slim 3",
     slug: "lenovo-ideapad-slim-3",
     category: "Laptop & Notebook",
@@ -212,6 +219,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "7",
+    sku: "BS-LP-007",
     name: "MacBook Pro 14 M1 Pro",
     slug: "macbook-pro-14-m1-pro",
     category: "Laptop & Notebook",
@@ -235,6 +243,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "8",
+    sku: "BS-LP-008",
     name: "ASUS VivoBook 14",
     slug: "asus-vivobook-14",
     category: "Laptop & Notebook",
@@ -257,6 +266,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "9",
+    sku: "BS-LP-009",
     name: "Acer Aspire 5",
     slug: "acer-aspire-5",
     category: "Laptop & Notebook",
@@ -279,6 +289,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "10",
+    sku: "BS-LP-010",
     name: "Lenovo ThinkPad T480",
     slug: "lenovo-thinkpad-t480",
     category: "Laptop & Notebook",
@@ -306,6 +317,7 @@ export const initialProducts: Product[] = [
   // ══════════════════════════════════════════
   {
     id: "11",
+    sku: "BS-SP-001",
     name: "iPhone 13 Pro 128GB",
     slug: "iphone-13-pro-128gb",
     category: "Smartphone & Tablet",
@@ -329,6 +341,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "12",
+    sku: "BS-SP-002",
     name: "Samsung Galaxy S22 Ultra",
     slug: "samsung-galaxy-s22-ultra",
     category: "Smartphone & Tablet",
@@ -351,6 +364,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "13",
+    sku: "BS-SP-003",
     name: "iPhone 14 128GB",
     slug: "iphone-14-128gb",
     category: "Smartphone & Tablet",
@@ -374,6 +388,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "14",
+    sku: "BS-SP-004",
     name: "Samsung Galaxy A54",
     slug: "samsung-galaxy-a54",
     category: "Smartphone & Tablet",
@@ -396,6 +411,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "15",
+    sku: "BS-SP-005",
     name: "iPad Air M1 64GB",
     slug: "ipad-air-m1-64gb",
     category: "Smartphone & Tablet",
@@ -419,6 +435,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "16",
+    sku: "BS-SP-006",
     name: "Samsung Galaxy Tab S8",
     slug: "samsung-galaxy-tab-s8",
     category: "Smartphone & Tablet",
@@ -441,6 +458,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "17",
+    sku: "BS-SP-007",
     name: "Xiaomi Redmi Note 12",
     slug: "xiaomi-redmi-note-12",
     category: "Smartphone & Tablet",
@@ -464,6 +482,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "18",
+    sku: "BS-SP-008",
     name: "iPhone 12 Mini 64GB",
     slug: "iphone-12-mini-64gb",
     category: "Smartphone & Tablet",
@@ -486,6 +505,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "19",
+    sku: "BS-SP-009",
     name: "Samsung Galaxy Tab A8",
     slug: "samsung-galaxy-tab-a8",
     category: "Smartphone & Tablet",
@@ -508,6 +528,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "20",
+    sku: "BS-SP-010",
     name: "Realme GT Neo 3",
     slug: "realme-gt-neo-3",
     category: "Smartphone & Tablet",
@@ -535,6 +556,7 @@ export const initialProducts: Product[] = [
   // ══════════════════════════════════════════
   {
     id: "21",
+    sku: "BS-MT-001",
     name: "Dell UltraSharp U2720Q 4K",
     slug: "dell-u2720q-4k",
     category: "Monitor & TV",
@@ -558,6 +580,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "22",
+    sku: "BS-MT-002",
     name: "LG 27GN800-B UltraGear",
     slug: "lg-27gn800b-ultragear",
     category: "Monitor & TV",
@@ -581,6 +604,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "23",
+    sku: "BS-MT-003",
     name: "Samsung LU32J390 4K 32 inch",
     slug: "samsung-lu32j390-4k-32",
     category: "Monitor & TV",
@@ -603,6 +627,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "24",
+    sku: "BS-MT-004",
     name: "LG 55UN7300 55 inch Smart TV",
     slug: "lg-55un7300-55-smart-tv",
     category: "Monitor & TV",
@@ -626,6 +651,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "25",
+    sku: "BS-MT-005",
     name: "BenQ GW2480 24 inch",
     slug: "benq-gw2480-24",
     category: "Monitor & TV",
@@ -649,6 +675,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "26",
+    sku: "BS-MT-006",
     name: "Asus ProArt PA278QV 27 inch",
     slug: "asus-proart-pa278qv-27",
     category: "Monitor & TV",
@@ -671,6 +698,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "27",
+    sku: "BS-MT-007",
     name: "Hisense 43A6500 43 inch Smart TV",
     slug: "hisense-43a6500-43-smart-tv",
     category: "Monitor & TV",
@@ -693,6 +721,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "28",
+    sku: "BS-MT-008",
     name: "Samsung Odyssey G5 27 inch",
     slug: "samsung-odyssey-g5-27",
     category: "Monitor & TV",
@@ -716,6 +745,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "29",
+    sku: "BS-MT-009",
     name: "Philips 242M1 24 inch",
     slug: "philips-242m1-24",
     category: "Monitor & TV",
@@ -738,6 +768,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "30",
+    sku: "BS-MT-010",
     name: "Coocaa 32S7G 32 inch Smart TV",
     slug: "coocaa-32s7g-32-smart-tv",
     category: "Monitor & TV",
@@ -765,6 +796,7 @@ export const initialProducts: Product[] = [
   // ══════════════════════════════════════════
   {
     id: "31",
+    sku: "BS-NT-001",
     name: "MikroTik RB750Gr3",
     slug: "mikrotik-rb750gr3",
     category: "Networking & IT",
@@ -788,6 +820,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "32",
+    sku: "BS-NT-002",
     name: "TP-Link Archer AX50",
     slug: "tp-link-archer-ax50",
     category: "Networking & IT",
@@ -811,6 +844,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "33",
+    sku: "BS-NT-003",
     name: "MikroTik hAP ac²",
     slug: "mikrotik-hap-ac2",
     category: "Networking & IT",
@@ -833,6 +867,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "34",
+    sku: "BS-NT-004",
     name: "Ubiquiti UniFi AP AC Lite",
     slug: "ubiquiti-unifi-ap-ac-lite",
     category: "Networking & IT",
@@ -856,6 +891,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "35",
+    sku: "BS-NT-005",
     name: "TP-Link TL-SG1008D 8-Port Switch",
     slug: "tp-link-tl-sg1008d-8port",
     category: "Networking & IT",
@@ -879,6 +915,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "36",
+    sku: "BS-NT-006",
     name: "MikroTik RB951Ui-2nD",
     slug: "mikrotik-rb951ui-2nd",
     category: "Networking & IT",
@@ -901,6 +938,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "37",
+    sku: "BS-NT-007",
     name: "D-Link DIR-615 Wireless N300",
     slug: "d-link-dir-615-wireless-n300",
     category: "Networking & IT",
@@ -923,6 +961,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "38",
+    sku: "BS-NT-008",
     name: "Ubiquiti UniFi USW-Lite-8-PoE",
     slug: "ubiquiti-unifi-usw-lite-8-poe",
     category: "Networking & IT",
@@ -946,6 +985,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "39",
+    sku: "BS-NT-009",
     name: "Tenda AC10 WiFi Router",
     slug: "tenda-ac10-wifi-router",
     category: "Networking & IT",
@@ -968,6 +1008,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "40",
+    sku: "BS-NT-010",
     name: "MikroTik hEX S (RB760iGS)",
     slug: "mikrotik-hex-s-rb760igs",
     category: "Networking & IT",
@@ -995,6 +1036,7 @@ export const initialProducts: Product[] = [
   // ══════════════════════════════════════════
   {
     id: "41",
+    sku: "BS-PA-001",
     name: "Logitech MX Master 3",
     slug: "logitech-mx-master-3",
     category: "Peripheral & Aksesoris",
@@ -1018,6 +1060,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "42",
+    sku: "BS-PA-002",
     name: "Logitech MX Keys Keyboard",
     slug: "logitech-mx-keys-keyboard",
     category: "Peripheral & Aksesoris",
@@ -1041,6 +1084,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "43",
+    sku: "BS-PA-003",
     name: "Razer DeathAdder V2",
     slug: "razer-deathadder-v2",
     category: "Peripheral & Aksesoris",
@@ -1064,6 +1108,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "44",
+    sku: "BS-PA-004",
     name: "Keychron K2 V2 Mechanical",
     slug: "keychron-k2-v2-mechanical",
     category: "Peripheral & Aksesoris",
@@ -1086,6 +1131,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "45",
+    sku: "BS-PA-005",
     name: "HyperX Cloud II Gaming Headset",
     slug: "hyperx-cloud-ii-gaming-headset",
     category: "Peripheral & Aksesoris",
@@ -1109,6 +1155,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "46",
+    sku: "BS-PA-006",
     name: "Logitech C920 HD Pro Webcam",
     slug: "logitech-c920-hd-pro-webcam",
     category: "Peripheral & Aksesoris",
@@ -1132,6 +1179,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "47",
+    sku: "BS-PA-007",
     name: "SteelSeries Arctis 7",
     slug: "steelseries-arctis-7",
     category: "Peripheral & Aksesoris",
@@ -1154,6 +1202,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "48",
+    sku: "BS-PA-008",
     name: "Corsair K70 RGB Mechanical",
     slug: "corsair-k70-rgb-mechanical",
     category: "Peripheral & Aksesoris",
@@ -1176,6 +1225,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "49",
+    sku: "BS-PA-009",
     name: "Anker PowerPort III 65W GaN",
     slug: "anker-powerport-iii-65w-gan",
     category: "Peripheral & Aksesoris",
@@ -1199,6 +1249,7 @@ export const initialProducts: Product[] = [
   },
   {
     id: "50",
+    sku: "BS-PA-010",
     name: "Logitech G304 Lightspeed Mouse",
     slug: "logitech-g304-lightspeed",
     category: "Peripheral & Aksesoris",
@@ -1292,6 +1343,7 @@ export const newArrivalProducts: Product[] = initialProducts.filter((p) => p.bad
 export const testimonials: Testimonial[] = [
   {
     id: "1",
+    sku: "BS-LP-001",
     name: "Rizky Pratama",
     role: "Freelancer, Jakarta",
     rating: 5,
@@ -1300,6 +1352,7 @@ export const testimonials: Testimonial[] = [
   },
   {
     id: "2",
+    sku: "BS-LP-002",
     name: "Sari Dewi",
     role: "Owner UMKM, Bekasi",
     rating: 5,
@@ -1308,6 +1361,7 @@ export const testimonials: Testimonial[] = [
   },
   {
     id: "3",
+    sku: "BS-LP-003",
     name: "Andi Kurniawan",
     role: "IT Manager, Jakarta",
     rating: 5,
@@ -1316,6 +1370,7 @@ export const testimonials: Testimonial[] = [
   },
   {
     id: "4",
+    sku: "BS-LP-004",
     name: "Maya Sari",
     role: "Mahasiswa, Depok",
     rating: 5,
@@ -1324,6 +1379,7 @@ export const testimonials: Testimonial[] = [
   },
   {
     id: "5",
+    sku: "BS-LP-005",
     name: "Budi Santoso",
     role: "Network Engineer, Tangerang",
     rating: 5,
@@ -1332,6 +1388,7 @@ export const testimonials: Testimonial[] = [
   },
   {
     id: "6",
+    sku: "BS-LP-006",
     name: "Rina Hartati",
     role: "Content Creator, Bekasi",
     rating: 5,
@@ -1343,6 +1400,7 @@ export const testimonials: Testimonial[] = [
 export const initialBlogPosts: BlogPost[] = [
   {
     id: "1",
+    sku: "BS-LP-001",
     title: "Panduan Lengkap Membeli Laptop Bekas Berkualitas di 2026",
     slug: "panduan-beli-laptop-bekas-berkualitas-2026",
     excerpt: "Membeli laptop bekas bukan berarti mengorbankan kualitas. Berikut panduan lengkap kami untuk membantu kamu mendapatkan laptop bekas terbaik dengan harga terjangkau.",
@@ -1354,6 +1412,7 @@ export const initialBlogPosts: BlogPost[] = [
   },
   {
     id: "2",
+    sku: "BS-LP-002",
     title: "Tips Memilih Router MikroTik untuk UMKM",
     slug: "tips-memilih-router-mikrotik-umkm",
     excerpt: "Jaringan internet yang stabil adalah tulang punggung UMKM modern. Pelajari cara memilih router MikroTik yang tepat untuk kebutuhan bisnis Anda.",
@@ -1364,6 +1423,7 @@ export const initialBlogPosts: BlogPost[] = [
   },
   {
     id: "3",
+    sku: "BS-LP-003",
     title: "Review: iPhone 13 Pro Bekas — Masih Worth It di 2026?",
     slug: "review-iphone-13-pro-bekas-2026",
     excerpt: "Dengan harga yang terus turun, iPhone 13 Pro bekas menjadi pilihan menarik. Kami uji performa, baterai, dan kamera secara mendalam.",

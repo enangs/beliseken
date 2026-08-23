@@ -75,6 +75,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="p-4">
         {/* Product Name */}
         <Link href={`/product/${product.slug}`}>
+          <p className="text-[10px] font-mono text-brand-muted mb-1">{product.sku}</p>
           <h3 className="font-semibold text-brand-navy text-sm leading-snug line-clamp-2 mb-2 group-hover:text-brand transition-colors min-h-[40px]">
             {product.name}
           </h3>

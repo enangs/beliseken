@@ -143,6 +143,16 @@ export default function ProductClient({ slug }: { slug: string }) {
                 {categoryName}
               </span>
               <h1 className="text-3xl font-bold text-brand-navy mt-4 mb-3">{product.name}</h1>
+              <div className="flex items-center gap-2 mb-4">
+                <span className="px-2.5 py-1 bg-brand-navy/10 text-brand-navy text-xs font-mono font-bold rounded">
+                  SKU: {product.sku || '-'}
+                </span>
+                {product.brand && (
+                  <span className="px-2.5 py-1 bg-gray-100 text-brand-navy text-xs font-semibold rounded">
+                    {product.brand?.name || product.brand}
+                  </span>
+                )}
+              </div>
 
               <div className="flex items-center gap-3 mb-4">
                 <div className="flex items-center gap-0.5">

@@ -165,6 +165,7 @@ export default function AdminProductsPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-brand-muted bg-brand-gray border-b border-brand-border">
+                <th className="px-4 py-3 font-medium">SKU</th>
                 <th className="px-4 py-3 font-medium">Produk</th>
                 <th className="px-4 py-3 font-medium">Harga</th>
                 <th className="px-4 py-3 font-medium text-center">Stok</th>
@@ -176,6 +177,11 @@ export default function AdminProductsPage() {
             <tbody>
               {filtered.map((product) => (
                 <tr key={product.id} className="border-b border-brand-border last:border-0 hover:bg-brand-gray/30 transition-colors">
+                  <td className="px-4 py-4">
+                    <span className="px-2 py-1 bg-brand-navy/10 text-brand-navy text-xs font-mono font-bold rounded">
+                      {product.sku || '-'}
+                    </span>
+                  </td>
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-lg flex-shrink-0">
@@ -260,7 +266,7 @@ export default function AdminProductsPage() {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-12 text-center text-brand-muted">
+                  <td colSpan={7} className="px-5 py-12 text-center text-brand-muted">
                     <p className="text-lg mb-2">📦</p>
                     <p>Tidak ada produk ditemukan</p>
                   </td>

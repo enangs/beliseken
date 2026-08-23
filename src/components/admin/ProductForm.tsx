@@ -34,6 +34,7 @@ export default function ProductForm({
   const [photos, setPhotos] = useState<string[]>(initialData?.images || (initialData?.imageBase64 ? [initialData.imageBase64] : []));
   const [mainPhotoIndex, setMainPhotoIndex] = useState(0);
 
+  const [sku, setSku] = useState(initialData?.sku || "");
   const [name, setName] = useState(initialData?.name || "");
   const [slug, setSlug] = useState(initialData?.slug || "");
   const [brand, setBrand] = useState(initialData?.brand || "");
@@ -137,6 +138,7 @@ export default function ProductForm({
 
     const data: Omit<Product, "id"> & { id?: string } = {
       ...(initialData ? { id: initialData.id } : {}),
+      sku: sku.trim() || `BS-${Date.now()}`,
       name: name.trim(),
       slug: slug.trim(),
       category: initialData?.category || "Elektronik Bekas",
@@ -262,10 +264,10 @@ export default function ProductForm({
       <div className="bg-white rounded-xl border border-brand-border p-5">
         <h2 className="font-bold text-brand-navy mb-4">📝 Informasi Dasar</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="sm:col-span-2">
-            <label className="block text-sm font-semibold text-brand-navy mb-1">Nama Produk *</label>
-            <input type="text" value={name} onChange={(e) => handleNameChange(e.target.value)} placeholder="Contoh: MacBook Air M1 2020" className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all" />
-            {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
+          <div>
+            <label className="block text-sm font-semibold text-brand-navy mb-1">SKU *</label>
+            <input type="text" value={sku} onChange={(e) => setSku(e.target.value)} placeholder="BS-LP-001" className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all font-mono" />
+            <p className="text-xs text-brand-muted mt-1">Kode unik produk (BS-LP-001, BS-SP-002, dst)</p>
           </div>
           <div>
             <label className="block text-sm font-semibold text-brand-navy mb-1">Slug *</label>
