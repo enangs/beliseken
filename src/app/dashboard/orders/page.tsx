@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Package, ChevronRight, Clock, Truck, CheckCircle, XCircle, CreditCard, MapPin, ChevronDown, ChevronUp } from "lucide-react";
+import { Package, ChevronRight, Clock, Truck, CheckCircle, XCircle, CreditCard, MapPin, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getUserOrders, type Order, type OrderStatus } from "@/lib/orders";
@@ -95,6 +95,19 @@ export default function OrdersPage() {
                             <p className="text-xs text-brand-muted">
                               {new Date(order.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                             </p>
+                            {/* Show tracking number in header if available */}
+                            {order.trackingNumber && (
+                              <div className="flex items-center gap-2 mt-1.5 text-xs text-purple-600">
+                                <Truck size={12} />
+                                <span className="font-semibold">No. Resi:</span>
+                                <span className="font-mono bg-purple-50 px-2 py-0.5 rounded">{order.trackingNumber}</span>
+                                {order.trackingUrl && (
+                                  <a href={order.trackingUrl} target="_blank" rel="noopener noreferrer" className="hover:text-purple-800">
+                                    <ExternalLink size={10} />
+                                  </a>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
@@ -140,6 +153,34 @@ export default function OrdersPage() {
                             })}
                           </div>
                         </div>
+
+                        {/* Tracking Info Card */}
+                        {order.trackingNumber && (
+                          <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200 mb-4">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h4 className="font-semibold text-purple-900 text-sm mb-1 flex items-center gap-2">
+                                  🚚 Informasi Pengiriman
+                                </h4>
+                                <p className="text-xs text-purple-700">Kurir: {order.shipping.courier} {order.shipping.service}</p>
+                                <p className="text-lg font-mono font-bold text-purple-900 mt-1">{order.trackingNumber}</p>
+                              </div>
+                              {order.trackingUrl && (
+                                <a
+                                  href={order.trackingUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center gap-2"
+                                >
+                                  📌 Lacak Kiriman <ExternalLink size={12} />
+                                </a>
+                              )}
+                            </div>
+                            <p className="text-xs text-purple-600 mt-2">
+                              💡 Simpan nomor resi ini untuk melacak status pengiriman barang Anda
+                            </p>
+                          </div>
+                        )}
 
                         {/* Items */}
                         <div className="bg-white rounded-xl p-4 border border-brand-border mb-4">

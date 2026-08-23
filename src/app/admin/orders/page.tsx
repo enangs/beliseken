@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Package, ChevronDown, ChevronUp, Truck, CheckCircle, XCircle, Clock, CreditCard, User } from "lucide-react";
-import { getOrders, updateOrderStatus as updateOrderStatusLocal, type Order } from "@/lib/orders";
+import { Package, ChevronDown, ChevronUp, Truck, CheckCircle, XCircle, Clock, CreditCard, User, ExternalLink } from "lucide-react";
+import { getOrders, updateOrderStatus as updateOrderStatusLocal, updateTrackingNumber, type Order } from "@/lib/orders";
 import { formatPrice } from "@/lib/utils";
 
 const statusConfig: Record<string, { label: string; color: string; bg: string; icon: React.ElementType }> = {
@@ -25,10 +25,23 @@ const nextStatuses: Record<string, { status: string; label: string }[]> = {
   pending: [{ status: "processing", label: "Proses" }, { status: "cancelled", label: "Batalkan" }],
 };
 
+const courierList = [
+  "JNE", "JNE REG", "JNE OKE", "JNE YES", "JNE JET",
+  "SiCepat REG", "SiCepat HAL", "SiCepat BEST",
+  "J&T REG", "J&T PRO",
+  "POS REG", "POS KILAT",
+  "TIKI REG", "TIKI ONS",
+  "AnterAja REG", "AnterAja SFD",
+  "GrabExpress", "GoSend", "DartaJasa"
+];
+
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>("all");
+  const [editingTracking, setEditingTracking] = useState<string | null>(null);
+  const [trackingInput, setTrackingInput] = useState("");
+  const [courierInput, setCourierInput] = useState("");
 
   const loadOrders = () => {
     let allOrders = getOrders();
@@ -43,6 +56,22 @@ export default function AdminOrdersPage() {
   const handleStatusUpdate = (orderId: string, newStatus: string) => {
     updateOrderStatusLocal(orderId, newStatus as any);
     loadOrders();
+  };
+
+  const handleSaveTracking = (orderId: string) => {
+    if (trackingInput.trim()) {
+      updateTrackingNumber(orderId, trackingInput.trim(), courierInput);
+      setEditingTracking(null);
+      setTrackingInput("");
+      setCourierInput("");
+      loadOrders();
+    }
+  };
+
+  const startEditTracking = (order: Order) => {
+    setEditingTracking(order.id);
+    setTrackingInput(order.trackingNumber || "");
+    setCourierInput(order.shipping?.courier || "");
   };
 
   const stats = {
@@ -122,6 +151,7 @@ export default function AdminOrdersPage() {
             const Icon = config.icon;
             const isExpanded = expandedOrder === order.id;
             const nexts = nextStatuses[order.status] || [];
+            const isEditingTracking = editingTracking === order.id;
 
             return (
               <div key={order.id} className="bg-white rounded-xl border border-brand-border overflow-hidden">
@@ -143,6 +173,17 @@ export default function AdminOrdersPage() {
                         <span>•</span>
                         <span>{new Date(order.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
                       </div>
+                      {order.trackingNumber && (
+                        <div className="flex items-center gap-1 text-xs text-purple-600 mt-1">
+                          <Truck size={12} />
+                          <span className="font-mono">{order.trackingNumber}</span>
+                          {order.trackingUrl && (
+                            <a href={order.trackingUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                              <ExternalLink size={10} />
+                            </a>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
@@ -200,6 +241,88 @@ export default function AdminOrdersPage() {
                              "💵 COD (Bayar di Tempat)"}
                           </p>
                         </div>
+
+                        {/* Tracking Number Section */}
+                        {(order.status === "shipping" || order.trackingNumber) && (
+                          <div className="mt-3">
+                            <h4 className="text-sm font-semibold text-brand-navy mb-2">🚚 No. Resi & Kurir:</h4>
+                            {isEditingTracking ? (
+                              <div className="bg-white rounded-lg p-3 border border-brand-border space-y-2">
+                                <div>
+                                  <label className="text-xs text-brand-muted">Kurir</label>
+                                  <select
+                                    value={courierInput}
+                                    onChange={(e) => setCourierInput(e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border border-brand-border text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                                  >
+                                    <option value="">Pilih Kurir</option>
+                                    {courierList.map((c) => (
+                                      <option key={c} value={c}>{c}</option>
+                                    ))}
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="text-xs text-brand-muted">No. Resi</label>
+                                  <input
+                                    type="text"
+                                    value={trackingInput}
+                                    onChange={(e) => setTrackingInput(e.target.value)}
+                                    placeholder="Masukkan nomor resi"
+                                    className="w-full px-3 py-2 rounded-lg border border-brand-border text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand"
+                                  />
+                                </div>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => handleSaveTracking(order.id)}
+                                    className="px-3 py-1.5 bg-brand text-white text-xs font-semibold rounded-lg hover:bg-brand-dark"
+                                  >
+                                    💾 Simpan
+                                  </button>
+                                  <button
+                                    onClick={() => setEditingTracking(null)}
+                                    className="px-3 py-1.5 bg-gray-100 text-gray-600 text-xs font-semibold rounded-lg hover:bg-gray-200"
+                                  >
+                                    Batal
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="bg-white rounded-lg p-3 border border-brand-border text-sm">
+                                {order.trackingNumber ? (
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <p className="text-xs text-brand-muted">Kurir: {order.shipping?.courier}</p>
+                                      <p className="font-mono font-semibold text-brand-navy">{order.trackingNumber}</p>
+                                      {order.trackingUrl && (
+                                        <a 
+                                          href={order.trackingUrl} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="text-xs text-brand hover:underline flex items-center gap-1 mt-1"
+                                        >
+                                          📌 Lacak Kiriman <ExternalLink size={10} />
+                                        </a>
+                                      )}
+                                    </div>
+                                    <button
+                                      onClick={() => startEditTracking(order)}
+                                      className="px-3 py-1.5 bg-brand-gray text-brand-navy text-xs font-semibold rounded-lg hover:bg-brand-border"
+                                    >
+                                      ✏️ Edit
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={() => startEditTracking(order)}
+                                    className="w-full py-2 border-2 border-dashed border-brand-border rounded-lg text-xs text-brand-muted hover:border-brand hover:text-brand transition-colors"
+                                  >
+                                    ➕ Tambah No. Resi
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
 

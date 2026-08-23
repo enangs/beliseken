@@ -55,6 +55,8 @@ export interface Order {
   status: OrderStatus;
   statusHistory: { status: OrderStatus; date: string; note: string }[];
   paymentMethod: string;
+  trackingNumber?: string; // No. Resi
+  trackingUrl?: string; // URL tracking kurir
   createdAt: string;
   updatedAt: string;
 }
@@ -171,6 +173,41 @@ export function updateOrderStatus(id: string, status: OrderStatus, note?: string
 
 export function cancelOrder(id: string): Order | null {
   return updateOrderStatus(id, "cancelled", "Pesanan dibatalkan oleh user");
+}
+
+export function updateTrackingNumber(id: string, trackingNumber: string, courier?: string): Order | null {
+  const orders = getOrders();
+  const idx = orders.findIndex((o) => o.id === id);
+  if (idx === -1) return null;
+
+  const now = new Date().toISOString();
+  orders[idx].trackingNumber = trackingNumber;
+  
+  // Generate tracking URL based on courier
+  const courierLower = (courier || orders[idx].shipping?.courier || '').toLowerCase();
+  if (courierLower.includes('jne')) {
+    orders[idx].trackingUrl = `https://www.jne.co.id/tracking/waybill/${trackingNumber}`;
+  } else if (courierLower.includes('sicepat')) {
+    orders[idx].trackingUrl = `https://www.sicepat.com/checkAWB/${trackingNumber}`;
+  } else if (courierLower.includes('j&t') || courierLower.includes('jnt')) {
+    orders[idx].trackingUrl = `https://www.jtexpress.co.id/tracking?billCode=${trackingNumber}`;
+  } else if (courierLower.includes('pos')) {
+    orders[idx].trackingUrl = `https://tracking.posindonesia.co.id/?nos=${trackingNumber}`;
+  } else if (courierLower.includes('tiki')) {
+    orders[idx].trackingUrl = `https://www.tiki.id/tracking?airwaybill=${trackingNumber}`;
+  } else {
+    orders[idx].trackingUrl = '';
+  }
+  
+  orders[idx].updatedAt = now;
+  orders[idx].statusHistory.push({
+    status: orders[idx].status,
+    date: now,
+    note: `No. Resi: ${trackingNumber}`,
+  });
+
+  saveOrders(orders);
+  return orders[idx];
 }
 
 // Province/City/District data for Bekasi area
