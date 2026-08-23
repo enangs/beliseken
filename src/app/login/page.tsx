@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Header from "@/components/Header";
-import { loginUser } from "@/lib/user-auth";
+import { loginUser } from "@/lib/auth-api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,9 +25,8 @@ export default function LoginPage() {
     }
 
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 500));
 
-    const result = loginUser(email, password);
+    const result = await loginUser(email, password);
     setLoading(false);
 
     if (result.success) {
@@ -84,9 +83,16 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-brand hover:bg-brand-dark text-white font-bold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 bg-brand hover:bg-brand-dark text-white font-bold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {loading ? "Masuk..." : "Masuk"}
+                {loading ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" />
+                    Masuk...
+                  </>
+                ) : (
+                  "Masuk"
+                )}
               </button>
             </form>
 
