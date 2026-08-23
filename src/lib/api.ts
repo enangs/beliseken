@@ -20,6 +20,7 @@ export type { BlogPost };
 export interface ProductResponse {
   id: string; name: string; slug: string; sku: string;
   description: string | null; sellingPrice: number; basePrice: number;
+  imageBase64: string | null;
   originalPrice?: number; discount: number; weight: number | null;
   dimensions: string | null; badge: string | null; isFeatured: boolean;
   avgRating: number; reviewCount: number; soldCount: number; viewCount: number;
@@ -36,7 +37,8 @@ export interface ProductResponse {
 
 export interface ProductDetailResponse extends ProductResponse {
   specs: { key: string; value: string; sortOrder: number }[];
-  images: { url: string; alt: string | null; isPrimary: boolean }[];
+  images: string[]; // array of base64 images
+  allImages: string[]; // all images including main
   units: { id: string; unitSku: string; conditionGrade: { code: string; name: string; description: string }; conditionScore: number; conditionNotes: string | null; batteryHealth: number | null; sellingPrice: number }[];
   reviews: any[]; totalReviews: number;
 }
@@ -56,6 +58,7 @@ function toProductResponse(p: LocalProduct): ProductResponse {
     description: p.description || null, sellingPrice: p.price,
     basePrice: Math.round(p.price * 0.65), originalPrice: p.originalPrice,
     discount: p.discount, weight: p.weight || null, dimensions: p.dimensions || null,
+    imageBase64: p.imageBase64 || null,
     badge: p.badge || null, isFeatured: p.badge === 'HOT DEAL' || p.badge === 'BEST SELLER',
     avgRating: p.rating, reviewCount: p.reviewCount,
     soldCount: Math.floor(Math.random() * 50) + 5, viewCount: Math.floor(Math.random() * 500) + 50,
@@ -129,7 +132,8 @@ export async function getProductBySlug(slug: string) {
   const p = getLocalProductBySlug(slug);
   if (!p) return null;
   const base = toProductResponse(p);
-  return { success: true, data: { ...base, specs: (p.specs || []).map((s: string, i: number) => { const parts = s.split(':'); return { key: parts[0]?.trim() || `Spec ${i+1}`, value: parts[1]?.trim() || s, sortOrder: i }; }), images: [], units: [{ id: '1', unitSku: `${base.sku}-001`, conditionGrade: { code: 'A', name: 'Mulus', description: '' }, conditionScore: 90, conditionNotes: null, batteryHealth: null, sellingPrice: p.price }], reviews: [], totalReviews: p.reviewCount } };
+  const allImages = (p as any).images || (p.imageBase64 ? [p.imageBase64] : []);
+  return { success: true, data: { ...base, specs: (p.specs || []).map((s: string, i: number) => { const parts = s.split(':'); return { key: parts[0]?.trim() || `Spec ${i+1}`, value: parts[1]?.trim() || s, sortOrder: i }; }), images: allImages.slice(1), allImages: allImages.length > 0 ? allImages : [], units: [{ id: '1', unitSku: `${base.sku}-001`, conditionGrade: { code: 'A', name: 'Mulus', description: '' }, conditionScore: 90, conditionNotes: null, batteryHealth: null, sellingPrice: p.price }], reviews: [], totalReviews: p.reviewCount } };
 }
 
 export async function getCategories() {

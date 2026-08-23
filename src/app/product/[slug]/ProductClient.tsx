@@ -20,6 +20,7 @@ export default function ProductClient({ slug }: { slug: string }) {
   const [loaded, setLoaded] = useState(false);
   const [added, setAdded] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [selectedImage, setSelectedImage] = useState(0);
 
   useEffect(() => {
     fetchProductBySlug(slug)
@@ -117,8 +118,18 @@ export default function ProductClient({ slug }: { slug: string }) {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             <div>
+              {/* Main Image */}
               <div className="bg-brand-gray rounded-2xl aspect-square flex items-center justify-center relative overflow-hidden">
-                <div className="text-8xl opacity-20">📦</div>
+                {product.allImages && product.allImages.length > 0 ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={product.allImages[selectedImage] || product.allImages[0]}
+                    alt={product.name}
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <div className="text-8xl opacity-20">📦</div>
+                )}
                 {product.badge && (
                   <span className={`absolute top-4 left-4 px-3 py-1.5 text-sm font-bold rounded-lg ${
                     product.badge === "HOT DEAL" ? "bg-brand text-white" :
@@ -129,13 +140,23 @@ export default function ProductClient({ slug }: { slug: string }) {
                   </span>
                 )}
               </div>
-              <div className="grid grid-cols-5 gap-2 mt-4">
-                {[0, 1, 2, 3, 4].map((i) => (
-                  <div key={i} className="bg-brand-gray rounded-lg aspect-square flex items-center justify-center border-2 border-brand-border hover:border-brand cursor-pointer transition-colors">
-                    <span className="text-xl opacity-30">📷</span>
-                  </div>
-                ))}
-              </div>
+              {/* Thumbnails */}
+              {product.allImages && product.allImages.length > 1 && (
+                <div className="grid grid-cols-5 gap-2 mt-4">
+                  {product.allImages.slice(0, 5).map((img, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setSelectedImage(i)}
+                      className={`bg-brand-gray rounded-lg aspect-square flex items-center justify-center border-2 overflow-hidden transition-colors ${
+                        selectedImage === i ? "border-brand ring-1 ring-brand/30" : "border-brand-border hover:border-brand/50"
+                      }`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={img} alt={`${product.name} ${i + 1}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div>

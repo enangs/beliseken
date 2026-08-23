@@ -55,10 +55,21 @@ export default function ProductCard({ product }: ProductCardProps) {
       {/* Image Container */}
       <Link href={`/product/${product.slug}`}>
         <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-brand/10 to-brand-dark/10" />
-          <div className="absolute inset-0 flex items-center justify-center text-4xl opacity-30">
-            📦
-          </div>
+          {(product as any).imageBase64 ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={(product as any).imageBase64}
+              alt={product.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          ) : (
+            <>
+              <div className="absolute inset-0 bg-gradient-to-br from-brand/10 to-brand-dark/10" />
+              <div className="absolute inset-0 flex items-center justify-center text-4xl opacity-30">
+                📦
+              </div>
+            </>
+          )}
 
           {/* Badge */}
           {product.badge && (
