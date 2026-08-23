@@ -12,68 +12,89 @@ export async function GET(request: NextRequest) {
     const isAdmin = searchParams.get('admin') === 'true';
     const status = searchParams.get('status');
 
-    let where: any = {};
+    // Use raw SQL to avoid Prisma relation issues with nullable columns
+    let whereClause = '';
+    const params: any[] = [];
+    let paramIdx = 1;
 
     if (isAdmin) {
-      // Admin can see all orders
+      // Admin sees all orders
     } else if (email) {
-      // Filter by email (stored in addressSnapshot JSON)
-      where.addressSnapshot = { contains: email };
+      whereClause = `WHERE o."addressSnapshot" ILIKE $${paramIdx}`;
+      params.push(`%${email}%`);
+      paramIdx++;
     } else if (userId) {
-      where.userId = userId;
+      whereClause = `WHERE o."userId" = $${paramIdx}`;
+      params.push(userId);
+      paramIdx++;
     }
 
     if (status && status !== 'all') {
-      where.status = status.toUpperCase();
+      const statusUpper = status.toUpperCase();
+      whereClause += whereClause ? ` AND o."status" = $${paramIdx}` : ` WHERE o."status" = $${paramIdx}`;
+      params.push(statusUpper);
+      paramIdx++;
     }
 
-    const orders = await prisma.order.findMany({
-      where,
-      include: {
-        items: true,
-        statusHistory: {
-          orderBy: { createdAt: 'desc' },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const ordersQuery = `
+      SELECT o.* FROM orders o
+      ${whereClause}
+      ORDER BY o."createdAt" DESC
+    `;
 
-    // Transform to match frontend format
-    const transformedOrders = orders.map(order => ({
-      id: order.id,
-      orderNumber: order.orderNumber,
-      userId: order.userId,
-      items: order.items.map(item => ({
-        productId: item.productId,
-        productName: item.productName,
-        productSlug: item.productSlug,
-        productImage: item.productImage,
-        price: item.price,
-        quantity: item.quantity,
-        subtotal: item.subtotal,
-      })),
-      address: JSON.parse(order.addressSnapshot || '{}'),
-      shipping: {
-        courier: order.courier,
-        service: order.shippingService,
-        description: '',
-        cost: order.shippingCost,
-        etd: order.shippingEtd,
-      },
-      subtotal: order.subtotal,
-      shippingCost: order.shippingCost,
-      total: order.total,
-      status: order.status.toLowerCase(),
-      statusHistory: order.statusHistory.map(h => ({
-        status: h.status.toLowerCase(),
-        date: h.createdAt.toISOString(),
-        note: h.note,
-      })),
-      paymentMethod: order.paymentMethod,
-      trackingNumber: order.trackingNumber,
-      trackingUrl: order.trackingNumber ? generateTrackingUrl(order.trackingNumber, order.courier) : null,
-      createdAt: order.createdAt.toISOString(),
-      updatedAt: order.updatedAt.toISOString(),
+    const orders = await prisma.$queryRawUnsafe(ordersQuery, ...params) as any[];
+
+    // Fetch items and status history for each order
+    const transformedOrders = await Promise.all(orders.map(async (order: any) => {
+      const items = await prisma.$queryRawUnsafe(
+        `SELECT * FROM order_items WHERE "orderId" = $1`,
+        order.id
+      ) as any[];
+
+      const statusHistory = await prisma.$queryRawUnsafe(
+        `SELECT * FROM order_status_logs WHERE "orderId" = $1 ORDER BY "createdAt" DESC`,
+        order.id
+      ) as any[];
+
+      let address: any = {};
+      try { address = JSON.parse(order.addressSnapshot || '{}'); } catch {}
+
+      return {
+        id: order.id,
+        orderNumber: order.orderNumber,
+        userId: order.userId,
+        items: (items || []).map((item: any) => ({
+          productId: item.productId,
+          productName: item.productName,
+          productSlug: item.productSlug,
+          productImage: item.productImage,
+          price: item.price,
+          quantity: item.quantity,
+          subtotal: item.subtotal,
+        })),
+        address,
+        shipping: {
+          courier: order.courier,
+          service: order.shippingService,
+          description: '',
+          cost: order.shippingCost,
+          etd: order.shippingEtd,
+        },
+        subtotal: order.subtotal,
+        shippingCost: order.shippingCost,
+        total: order.total,
+        status: order.status?.toLowerCase() || 'pending',
+        statusHistory: (statusHistory || []).map((h: any) => ({
+          status: h.status?.toLowerCase() || 'pending',
+          date: h.createdAt?.toISOString?.() || h.createdAt,
+          note: h.note,
+        })),
+        paymentMethod: order.paymentMethod,
+        trackingNumber: order.trackingNumber,
+        trackingUrl: order.trackingNumber ? generateTrackingUrl(order.trackingNumber, order.courier) : null,
+        createdAt: order.createdAt?.toISOString?.() || order.createdAt,
+        updatedAt: order.updatedAt?.toISOString?.() || order.updatedAt,
+      };
     }));
 
     return NextResponse.json({ success: true, data: transformedOrders });
@@ -123,60 +144,85 @@ export async function POST(request: NextRequest) {
     const subtotal = items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
     const shippingCost = shipping.cost || 0;
     const total = subtotal + shippingCost;
-
-    // Create order in database (step by step, no nested relation creates)
     const status = paymentMethod === 'cod' ? 'PROCESSING' : 'WAITING_PAYMENT';
-    
-    const newOrder = await prisma.order.create({
-      data: {
-        orderNumber,
-        userId: userId || null,
-        status,
-        paymentStatus: 'UNPAID',
-        paymentMethod: paymentMethod || 'bank_transfer',
-        subtotal,
-        shippingCost,
-        total,
-        courier: shipping.courier,
-        shippingService: shipping.service,
-        shippingEtd: shipping.etd || null,
-        addressSnapshot: JSON.stringify(address),
-      },
-    });
+    const orderId = `order-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-    // Create order items (separately to avoid relation issues)
+    // Create order with raw SQL (avoids Prisma relation issues)
+    await prisma.$executeRawUnsafe(`
+      INSERT INTO orders ("id", "orderNumber", "userId", "status", "paymentStatus", "paymentMethod", "subtotal", "shippingCost", "total", "courier", "shippingService", "shippingEtd", "addressSnapshot", "createdAt", "updatedAt")
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())
+    `,
+      orderId,
+      orderNumber,
+      userId || null,
+      status,
+      'UNPAID',
+      paymentMethod || 'bank_transfer',
+      subtotal,
+      shippingCost,
+      total,
+      shipping.courier,
+      shipping.service,
+      shipping.etd || null,
+      JSON.stringify(address)
+    );
+
+    // Create order items with raw SQL
     for (let idx = 0; idx < items.length; idx++) {
       const item = items[idx];
-      await prisma.$executeRaw`
+      const itemId = `oi-${Date.now()}-${idx}`;
+      const productImage = item.productImage?.startsWith('data:') ? null : (item.productImage || null);
+      
+      await prisma.$executeRawUnsafe(`
         INSERT INTO order_items ("id", "orderId", "productName", "productSlug", "productImage", "unitSku", "price", "quantity", "subtotal")
-        VALUES (${`oi-${Date.now()}-${idx}`}, ${newOrder.id}, ${item.productName || 'Unknown Product'}, ${item.productSlug || ''}, ${item.productImage?.startsWith('data:') ? null : (item.productImage || null)}, ${`GEN-${orderNumber}-${idx + 1}`}, ${item.price || 0}, ${item.quantity || 1}, ${(item.price || 0) * (item.quantity || 1)})
-      `;
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `,
+        itemId,
+        orderId,
+        item.productName || 'Unknown Product',
+        item.productSlug || '',
+        productImage,
+        `GEN-${orderNumber}-${idx + 1}`,
+        item.price || 0,
+        item.quantity || 1,
+        (item.price || 0) * (item.quantity || 1)
+      );
     }
 
     // Create status history
-    await prisma.$executeRaw`
-      INSERT INTO order_status_logs ("id", "orderId", "status", "note", "changedBy")
-      VALUES (${`osl-${Date.now()}`}, ${newOrder.id}, ${status}, 'Pesanan dibuat', 'system')
-    `;
+    await prisma.$executeRawUnsafe(`
+      INSERT INTO order_status_logs ("id", "orderId", "status", "note", "changedBy", "createdAt")
+      VALUES ($1, $2, $3, $4, $5, NOW())
+    `,
+      `osl-${Date.now()}`,
+      orderId,
+      status,
+      'Pesanan dibuat',
+      'system'
+    );
 
-    // Fetch full order with items
-    const order = await prisma.order.findUnique({
-      where: { id: newOrder.id },
-      include: {
-        items: true,
-        statusHistory: true,
-      },
-    });
+    // Fetch the created order back
+    const orderRows = await prisma.$queryRawUnsafe(
+      `SELECT * FROM orders WHERE id = $1`, orderId
+    ) as any[];
+    const order = orderRows[0];
 
-    // Transform response
-    if (!order) {
-      return NextResponse.json({ success: false, error: 'Order created but not found' }, { status: 500 });
-    }
+    const itemRows = await prisma.$queryRawUnsafe(
+      `SELECT * FROM order_items WHERE "orderId" = $1`, orderId
+    ) as any[];
+
+    const historyRows = await prisma.$queryRawUnsafe(
+      `SELECT * FROM order_status_logs WHERE "orderId" = $1 ORDER BY "createdAt" DESC`, orderId
+    ) as any[];
+
+    let addr: any = {};
+    try { addr = JSON.parse(order.addressSnapshot || '{}'); } catch {}
+
     const transformedOrder = {
       id: order.id,
       orderNumber: order.orderNumber,
       userId: order.userId,
-      items: (order.items || []).map(item => ({
+      items: (itemRows || []).map((item: any) => ({
         productId: item.productId,
         productName: item.productName,
         productSlug: item.productSlug,
@@ -185,7 +231,7 @@ export async function POST(request: NextRequest) {
         quantity: item.quantity,
         subtotal: item.subtotal,
       })),
-      address: JSON.parse(order.addressSnapshot || '{}'),
+      address: addr,
       shipping: {
         courier: order.courier,
         service: order.shippingService,
@@ -196,15 +242,15 @@ export async function POST(request: NextRequest) {
       subtotal: order.subtotal,
       shippingCost: order.shippingCost,
       total: order.total,
-      status: order.status.toLowerCase(),
-      statusHistory: order.statusHistory.map(h => ({
-        status: h.status.toLowerCase(),
-        date: h.createdAt.toISOString(),
+      status: order.status?.toLowerCase() || 'pending',
+      statusHistory: (historyRows || []).map((h: any) => ({
+        status: h.status?.toLowerCase() || 'pending',
+        date: h.createdAt?.toISOString?.() || h.createdAt,
         note: h.note,
       })),
       paymentMethod: order.paymentMethod,
-      createdAt: order.createdAt.toISOString(),
-      updatedAt: order.updatedAt.toISOString(),
+      createdAt: order.createdAt?.toISOString?.() || order.createdAt,
+      updatedAt: order.updatedAt?.toISOString?.() || order.updatedAt,
     };
 
     return NextResponse.json({ success: true, data: transformedOrder }, { status: 201 });
@@ -212,7 +258,6 @@ export async function POST(request: NextRequest) {
     console.error('Create order error:', error);
     console.error('Error code:', error.code);
     console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
     return NextResponse.json(
       { success: false, error: error.message || 'Failed to create order', code: error.code },
       { status: 500 }

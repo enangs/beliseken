@@ -11,34 +11,31 @@ export async function GET(
   try {
     const { id } = params;
 
-    const order = await prisma.order.findFirst({
-      where: {
-        OR: [
-          { id },
-          { orderNumber: id },
-        ],
-      },
-      include: {
-        items: true,
-        statusHistory: {
-          orderBy: { createdAt: 'desc' },
-        },
-      },
-    });
+    const orderRows = await prisma.$queryRawUnsafe(
+      `SELECT * FROM orders WHERE id = $1 OR "orderNumber" = $1`, id
+    ) as any[];
+    const order = orderRows[0];
 
     if (!order) {
-      return NextResponse.json(
-        { success: false, error: 'Order not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: 'Order not found' }, { status: 404 });
     }
 
-    // Transform to match frontend format
+    const items = await prisma.$queryRawUnsafe(
+      `SELECT * FROM order_items WHERE "orderId" = $1`, order.id
+    ) as any[];
+
+    const statusHistory = await prisma.$queryRawUnsafe(
+      `SELECT * FROM order_status_logs WHERE "orderId" = $1 ORDER BY "createdAt" DESC`, order.id
+    ) as any[];
+
+    let address: any = {};
+    try { address = JSON.parse(order.addressSnapshot || '{}'); } catch {}
+
     const transformedOrder = {
       id: order.id,
       orderNumber: order.orderNumber,
       userId: order.userId,
-      items: order.items.map(item => ({
+      items: (items || []).map((item: any) => ({
         productId: item.productId,
         productName: item.productName,
         productSlug: item.productSlug,
@@ -47,7 +44,7 @@ export async function GET(
         quantity: item.quantity,
         subtotal: item.subtotal,
       })),
-      address: JSON.parse(order.addressSnapshot || '{}'),
+      address,
       shipping: {
         courier: order.courier,
         service: order.shippingService,
@@ -58,26 +55,23 @@ export async function GET(
       subtotal: order.subtotal,
       shippingCost: order.shippingCost,
       total: order.total,
-      status: order.status.toLowerCase(),
-      statusHistory: order.statusHistory.map(h => ({
-        status: h.status.toLowerCase(),
-        date: h.createdAt.toISOString(),
+      status: order.status?.toLowerCase() || 'pending',
+      statusHistory: (statusHistory || []).map((h: any) => ({
+        status: h.status?.toLowerCase() || 'pending',
+        date: h.createdAt?.toISOString?.() || h.createdAt,
         note: h.note,
       })),
       paymentMethod: order.paymentMethod,
       trackingNumber: order.trackingNumber,
       trackingUrl: order.trackingNumber ? generateTrackingUrl(order.trackingNumber, order.courier) : null,
-      createdAt: order.createdAt.toISOString(),
-      updatedAt: order.updatedAt.toISOString(),
+      createdAt: order.createdAt?.toISOString?.() || order.createdAt,
+      updatedAt: order.updatedAt?.toISOString?.() || order.updatedAt,
     };
 
     return NextResponse.json({ success: true, data: transformedOrder });
   } catch (error) {
     console.error('Get order error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch order' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Failed to fetch order' }, { status: 500 });
   }
 }
 
@@ -91,126 +85,99 @@ export async function PUT(
     const body = await request.json();
     const { status, note, trackingNumber, courier, service } = body;
 
-    // Find order
-    const existingOrder = await prisma.order.findFirst({
-      where: {
-        OR: [
-          { id },
-          { orderNumber: id },
-        ],
-      },
-      include: {
-        items: true,
-      },
-    });
+    // Find order with raw SQL
+    const orderRows = await prisma.$queryRawUnsafe(
+      `SELECT * FROM orders WHERE id = $1 OR "orderNumber" = $1`, id
+    ) as any[];
+    const existingOrder = orderRows[0];
 
     if (!existingOrder) {
-      return NextResponse.json(
-        { success: false, error: 'Order not found' },
-        { status: 404 }
+      return NextResponse.json({ success: false, error: 'Order not found' }, { status: 404 });
+    }
+
+    // Build update query dynamically
+    const updates: string[] = [];
+    const values: any[] = [];
+    let paramIdx = 1;
+
+    if (status) {
+      updates.push(`"status" = $${paramIdx}`);
+      values.push(status.toUpperCase());
+      paramIdx++;
+
+      if (status.toUpperCase() === 'SHIPPING') {
+        updates.push(`"shippedAt" = NOW()`);
+      } else if (status.toUpperCase() === 'DELIVERED') {
+        updates.push(`"deliveredAt" = NOW()`);
+      } else if (status.toUpperCase() === 'PAID') {
+        updates.push(`"paymentStatus" = 'PAID'`);
+        updates.push(`"paidAt" = NOW()`);
+      }
+    }
+
+    if (trackingNumber !== undefined) {
+      updates.push(`"trackingNumber" = $${paramIdx}`);
+      values.push(trackingNumber);
+      paramIdx++;
+    }
+
+    if (courier) {
+      updates.push(`"courier" = $${paramIdx}`);
+      values.push(courier);
+      paramIdx++;
+    }
+
+    if (service) {
+      updates.push(`"shippingService" = $${paramIdx}`);
+      values.push(service);
+      paramIdx++;
+    }
+
+    updates.push(`"updatedAt" = NOW()`);
+
+    if (updates.length > 0) {
+      values.push(existingOrder.id);
+      await prisma.$executeRawUnsafe(
+        `UPDATE orders SET ${updates.join(', ')} WHERE id = $${paramIdx}`,
+        ...values
       );
     }
 
-    // Update order
-    const order = await prisma.$transaction(async (tx) => {
-      const updateData: any = {};
+    // Add status log
+    if (status) {
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO order_status_logs ("id", "orderId", "status", "note", "changedBy", "createdAt")
+         VALUES ($1, $2, $3, $4, $5, NOW())`,
+        `osl-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        existingOrder.id,
+        status.toUpperCase(),
+        note || `Status diubah ke ${status}`,
+        'admin'
+      );
+    }
 
-      if (status) {
-        updateData.status = status.toUpperCase();
-        if (status.toUpperCase() === 'SHIPPING') {
-          updateData.shippedAt = new Date();
-        } else if (status.toUpperCase() === 'DELIVERED') {
-          updateData.deliveredAt = new Date();
-        } else if (status.toUpperCase() === 'PAID') {
-          updateData.paymentStatus = 'PAID';
-          updateData.paidAt = new Date();
-        }
-      }
+    // Fetch updated order
+    const updatedRows = await prisma.$queryRawUnsafe(
+      `SELECT * FROM orders WHERE id = $1`, existingOrder.id
+    ) as any[];
+    const updatedOrder = updatedRows[0];
 
-      if (trackingNumber !== undefined) {
-        updateData.trackingNumber = trackingNumber;
-      }
+    const items = await prisma.$queryRawUnsafe(
+      `SELECT * FROM order_items WHERE "orderId" = $1`, existingOrder.id
+    ) as any[];
 
-      if (courier) {
-        updateData.courier = courier;
-      }
+    const historyRows = await prisma.$queryRawUnsafe(
+      `SELECT * FROM order_status_logs WHERE "orderId" = $1 ORDER BY "createdAt" DESC`, existingOrder.id
+    ) as any[];
 
-      if (service) {
-        updateData.shippingService = service;
-      }
+    let address: any = {};
+    try { address = JSON.parse(updatedOrder.addressSnapshot || '{}'); } catch {}
 
-      const updatedOrder = await tx.order.update({
-        where: { id: existingOrder.id },
-        data: updateData,
-      });
-
-      // Add status log
-      if (status) {
-        await tx.orderStatusLog.create({
-          data: {
-            orderId: existingOrder.id,
-            status: status.toUpperCase(),
-            note: note || `Status diubah ke ${status}`,
-            changedBy: 'admin',
-          },
-        });
-      }
-
-      // If cancelled, release stock
-      if (status && status.toUpperCase() === 'CANCELLED') {
-        for (const item of existingOrder.items) {
-          if (item.unitId && item.unitId !== 'unknown') {
-            await tx.productUnit.update({
-              where: { id: item.unitId },
-              data: { status: 'AVAILABLE' },
-            });
-
-            await tx.inventoryLog.create({
-              data: {
-                unitId: item.unitId,
-                action: 'STATUS_CHANGE',
-                fromStatus: 'RESERVED',
-                toStatus: 'AVAILABLE',
-                notes: `Order ${existingOrder.orderNumber} cancelled`,
-                performedBy: 'admin',
-              },
-            });
-          }
-        }
-      }
-
-      // If completed, update product stats
-      if (status && status.toUpperCase() === 'COMPLETED') {
-        for (const item of existingOrder.items) {
-          if (item.productId && item.productId !== 'unknown') {
-            await tx.product.update({
-              where: { id: item.productId },
-              data: { soldCount: { increment: item.quantity } },
-            });
-          }
-        }
-      }
-
-      return updatedOrder;
-    });
-
-    // Fetch updated order with relations
-    const updatedOrder = await prisma.order.findUnique({
-      where: { id: order.id },
-      include: {
-        items: true,
-        statusHistory: {
-          orderBy: { createdAt: 'desc' },
-        },
-      },
-    });
-
-    // Transform response
     const transformedOrder = {
-      id: updatedOrder!.id,
-      orderNumber: updatedOrder!.orderNumber,
-      userId: updatedOrder!.userId,
-      items: updatedOrder!.items.map(item => ({
+      id: updatedOrder.id,
+      orderNumber: updatedOrder.orderNumber,
+      userId: updatedOrder.userId,
+      items: (items || []).map((item: any) => ({
         productId: item.productId,
         productName: item.productName,
         productSlug: item.productSlug,
@@ -219,37 +186,34 @@ export async function PUT(
         quantity: item.quantity,
         subtotal: item.subtotal,
       })),
-      address: JSON.parse(updatedOrder!.addressSnapshot || '{}'),
+      address,
       shipping: {
-        courier: updatedOrder!.courier,
-        service: updatedOrder!.shippingService,
+        courier: updatedOrder.courier,
+        service: updatedOrder.shippingService,
         description: '',
-        cost: updatedOrder!.shippingCost,
-        etd: updatedOrder!.shippingEtd,
+        cost: updatedOrder.shippingCost,
+        etd: updatedOrder.shippingEtd,
       },
-      subtotal: updatedOrder!.subtotal,
-      shippingCost: updatedOrder!.shippingCost,
-      total: updatedOrder!.total,
-      status: updatedOrder!.status.toLowerCase(),
-      statusHistory: updatedOrder!.statusHistory.map(h => ({
-        status: h.status.toLowerCase(),
-        date: h.createdAt.toISOString(),
+      subtotal: updatedOrder.subtotal,
+      shippingCost: updatedOrder.shippingCost,
+      total: updatedOrder.total,
+      status: updatedOrder.status?.toLowerCase() || 'pending',
+      statusHistory: (historyRows || []).map((h: any) => ({
+        status: h.status?.toLowerCase() || 'pending',
+        date: h.createdAt?.toISOString?.() || h.createdAt,
         note: h.note,
       })),
-      paymentMethod: updatedOrder!.paymentMethod,
-      trackingNumber: updatedOrder!.trackingNumber,
-      trackingUrl: updatedOrder!.trackingNumber ? generateTrackingUrl(updatedOrder!.trackingNumber, updatedOrder!.courier) : null,
-      createdAt: updatedOrder!.createdAt.toISOString(),
-      updatedAt: updatedOrder!.updatedAt.toISOString(),
+      paymentMethod: updatedOrder.paymentMethod,
+      trackingNumber: updatedOrder.trackingNumber,
+      trackingUrl: updatedOrder.trackingNumber ? generateTrackingUrl(updatedOrder.trackingNumber, updatedOrder.courier) : null,
+      createdAt: updatedOrder.createdAt?.toISOString?.() || updatedOrder.createdAt,
+      updatedAt: updatedOrder.updatedAt?.toISOString?.() || updatedOrder.updatedAt,
     };
 
     return NextResponse.json({ success: true, data: transformedOrder });
   } catch (error) {
     console.error('Update order error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to update order' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Failed to update order' }, { status: 500 });
   }
 }
 
