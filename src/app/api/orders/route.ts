@@ -141,10 +141,11 @@ export async function POST(request: NextRequest) {
           shippingEtd: shipping.etd,
           addressSnapshot: JSON.stringify(address),
           items: {
-            create: items.map((item: any) => ({
+            create: items.map((item: any, idx: number) => ({
               productName: item.productName || 'Unknown Product',
               productSlug: item.productSlug || '',
               productImage: item.productImage?.startsWith('data:') ? '[base64-image]' : (item.productImage || null),
+              unitSku: item.unitSku || `GEN-${orderNumber}-${idx + 1}`,
               price: item.price || 0,
               quantity: item.quantity || 1,
               subtotal: (item.price || 0) * (item.quantity || 1),

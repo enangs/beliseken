@@ -1,0 +1,3 @@
+ALTER TABLE order_items ALTER COLUMN "unitSku" DROP NOT NULL;
+ALTER TABLE order_items ALTER COLUMN "productId" DROP NOT NULL;
+ALTER TABLE order_items ALTER COLUMN "unitId" DROP NOT NULL;
