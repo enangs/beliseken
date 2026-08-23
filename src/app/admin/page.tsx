@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Package, TrendingUp, Star, Eye } from "lucide-react";
+import { Package, TrendingUp, Star, Eye, ShoppingCart, Users } from "lucide-react";
 import { getProducts } from "@/data/products";
 import { formatPrice } from "@/lib/utils";
+import { getOrders } from "@/lib/orders";
+import { getAllCustomers } from "@/lib/user-auth";
 import type { Product } from "@/data/products";
 
 export default function AdminDashboardPage() {
@@ -14,34 +16,36 @@ export default function AdminDashboardPage() {
     setProducts(getProducts());
   }, []);
 
+  const orders = getOrders();
+  const customers = getAllCustomers();
   const totalStock = products.reduce((sum, p) => sum + (p.stock || 0), 0);
   const soldOutCount = products.filter((p) => p.stock === 0).length;
-  const lowStockCount = products.filter((p) => p.stock > 0 && p.stock <= 2).length;
+  const totalRevenue = orders.filter(o => o.status === 'completed' || o.status === 'delivered').reduce((sum, o) => sum + o.total, 0);
 
   const stats = [
     {
-      label: "Total Produk",
-      value: products.length,
-      icon: Package,
+      label: "Total Pesanan",
+      value: orders.length,
+      icon: ShoppingCart,
       color: "bg-blue-500",
     },
     {
-      label: "Total Stok",
-      value: `${totalStock} unit`,
+      label: "Pendapatan",
+      value: formatPrice(totalRevenue),
       icon: TrendingUp,
       color: "bg-emerald-500",
     },
     {
-      label: "Stok Menipis",
-      value: lowStockCount,
-      icon: Star,
+      label: "Total Produk",
+      value: `${products.length} (${totalStock} stok)`,
+      icon: Package,
       color: "bg-amber-500",
     },
     {
-      label: "Sold Out",
-      value: soldOutCount,
-      icon: Eye,
-      color: "bg-red-500",
+      label: "Total Pelanggan",
+      value: customers.length,
+      icon: Users,
+      color: "bg-purple-500",
     },
   ];
 
@@ -92,6 +96,26 @@ export default function AdminDashboardPage() {
           <div>
             <p className="font-semibold">Kelola Produk</p>
             <p className="text-white/70 text-xs">Edit, hapus, atau lihat produk</p>
+          </div>
+        </Link>
+        <Link
+          href="/admin/orders"
+          className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl p-5 flex items-center gap-3 transition-colors"
+        >
+          <span className="text-2xl">📋</span>
+          <div>
+            <p className="font-semibold">Kelola Pesanan</p>
+            <p className="text-white/70 text-xs">Lihat & update status pesanan</p>
+          </div>
+        </Link>
+        <Link
+          href="/admin/customers"
+          className="bg-purple-500 hover:bg-purple-600 text-white rounded-xl p-5 flex items-center gap-3 transition-colors"
+        >
+          <span className="text-2xl">👥</span>
+          <div>
+            <p className="font-semibold">Pelanggan</p>
+            <p className="text-white/70 text-xs">Data pelanggan & alamat</p>
           </div>
         </Link>
         <Link

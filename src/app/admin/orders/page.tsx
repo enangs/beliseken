@@ -1,100 +1,130 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Package, ChevronDown, ChevronUp, Truck, CheckCircle, XCircle, Clock, CreditCard } from "lucide-react";
-import { getAdminOrders, updateOrderStatus as updateOrderStatusAPI } from "@/lib/api";
+import { Package, ChevronDown, ChevronUp, Truck, CheckCircle, XCircle, Clock, CreditCard, User } from "lucide-react";
+import { getOrders, updateOrderStatus as updateOrderStatusLocal, type Order } from "@/lib/orders";
 import { formatPrice } from "@/lib/utils";
 
 const statusConfig: Record<string, { label: string; color: string; bg: string; icon: React.ElementType }> = {
-  PENDING: { label: "Menunggu", color: "text-amber-600", bg: "bg-amber-50", icon: Clock },
-  WAITING_PAYMENT: { label: "Bayar Pending", color: "text-amber-600", bg: "bg-amber-50", icon: CreditCard },
-  PAID: { label: "Dibayar", color: "text-blue-600", bg: "bg-blue-50", icon: CheckCircle },
-  PROCESSING: { label: "Diproses", color: "text-blue-600", bg: "bg-blue-50", icon: Package },
-  SHIPPING: { label: "Dikirim", color: "text-purple-600", bg: "bg-purple-50", icon: Truck },
-  DELIVERED: { label: "Diterima", color: "text-emerald-600", bg: "bg-emerald-50", icon: CheckCircle },
-  COMPLETED: { label: "Selesai", color: "text-emerald-600", bg: "bg-emerald-50", icon: CheckCircle },
-  CANCELLED: { label: "Dibatalkan", color: "text-red-600", bg: "bg-red-50", icon: XCircle },
+  pending: { label: "Menunggu", color: "text-amber-600", bg: "bg-amber-50", icon: Clock },
+  waiting_payment: { label: "Bayar Pending", color: "text-amber-600", bg: "bg-amber-50", icon: CreditCard },
+  paid: { label: "Dibayar", color: "text-blue-600", bg: "bg-blue-50", icon: CheckCircle },
+  processing: { label: "Diproses", color: "text-blue-600", bg: "bg-blue-50", icon: Package },
+  shipping: { label: "Dikirim", color: "text-purple-600", bg: "bg-purple-50", icon: Truck },
+  delivered: { label: "Diterima", color: "text-emerald-600", bg: "bg-emerald-50", icon: CheckCircle },
+  completed: { label: "Selesai", color: "text-emerald-600", bg: "bg-emerald-50", icon: CheckCircle },
+  cancelled: { label: "Dibatalkan", color: "text-red-600", bg: "bg-red-50", icon: XCircle },
 };
 
-const nextStatuses: Record<string, string[]> = {
-  WAITING_PAYMENT: ["PAID", "CANCELLED"],
-  PAID: ["PROCESSING", "CANCELLED"],
-  PROCESSING: ["SHIPPING", "CANCELLED"],
-  SHIPPING: ["DELIVERED"],
-  DELIVERED: ["COMPLETED"],
+const nextStatuses: Record<string, { status: string; label: string }[]> = {
+  waiting_payment: [{ status: "paid", label: "Dibayar" }, { status: "cancelled", label: "Batalkan" }],
+  paid: [{ status: "processing", label: "Proses" }, { status: "cancelled", label: "Batalkan" }],
+  processing: [{ status: "shipping", label: "Kirim" }, { status: "cancelled", label: "Batalkan" }],
+  shipping: [{ status: "delivered", label: "Diterima" }],
+  delivered: [{ status: "completed", label: "Selesai" }],
+  pending: [{ status: "processing", label: "Proses" }, { status: "cancelled", label: "Batalkan" }],
 };
 
 export default function AdminOrdersPage() {
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>("all");
-  const [loading, setLoading] = useState(true);
 
-  const loadOrders = async () => {
-    try {
-      const res = await getAdminOrders({ status: filter === "all" ? undefined : filter, limit: 100 });
-      setOrders(res.data);
-    } catch (e) { console.error(e); }
-    setLoading(false);
+  const loadOrders = () => {
+    let allOrders = getOrders();
+    if (filter !== "all") {
+      allOrders = allOrders.filter((o) => o.status === filter);
+    }
+    setOrders(allOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
   };
 
   useEffect(() => { loadOrders(); }, [filter]);
 
-  const filtered = orders;
+  const handleStatusUpdate = (orderId: string, newStatus: string) => {
+    updateOrderStatusLocal(orderId, newStatus as any);
+    loadOrders();
+  };
 
-  const handleStatusUpdate = async (orderId: string, newStatus: string) => {
-    try {
-      await updateOrderStatusAPI(orderId, newStatus);
-      loadOrders();
-    } catch (e) { console.error(e); }
+  const stats = {
+    total: getOrders().length,
+    waiting: getOrders().filter((o) => o.status === "waiting_payment").length,
+    processing: getOrders().filter((o) => o.status === "processing").length,
+    shipping: getOrders().filter((o) => o.status === "shipping").length,
+    completed: getOrders().filter((o) => o.status === "completed" || o.status === "delivered").length,
+    totalRevenue: getOrders().filter((o) => o.status === "completed" || o.status === "delivered").reduce((sum, o) => sum + o.total, 0),
   };
 
   return (
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-brand-navy">Pesanan</h1>
-        <p className="text-brand-muted text-sm mt-1">{orders.length} pesanan total</p>
+        <p className="text-brand-muted text-sm mt-1">{orders.length} pesanan ditampilkan</p>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+        <div className="bg-white rounded-xl border border-brand-border p-3 text-center">
+          <p className="text-xs text-brand-muted">Total</p>
+          <p className="text-xl font-bold text-brand-navy">{stats.total}</p>
+        </div>
+        <div className="bg-white rounded-xl border border-brand-border p-3 text-center">
+          <p className="text-xs text-brand-muted">Bayar Pending</p>
+          <p className="text-xl font-bold text-amber-600">{stats.waiting}</p>
+        </div>
+        <div className="bg-white rounded-xl border border-brand-border p-3 text-center">
+          <p className="text-xs text-brand-muted">Diproses</p>
+          <p className="text-xl font-bold text-blue-600">{stats.processing}</p>
+        </div>
+        <div className="bg-white rounded-xl border border-brand-border p-3 text-center">
+          <p className="text-xs text-brand-muted">Dikirim</p>
+          <p className="text-xl font-bold text-purple-600">{stats.shipping}</p>
+        </div>
+        <div className="bg-white rounded-xl border border-brand-border p-3 text-center">
+          <p className="text-xs text-brand-muted">Pendapatan</p>
+          <p className="text-lg font-bold text-emerald-600">{formatPrice(stats.totalRevenue)}</p>
+        </div>
       </div>
 
       {/* Status Filter */}
       <div className="flex flex-wrap gap-2 mb-6">
-        {[{ key: "all", label: "Semua" }, ...Object.entries(statusConfig).map(([key, val]) => ({ key, label: val.label }))].map((s) => (
+        <button
+          onClick={() => setFilter("all")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            filter === "all" ? "bg-brand text-white" : "bg-white border border-brand-border text-brand-navy hover:bg-brand-gray"
+          }`}
+        >
+          Semua
+        </button>
+        {Object.entries(statusConfig).map(([key, val]) => (
           <button
-            key={s.key}
-            onClick={() => setFilter(s.key)}
+            key={key}
+            onClick={() => setFilter(key)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filter === s.key
-                ? "bg-brand text-white"
-                : "bg-white border border-brand-border text-brand-navy hover:bg-brand-gray"
+              filter === key ? "bg-brand text-white" : "bg-white border border-brand-border text-brand-navy hover:bg-brand-gray"
             }`}
           >
-            {s.label}
+            {val.label}
           </button>
         ))}
       </div>
 
-      {/* Orders Table */}
-      {loading ? (
-        <div className="text-center py-12">
-          <div className="animate-spin h-8 w-8 border-4 border-brand border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-brand-muted">Memuat pesanan...</p>
-        </div>
-      ) : filtered.length === 0 ? (
+      {/* Orders */}
+      {orders.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-xl border border-brand-border">
           <Package size={48} className="mx-auto text-brand-muted mb-4" />
-          <p className="text-brand-muted">Belum ada pesanan</p>
+          <p className="text-brand-muted font-medium">Belum ada pesanan</p>
+          <p className="text-xs text-brand-muted mt-1">Pesanan akan muncul di sini setelah pelanggan checkout</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {filtered.map((order: any) => {
-            const config = statusConfig[order.status] || statusConfig.PENDING;
+          {orders.map((order) => {
+            const config = statusConfig[order.status] || statusConfig.pending;
             const Icon = config.icon;
             const isExpanded = expandedOrder === order.id;
             const nexts = nextStatuses[order.status] || [];
 
             return (
               <div key={order.id} className="bg-white rounded-xl border border-brand-border overflow-hidden">
-                {/* Order Header */}
                 <div
                   className="flex items-center justify-between p-4 cursor-pointer hover:bg-brand-gray/50 transition-colors"
                   onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
@@ -105,9 +135,14 @@ export default function AdminOrdersPage() {
                     </div>
                     <div>
                       <p className="font-semibold text-brand-navy text-sm">{order.orderNumber}</p>
-                      <p className="text-xs text-brand-muted mt-0.5">
-                        {order.user?.name || "Guest"} • {new Date(order.createdAt).toLocaleDateString("id-ID")}
-                      </p>
+                      <div className="flex items-center gap-2 text-xs text-brand-muted mt-0.5">
+                        <User size={12} />
+                        <span>{order.address.name}</span>
+                        <span>•</span>
+                        <span>{order.address.email || '-'}</span>
+                        <span>•</span>
+                        <span>{new Date(order.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
@@ -121,42 +156,83 @@ export default function AdminOrdersPage() {
                   </div>
                 </div>
 
-                {/* Expanded Details */}
                 {isExpanded && (
-                  <div className="border-t border-brand-border p-4">
-                    {/* Items */}
-                    <div className="mb-4">
-                      <h4 className="text-sm font-semibold text-brand-navy mb-2">Item:</h4>
-                      {order.items?.map((item: any, i: number) => (
-                        <div key={i} className="flex justify-between text-sm py-1">
-                          <span className="text-brand-muted">{item.productName} × {item.quantity}</span>
-                          <span className="font-medium">{formatPrice(item.subtotal)}</span>
+                  <div className="border-t border-brand-border p-4 bg-brand-gray/30">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Items */}
+                      <div>
+                        <h4 className="text-sm font-semibold text-brand-navy mb-2">📦 Item Pesanan:</h4>
+                        {order.items?.map((item, i) => (
+                          <div key={i} className="flex justify-between text-sm py-1 border-b border-brand-border last:border-0">
+                            <span className="text-brand-muted">{item.productName} × {item.quantity}</span>
+                            <span className="font-medium">{formatPrice(item.subtotal)}</span>
+                          </div>
+                        ))}
+                        <div className="flex justify-between text-sm pt-2 mt-2 border-t border-brand-border">
+                          <span className="text-brand-muted">Subtotal</span>
+                          <span className="font-medium">{formatPrice(order.subtotal)}</span>
                         </div>
-                      ))}
+                        <div className="flex justify-between text-sm">
+                          <span className="text-brand-muted">Ongkir ({order.shipping?.courier} {order.shipping?.service})</span>
+                          <span className="font-medium">{formatPrice(order.shippingCost)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm font-bold pt-2 border-t border-brand-border">
+                          <span>Total</span>
+                          <span className="text-brand">{formatPrice(order.total)}</span>
+                        </div>
+                      </div>
+
+                      {/* Address & Payment */}
+                      <div>
+                        <h4 className="text-sm font-semibold text-brand-navy mb-2">📍 Alamat Pengiriman:</h4>
+                        <div className="bg-white rounded-lg p-3 border border-brand-border text-sm">
+                          <p className="font-semibold">{order.address.name}</p>
+                          <p className="text-brand-muted text-xs">{order.address.phone} • {order.address.email}</p>
+                          <p className="text-brand-muted text-xs mt-1">{order.address.address}</p>
+                          <p className="text-brand-muted text-xs">{order.address.city}, {order.address.province} {order.address.postcode}</p>
+                        </div>
+
+                        <h4 className="text-sm font-semibold text-brand-navy mb-2 mt-3">💳 Pembayaran:</h4>
+                        <div className="bg-white rounded-lg p-3 border border-brand-border text-sm">
+                          <p className="text-brand-muted">
+                            {order.paymentMethod === "bank_transfer" ? "🏦 Transfer Bank" :
+                             order.paymentMethod === "ewallet" ? "📱 E-Wallet" :
+                             "💵 COD (Bayar di Tempat)"}
+                          </p>
+                        </div>
+                      </div>
                     </div>
 
-                    {/* Address */}
-                    {order.addressSnapshot && (
-                      <div className="mb-4 p-3 bg-brand-gray rounded-lg">
-                        <p className="text-xs text-brand-muted mb-1">Alamat Pengiriman:</p>
-                        <p className="text-sm">{(() => { try { return JSON.parse(order.addressSnapshot).address; } catch { return "-"; } })()}</p>
+                    {/* Status History */}
+                    {order.statusHistory && order.statusHistory.length > 0 && (
+                      <div className="mt-4">
+                        <h4 className="text-sm font-semibold text-brand-navy mb-2">📋 Riwayat Status:</h4>
+                        <div className="space-y-1">
+                          {order.statusHistory.map((h, i) => (
+                            <div key={i} className="flex items-center gap-2 text-xs">
+                              <span className="text-brand-muted">{new Date(h.date).toLocaleString("id-ID")}</span>
+                              <span className="font-semibold text-brand-navy">{statusConfig[h.status]?.label || h.status}</span>
+                              {h.note && <span className="text-brand-muted">- {h.note}</span>}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
 
                     {/* Actions */}
                     {nexts.length > 0 && (
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 mt-4 pt-4 border-t border-brand-border">
                         {nexts.map((ns) => (
                           <button
-                            key={ns}
-                            onClick={() => handleStatusUpdate(order.id, ns)}
+                            key={ns.status}
+                            onClick={() => handleStatusUpdate(order.id, ns.status)}
                             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                              ns === "CANCELLED"
+                              ns.status === "cancelled"
                                 ? "bg-red-50 text-red-600 hover:bg-red-100"
                                 : "bg-brand text-white hover:bg-brand-dark"
                             }`}
                           >
-                            {statusConfig[ns]?.label || ns}
+                            {ns.label}
                           </button>
                         ))}
                       </div>
