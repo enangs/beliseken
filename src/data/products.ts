@@ -15,6 +15,7 @@ export interface Product {
   timeAdded?: string;
   image: string;
   imageBase64?: string;
+  images?: string[]; // array of base64 images (max 5)
   description?: string;
   specs: string[];
   weight?: number; // gram

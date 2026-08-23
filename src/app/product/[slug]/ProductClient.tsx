@@ -129,10 +129,10 @@ export default function ProductClient({ slug }: { slug: string }) {
                   </span>
                 )}
               </div>
-              <div className="grid grid-cols-4 gap-3 mt-4">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="bg-brand-gray rounded-xl aspect-square flex items-center justify-center border-2 border-brand-border hover:border-brand cursor-pointer transition-colors">
-                    <span className="text-2xl opacity-30">📷</span>
+              <div className="grid grid-cols-5 gap-2 mt-4">
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <div key={i} className="bg-brand-gray rounded-lg aspect-square flex items-center justify-center border-2 border-brand-border hover:border-brand cursor-pointer transition-colors">
+                    <span className="text-xl opacity-30">📷</span>
                   </div>
                 ))}
               </div>

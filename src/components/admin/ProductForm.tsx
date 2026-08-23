@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, X, Save, ArrowLeft } from "lucide-react";
+import { Upload, X, Save, ArrowLeft, Plus, ImageIcon } from "lucide-react";
 import type { Product } from "@/data/products";
 
 interface ProductFormProps {
@@ -14,22 +14,13 @@ interface ProductFormProps {
 const badgeOptions: Product["badge"][] = ["HOT DEAL", "BEST SELLER", "NEW"];
 const conditionOptions = ["Like New", "Grade A", "Grade B+", "Grade B", "Grade C"];
 const subcategoryOptions = [
-  "Laptop",
-  "Laptop Gaming",
-  "Smartphone",
-  "Tablet",
-  "Monitor",
-  "Mouse",
-  "Keyboard",
-  "Router",
-  "Switch",
-  "Access Point",
-  "Printer",
-  "Speaker",
-  "Headphone",
-  "Kamera",
-  "Lainnya",
+  "Laptop", "Laptop Gaming", "Smartphone", "Tablet", "Monitor",
+  "Mouse", "Keyboard", "Router", "Switch", "Access Point",
+  "Printer", "Speaker", "Headphone", "Kamera", "Lainnya",
 ];
+
+const MAX_PHOTOS = 5;
+const MAX_SIZE_MB = 5;
 
 export default function ProductForm({
   initialData,
@@ -38,6 +29,10 @@ export default function ProductForm({
 }: ProductFormProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Photo state - support up to 5 photos
+  const [photos, setPhotos] = useState<string[]>(initialData?.images || (initialData?.imageBase64 ? [initialData.imageBase64] : []));
+  const [mainPhotoIndex, setMainPhotoIndex] = useState(0);
 
   const [name, setName] = useState(initialData?.name || "");
   const [slug, setSlug] = useState(initialData?.slug || "");
@@ -57,34 +52,21 @@ export default function ProductForm({
   const [stock, setStock] = useState(initialData?.stock?.toString() || "1");
   const [supplier, setSupplier] = useState(initialData?.supplier || "");
   const [status, setStatus] = useState<Product["status"]>(initialData?.status || "ACTIVE");
-  const [imageBase64, setImageBase64] = useState(initialData?.imageBase64 || "");
-  const [imagePreview, setImagePreview] = useState(initialData?.imageBase64 || "");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Auto-generate slug from name
   const handleNameChange = (val: string) => {
     setName(val);
     if (!initialData) {
-      setSlug(
-        val
-          .toLowerCase()
-          .replace(/[^a-z0-9\s-]/g, "")
-          .replace(/\s+/g, "-")
-          .replace(/-+/g, "-")
-          .trim()
-      );
+      setSlug(val.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").trim());
     }
   };
 
-  // Auto-calculate discount
   const handlePriceChange = (val: string) => {
     setPrice(val);
     if (originalPrice && val) {
       const p = parseInt(val);
       const op = parseInt(originalPrice);
-      if (op > 0) {
-        setDiscount(String(Math.round(((op - p) / op) * 100)));
-      }
+      if (op > 0) setDiscount(String(Math.round(((op - p) / op) * 100)));
     }
   };
 
@@ -93,34 +75,49 @@ export default function ProductForm({
     if (price && val) {
       const p = parseInt(price);
       const op = parseInt(val);
-      if (op > 0) {
-        setDiscount(String(Math.round(((op - p) / op) * 100)));
-      }
+      if (op > 0) setDiscount(String(Math.round(((op - p) / op) * 100)));
     }
   };
 
-  // Handle photo upload
+  // Handle photo upload - supports multiple
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      setErrors((prev) => ({ ...prev, photo: "Ukuran foto maks 5MB" }));
-      return;
+    const files = e.target.files;
+    if (!files) return;
+
+    const remainingSlots = MAX_PHOTOS - photos.length;
+    const filesToProcess = Array.from(files).slice(0, remainingSlots);
+
+    if (filesToProcess.length < files.length) {
+      setErrors((prev) => ({ ...prev, photo: `Maks ${MAX_PHOTOS} foto. Hanya ${filesToProcess.length} yang ditambahkan.` }));
     }
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const result = ev.target?.result as string;
-      setImageBase64(result);
-      setImagePreview(result);
-      setErrors((prev) => ({ ...prev, photo: "" }));
-    };
-    reader.readAsDataURL(file);
+
+    filesToProcess.forEach((file) => {
+      if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+        setErrors((prev) => ({ ...prev, photo: `Ukuran foto maks ${MAX_SIZE_MB}MB` }));
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const result = ev.target?.result as string;
+        setPhotos((prev) => [...prev, result]);
+        setErrors((prev) => ({ ...prev, photo: "" }));
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Reset input
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const removePhoto = () => {
-    setImageBase64("");
-    setImagePreview("");
-    if (fileInputRef.current) fileInputRef.current.value = "";
+  const removePhoto = (index: number) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
+    if (mainPhotoIndex >= photos.length - 1) {
+      setMainPhotoIndex(Math.max(0, photos.length - 2));
+    }
+  };
+
+  const setAsMain = (index: number) => {
+    setMainPhotoIndex(index);
   };
 
   const validate = (): boolean => {
@@ -142,7 +139,7 @@ export default function ProductForm({
       ...(initialData ? { id: initialData.id } : {}),
       name: name.trim(),
       slug: slug.trim(),
-      category: "Elektronik Bekas",
+      category: initialData?.category || "Elektronik Bekas",
       subcategory,
       brand: brand.trim(),
       price: parseInt(price),
@@ -152,13 +149,11 @@ export default function ProductForm({
       reviewCount: parseInt(reviewCount || "0"),
       condition,
       badge,
-      image: initialData?.image || "/products/placeholder.jpg",
-      imageBase64: imageBase64 || undefined,
+      image: photos[mainPhotoIndex] || initialData?.image || "/products/placeholder.jpg",
+      imageBase64: photos[mainPhotoIndex] || undefined,
+      images: photos.length > 0 ? photos : undefined,
       description: description.trim(),
-      specs: specs
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean),
+      specs: specs.split(",").map((s) => s.trim()).filter(Boolean),
       weight: weight ? parseInt(weight) : undefined,
       dimensions: dimensions.trim() || undefined,
       stock: stock ? parseInt(stock) : 1,
@@ -171,64 +166,96 @@ export default function ProductForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Photo Upload */}
+      {/* Photo Upload - Multiple */}
       <div className="bg-white rounded-xl border border-brand-border p-5">
-        <h2 className="font-bold text-brand-navy mb-4">📷 Foto Produk</h2>
-        <div className="flex flex-col sm:flex-row gap-4">
-          {/* Preview */}
-          <div className="w-full sm:w-48 h-48 bg-gray-100 rounded-xl border-2 border-dashed border-brand-border flex items-center justify-center overflow-hidden flex-shrink-0">
-            {imagePreview ? (
-              <div className="relative w-full h-full">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="w-full h-full object-cover"
-                />
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-bold text-brand-navy">📷 Foto Produk ({photos.length}/{MAX_PHOTOS})</h2>
+          <span className="text-xs text-brand-muted">Foto pertama = foto utama</span>
+        </div>
+
+        {/* Photo Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
+          {photos.map((photo, index) => (
+            <div
+              key={index}
+              className={`relative aspect-square bg-gray-100 rounded-xl border-2 overflow-hidden group ${
+                index === mainPhotoIndex
+                  ? "border-brand ring-2 ring-brand/20"
+                  : "border-brand-border hover:border-brand/50"
+              }`}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={photo} alt={`Foto ${index + 1}`} className="w-full h-full object-cover" />
+
+              {/* Main badge */}
+              {index === mainPhotoIndex && (
+                <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-brand text-white text-[9px] font-bold rounded">
+                  UTAMA
+                </div>
+              )}
+
+              {/* Actions overlay */}
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
+                {index !== mainPhotoIndex && (
+                  <button
+                    type="button"
+                    onClick={() => setAsMain(index)}
+                    className="px-2 py-1 bg-white/90 text-brand-navy text-[10px] font-semibold rounded hover:bg-white transition-colors"
+                  >
+                    Jadikan Utama
+                  </button>
+                )}
                 <button
                   type="button"
-                  onClick={removePhoto}
-                  className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                  onClick={() => removePhoto(index)}
+                  className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
                 >
                   <X size={12} />
                 </button>
               </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="flex flex-col items-center gap-2 text-brand-muted hover:text-brand transition-colors"
-              >
-                <Upload size={28} />
-                <span className="text-xs font-medium">Upload Foto</span>
-              </button>
-            )}
-          </div>
+            </div>
+          ))}
 
-          {/* Upload Button */}
-          <div className="flex-1">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handlePhotoUpload}
-              className="hidden"
-            />
+          {/* Add Photo Button */}
+          {photos.length < MAX_PHOTOS && (
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="px-4 py-2 bg-brand/10 hover:bg-brand/20 text-brand font-semibold text-sm rounded-lg transition-colors"
+              className="aspect-square bg-gray-50 rounded-xl border-2 border-dashed border-brand-border flex flex-col items-center justify-center gap-2 text-brand-muted hover:text-brand hover:border-brand/50 transition-all"
             >
-              📁 Pilih Foto dari Komputer
+              <Plus size={24} />
+              <span className="text-[10px] font-medium">Tambah Foto</span>
             </button>
-            <p className="text-xs text-brand-muted mt-2">
-              Format: JPG, PNG, WebP. Maks 5MB. Foto produk akan ditampilkan di halaman katalog dan detail.
-            </p>
-            {errors.photo && (
-              <p className="text-xs text-red-500 mt-1">{errors.photo}</p>
-            )}
-          </div>
+          )}
         </div>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handlePhotoUpload}
+          className="hidden"
+        />
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={photos.length >= MAX_PHOTOS}
+            className={`px-4 py-2 font-semibold text-sm rounded-lg transition-colors ${
+              photos.length >= MAX_PHOTOS
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-brand/10 hover:bg-brand/20 text-brand"
+            }`}
+          >
+            📁 Pilih Foto ({MAX_PHOTOS - photos.length} slot tersisa)
+          </button>
+          {errors.photo && <p className="text-xs text-red-500">{errors.photo}</p>}
+        </div>
+        <p className="text-xs text-brand-muted mt-2">
+          Format: JPG, PNG, WebP. Maks {MAX_SIZE_MB}MB per foto. Max {MAX_PHOTOS} foto per produk.
+        </p>
       </div>
 
       {/* Basic Info */}
@@ -236,74 +263,30 @@ export default function ProductForm({
         <h2 className="font-bold text-brand-navy mb-4">📝 Informasi Dasar</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="sm:col-span-2">
-            <label className="block text-sm font-semibold text-brand-navy mb-1">
-              Nama Produk *
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => handleNameChange(e.target.value)}
-              placeholder="Contoh: MacBook Air M1 2020"
-              className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
-            />
+            <label className="block text-sm font-semibold text-brand-navy mb-1">Nama Produk *</label>
+            <input type="text" value={name} onChange={(e) => handleNameChange(e.target.value)} placeholder="Contoh: MacBook Air M1 2020" className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all" />
             {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
           </div>
           <div>
-            <label className="block text-sm font-semibold text-brand-navy mb-1">
-              Slug *
-            </label>
-            <input
-              type="text"
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              placeholder="macbook-air-m1-2020"
-              className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all font-mono"
-            />
+            <label className="block text-sm font-semibold text-brand-navy mb-1">Slug *</label>
+            <input type="text" value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="macbook-air-m1-2020" className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all font-mono" />
             {errors.slug && <p className="text-xs text-red-500 mt-1">{errors.slug}</p>}
           </div>
           <div>
-            <label className="block text-sm font-semibold text-brand-navy mb-1">
-              Brand *
-            </label>
-            <input
-              type="text"
-              value={brand}
-              onChange={(e) => setBrand(e.target.value)}
-              placeholder="Apple, Dell, Lenovo..."
-              className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
-            />
+            <label className="block text-sm font-semibold text-brand-navy mb-1">Brand *</label>
+            <input type="text" value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Apple, Dell, Lenovo..." className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all" />
             {errors.brand && <p className="text-xs text-red-500 mt-1">{errors.brand}</p>}
           </div>
           <div>
-            <label className="block text-sm font-semibold text-brand-navy mb-1">
-              Subkategori
-            </label>
-            <select
-              value={subcategory}
-              onChange={(e) => setSubcategory(e.target.value)}
-              className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all bg-white"
-            >
-              {subcategoryOptions.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
+            <label className="block text-sm font-semibold text-brand-navy mb-1">Subkategori</label>
+            <select value={subcategory} onChange={(e) => setSubcategory(e.target.value)} className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all bg-white">
+              {subcategoryOptions.map((opt) => (<option key={opt} value={opt}>{opt}</option>))}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-semibold text-brand-navy mb-1">
-              Kondisi
-            </label>
-            <select
-              value={condition}
-              onChange={(e) => setCondition(e.target.value)}
-              className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all bg-white"
-            >
-              {conditionOptions.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
+            <label className="block text-sm font-semibold text-brand-navy mb-1">Kondisi</label>
+            <select value={condition} onChange={(e) => setCondition(e.target.value)} className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all bg-white">
+              {conditionOptions.map((opt) => (<option key={opt} value={opt}>{opt}</option>))}
             </select>
           </div>
         </div>
@@ -314,43 +297,18 @@ export default function ProductForm({
         <h2 className="font-bold text-brand-navy mb-4">💰 Harga</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-semibold text-brand-navy mb-1">
-              Harga Asli (Rp) *
-            </label>
-            <input
-              type="number"
-              value={originalPrice}
-              onChange={(e) => handleOriginalPriceChange(e.target.value)}
-              placeholder="Contoh: 12999000"
-              className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
-            />
+            <label className="block text-sm font-semibold text-brand-navy mb-1">Harga Asli (Rp) *</label>
+            <input type="number" value={originalPrice} onChange={(e) => handleOriginalPriceChange(e.target.value)} placeholder="Contoh: 12999000" className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all" />
             {errors.originalPrice && <p className="text-xs text-red-500 mt-1">{errors.originalPrice}</p>}
           </div>
           <div>
-            <label className="block text-sm font-semibold text-brand-navy mb-1">
-              Harga Jual (Rp) *
-            </label>
-            <input
-              type="number"
-              value={price}
-              onChange={(e) => handlePriceChange(e.target.value)}
-              placeholder="Contoh: 6500000"
-              className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
-            />
+            <label className="block text-sm font-semibold text-brand-navy mb-1">Harga Jual (Rp) *</label>
+            <input type="number" value={price} onChange={(e) => handlePriceChange(e.target.value)} placeholder="Contoh: 6500000" className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all" />
             {errors.price && <p className="text-xs text-red-500 mt-1">{errors.price}</p>}
           </div>
           <div>
-            <label className="block text-sm font-semibold text-brand-navy mb-1">
-              Diskon (%)
-            </label>
-            <input
-              type="number"
-              value={discount}
-              onChange={(e) => setDiscount(e.target.value)}
-              placeholder="Auto"
-              className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all bg-gray-50"
-              readOnly
-            />
+            <label className="block text-sm font-semibold text-brand-navy mb-1">Diskon (%)</label>
+            <input type="number" value={discount} onChange={(e) => setDiscount(e.target.value)} placeholder="Auto" className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all bg-gray-50" readOnly />
           </div>
         </div>
       </div>
@@ -360,30 +318,13 @@ export default function ProductForm({
         <h2 className="font-bold text-brand-navy mb-4">📦 Berat & Dimensi (untuk Pengiriman)</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold text-brand-navy mb-1">
-              Berat (gram)
-            </label>
-            <input
-              type="number"
-              value={weight}
-              onChange={(e) => setWeight(e.target.value)}
-              placeholder="Contoh: 1290 (untuk MacBook Air)"
-              className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
-            />
-            <p className="text-xs text-brand-muted mt-1">Digunakan untuk menghitung ongkos kirim</p>
+            <label className="block text-sm font-semibold text-brand-navy mb-1">Berat (gram)</label>
+            <input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="Contoh: 1290" className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all" />
+            <p className="text-xs text-brand-muted mt-1">Untuk menghitung ongkos kirim</p>
           </div>
           <div>
-            <label className="block text-sm font-semibold text-brand-navy mb-1">
-              Dimensi (PxLxT)
-            </label>
-            <input
-              type="text"
-              value={dimensions}
-              onChange={(e) => setDimensions(e.target.value)}
-              placeholder="Contoh: 30.41 x 21.24 x 1.61 cm"
-              className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
-            />
-            <p className="text-xs text-brand-muted mt-1">Panjang x Lebar x Tinggi dalam cm</p>
+            <label className="block text-sm font-semibold text-brand-navy mb-1">Dimensi (PxLxT)</label>
+            <input type="text" value={dimensions} onChange={(e) => setDimensions(e.target.value)} placeholder="Contoh: 30.41 x 21.24 x 1.61 cm" className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all" />
           </div>
         </div>
       </div>
@@ -393,40 +334,17 @@ export default function ProductForm({
         <h2 className="font-bold text-brand-navy mb-4">📦 Inventori & Supplier</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-semibold text-brand-navy mb-1">
-              Stok (Unit) *
-            </label>
-            <input
-              type="number"
-              min="0"
-              value={stock}
-              onChange={(e) => setStock(e.target.value)}
-              placeholder="Jumlah stok"
-              className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
-            />
+            <label className="block text-sm font-semibold text-brand-navy mb-1">Stok (Unit) *</label>
+            <input type="number" min="0" value={stock} onChange={(e) => setStock(e.target.value)} placeholder="Jumlah stok" className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all" />
             <p className="text-xs text-brand-muted mt-1">Set 0 untuk SOLD OUT</p>
           </div>
           <div>
-            <label className="block text-sm font-semibold text-brand-navy mb-1">
-              Supplier
-            </label>
-            <input
-              type="text"
-              value={supplier}
-              onChange={(e) => setSupplier(e.target.value)}
-              placeholder="Nama supplier / penjual"
-              className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
-            />
+            <label className="block text-sm font-semibold text-brand-navy mb-1">Supplier</label>
+            <input type="text" value={supplier} onChange={(e) => setSupplier(e.target.value)} placeholder="Nama supplier / penjual" className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all" />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-brand-navy mb-1">
-              Status
-            </label>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value as any)}
-              className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all bg-white"
-            >
+            <label className="block text-sm font-semibold text-brand-navy mb-1">Status</label>
+            <select value={status} onChange={(e) => setStatus(e.target.value as any)} className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all bg-white">
               <option value="ACTIVE">Aktif (Tersedia)</option>
               <option value="SOLD_OUT">Sold Out</option>
               <option value="RESERVED">Reserved (Ditahan)</option>
@@ -440,53 +358,21 @@ export default function ProductForm({
         <h2 className="font-bold text-brand-navy mb-4">⭐ Rating & Badge</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-semibold text-brand-navy mb-1">
-              Rating
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              min="0"
-              max="5"
-              value={rating}
-              onChange={(e) => setRating(e.target.value)}
-              className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
-            />
+            <label className="block text-sm font-semibold text-brand-navy mb-1">Rating</label>
+            <input type="number" step="0.1" min="0" max="5" value={rating} onChange={(e) => setRating(e.target.value)} className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all" />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-brand-navy mb-1">
-              Jumlah Review
-            </label>
-            <input
-              type="number"
-              value={reviewCount}
-              onChange={(e) => setReviewCount(e.target.value)}
-              className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
-            />
+            <label className="block text-sm font-semibold text-brand-navy mb-1">Jumlah Review</label>
+            <input type="number" value={reviewCount} onChange={(e) => setReviewCount(e.target.value)} className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all" />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-brand-navy mb-1">
-              Badge
-            </label>
+            <label className="block text-sm font-semibold text-brand-navy mb-1">Badge</label>
             <div className="flex gap-2 flex-wrap">
-              <button
-                type="button"
-                onClick={() => setBadge(badge === undefined ? undefined : undefined)}
-                className={`px-3 py-2 text-xs font-semibold rounded-lg border transition-colors ${
-                  !badge ? "bg-brand-navy text-white border-brand-navy" : "border-brand-border hover:bg-brand-gray"
-                }`}
-              >
+              <button type="button" onClick={() => setBadge(undefined)} className={`px-3 py-2 text-xs font-semibold rounded-lg border transition-colors ${!badge ? "bg-brand-navy text-white border-brand-navy" : "border-brand-border hover:bg-brand-gray"}`}>
                 Tanpa Badge
               </button>
               {badgeOptions.map((opt) => (
-                <button
-                  key={opt}
-                  type="button"
-                  onClick={() => setBadge(opt)}
-                  className={`px-3 py-2 text-xs font-semibold rounded-lg border transition-colors ${
-                    badge === opt ? "bg-brand text-white border-brand" : "border-brand-border hover:bg-brand-gray"
-                  }`}
-                >
+                <button key={opt} type="button" onClick={() => setBadge(opt)} className={`px-3 py-2 text-xs font-semibold rounded-lg border transition-colors ${badge === opt ? "bg-brand text-white border-brand" : "border-brand-border hover:bg-brand-gray"}`}>
                   {opt}
                 </button>
               ))}
@@ -500,42 +386,17 @@ export default function ProductForm({
         <h2 className="font-bold text-brand-navy mb-4">📋 Deskripsi & Spesifikasi</h2>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-brand-navy mb-1">
-              Deskripsi Produk
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              placeholder="Deskripsi singkat tentang produk..."
-              className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all resize-none"
-            />
+            <label className="block text-sm font-semibold text-brand-navy mb-1">Deskripsi Produk</label>
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="Deskripsi singkat tentang produk..." className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all resize-none" />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-brand-navy mb-1">
-              Spesifikasi (pisahkan dengan koma)
-            </label>
-            <input
-              type="text"
-              value={specs}
-              onChange={(e) => setSpecs(e.target.value)}
-              placeholder="8GB RAM, 256GB SSD, M1 Chip, 13.3 inch"
-              className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
-            />
+            <label className="block text-sm font-semibold text-brand-navy mb-1">Spesifikasi (pisahkan dengan koma)</label>
+            <input type="text" value={specs} onChange={(e) => setSpecs(e.target.value)} placeholder="8GB RAM, 256GB SSD, M1 Chip, 13.3 inch" className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all" />
             {specs && (
               <div className="flex flex-wrap gap-1.5 mt-2">
-                {specs
-                  .split(",")
-                  .map((s) => s.trim())
-                  .filter(Boolean)
-                  .map((spec, i) => (
-                    <span
-                      key={i}
-                      className="px-2.5 py-1 bg-brand/10 text-brand text-xs font-semibold rounded-full"
-                    >
-                      {spec}
-                    </span>
-                  ))}
+                {specs.split(",").map((s) => s.trim()).filter(Boolean).map((spec, i) => (
+                  <span key={i} className="px-2.5 py-1 bg-brand/10 text-brand text-xs font-semibold rounded-full">{spec}</span>
+                ))}
               </div>
             )}
           </div>
@@ -544,20 +405,11 @@ export default function ProductForm({
 
       {/* Actions */}
       <div className="flex items-center gap-3 justify-end">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="flex items-center gap-2 px-5 py-2.5 border border-brand-border text-brand-navy hover:bg-brand-gray font-semibold rounded-xl text-sm transition-colors"
-        >
-          <ArrowLeft size={16} />
-          Batal
+        <button type="button" onClick={() => router.back()} className="flex items-center gap-2 px-5 py-2.5 border border-brand-border text-brand-navy hover:bg-brand-gray font-semibold rounded-xl text-sm transition-colors">
+          <ArrowLeft size={16} /> Batal
         </button>
-        <button
-          type="submit"
-          className="flex items-center gap-2 px-6 py-2.5 bg-brand hover:bg-brand-dark text-white font-semibold rounded-xl text-sm transition-colors"
-        >
-          <Save size={16} />
-          {submitLabel}
+        <button type="submit" className="flex items-center gap-2 px-6 py-2.5 bg-brand hover:bg-brand-dark text-white font-semibold rounded-xl text-sm transition-colors">
+          <Save size={16} /> {submitLabel}
         </button>
       </div>
     </form>
