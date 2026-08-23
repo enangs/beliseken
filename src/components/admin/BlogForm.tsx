@@ -2,8 +2,9 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, X, Save, ArrowLeft, Star } from "lucide-react";
+import { Upload, X, Save, ArrowLeft, Star, Loader2 } from "lucide-react";
 import type { BlogPost } from "@/data/products";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
 interface BlogFormProps {
   initialData?: BlogPost;
@@ -26,36 +27,47 @@ export default function BlogForm({ initialData, onSubmit, submitLabel }: BlogFor
   const [featured, setFeatured] = useState(initialData?.featured || false);
   const [imageBase64, setImageBase64] = useState(initialData?.imageBase64 || "");
   const [imagePreview, setImagePreview] = useState(initialData?.imageBase64 || "");
+  const [uploading, setUploading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleTitleChange = (val: string) => {
     setTitle(val);
     if (!initialData) {
-      setSlug(
-        val.toLowerCase()
-          .replace(/[^a-z0-9\s-]/g, "")
-          .replace(/\s+/g, "-")
-          .replace(/-+/g, "-")
-          .trim()
-      );
+      setSlug(val.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").trim());
     }
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
       setErrors((prev) => ({ ...prev, photo: "Ukuran foto maks 5MB" }));
       return;
     }
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const result = ev.target?.result as string;
-      setImageBase64(result);
-      setImagePreview(result);
-      setErrors((prev) => ({ ...prev, photo: "" }));
-    };
-    reader.readAsDataURL(file);
+
+    setUploading(true);
+    try {
+      const result = await uploadToCloudinary(file, "beliseken/blog");
+      if (result) {
+        setImageBase64(result.url);
+        setImagePreview(result.url);
+        setErrors((prev) => ({ ...prev, photo: "" }));
+      } else {
+        // Fallback to base64
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const base64 = ev.target?.result as string;
+          setImageBase64(base64);
+          setImagePreview(base64);
+          setErrors((prev) => ({ ...prev, photo: "" }));
+        };
+        reader.readAsDataURL(file);
+      }
+    } catch (err) {
+      setErrors((prev) => ({ ...prev, photo: "Gagal upload gambar" }));
+    }
+    setUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const removePhoto = () => {
@@ -112,6 +124,11 @@ export default function BlogForm({ initialData, onSubmit, submitLabel }: BlogFor
                   <X size={12} />
                 </button>
               </div>
+            ) : uploading ? (
+              <div className="flex flex-col items-center gap-2 text-brand">
+                <Loader2 size={24} className="animate-spin" />
+                <span className="text-xs">Mengupload...</span>
+              </div>
             ) : (
               <button type="button" onClick={() => fileInputRef.current?.click()} className="flex flex-col items-center gap-2 text-brand-muted hover:text-brand transition-colors">
                 <Upload size={24} />
@@ -121,10 +138,11 @@ export default function BlogForm({ initialData, onSubmit, submitLabel }: BlogFor
           </div>
           <div className="flex-1">
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
-            <button type="button" onClick={() => fileInputRef.current?.click()} className="px-4 py-2 bg-brand/10 hover:bg-brand/20 text-brand font-semibold text-sm rounded-lg transition-colors">
-              📁 Pilih dari Komputer
+            <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading}
+              className="px-4 py-2 bg-brand/10 hover:bg-brand/20 text-brand font-semibold text-sm rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2">
+              {uploading ? <Loader2 size={14} className="animate-spin" /> : "📁"} Pilih dari Komputer
             </button>
-            <p className="text-xs text-brand-muted mt-2">Format: JPG, PNG, WebP. Maks 5MB.</p>
+            <p className="text-xs text-brand-muted mt-2">Format: JPG, PNG, WebP. Maks 5MB. Tersimpan di Cloudinary.</p>
             {errors.photo && <p className="text-xs text-red-500 mt-1">{errors.photo}</p>}
           </div>
         </div>
@@ -181,8 +199,8 @@ export default function BlogForm({ initialData, onSubmit, submitLabel }: BlogFor
           <ArrowLeft size={16} />
           Batal
         </button>
-        <button type="submit" className="flex items-center gap-2 px-6 py-2.5 bg-brand hover:bg-brand-dark text-white font-semibold rounded-xl text-sm transition-colors">
-          <Save size={16} />
+        <button type="submit" disabled={uploading} className="flex items-center gap-2 px-6 py-2.5 bg-brand hover:bg-brand-dark text-white font-semibold rounded-xl text-sm transition-colors disabled:opacity-50">
+          {uploading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
           {submitLabel}
         </button>
       </div>
