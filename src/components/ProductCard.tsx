@@ -37,7 +37,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       discount: product.discount,
       rating: product.avgRating,
       reviewCount: product.reviewCount,
-      condition: product.units?.[0]?.conditionGrade?.name || "Grade A",
+      condition: "Grade A",
       badge: product.badge as "HOT DEAL" | "BEST SELLER" | "NEW" | undefined,
       image: "",
       specs: [],

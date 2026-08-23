@@ -5,30 +5,24 @@ import { Suspense, useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
-import { getProducts } from "@/data/products";
-import type { Product } from "@/data/products";
+import { getProducts as fetchProductsAPI, type ProductResponse } from "@/lib/api";
 
 function SearchResults() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const query = searchParams.get("q") || "";
   const [searchInput, setSearchInput] = useState(query);
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<ProductResponse[]>([]);
 
   useEffect(() => {
-    setAllProducts(getProducts());
-  }, []);
+    if (query) {
+      fetchProductsAPI({ search: query, limit: 50 })
+        .then((res) => { if (res?.data) setAllProducts(res.data); })
+        .catch(() => {});
+    }
+  }, [query]);
 
-  const results = query
-    ? allProducts.filter(
-        (p) =>
-          p.name.toLowerCase().includes(query.toLowerCase()) ||
-          p.category.toLowerCase().includes(query.toLowerCase()) ||
-          p.brand.toLowerCase().includes(query.toLowerCase()) ||
-          p.description?.toLowerCase().includes(query.toLowerCase()) ||
-          p.specs.some(s => s.toLowerCase().includes(query.toLowerCase()))
-      )
-    : [];
+  const results = query ? allProducts : [];
 
   return (
     <>

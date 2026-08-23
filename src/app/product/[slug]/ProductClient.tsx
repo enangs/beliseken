@@ -23,19 +23,45 @@ export default function ProductClient({ slug }: { slug: string }) {
 
   useEffect(() => {
     fetchProductBySlug(slug)
-      .then((res) => { setProduct(res.data); setLoaded(true); })
+      .then((res) => { if (res?.data) setProduct(res.data); setLoaded(true); })
       .catch(() => setLoaded(true));
     fetchProductsAPI({ limit: 4 })
-      .then((res) => setAllProducts(res.data))
+      .then((res) => { if (res?.data) setAllProducts(res.data); })
       .catch(() => {});
   }, [slug]);
 
   const handleAddToCart = () => {
     if (!product) return;
-    addItem(product, quantity);
+    // Adapt ProductDetailResponse to Product for cart
+    addItem({
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      category: typeof product.category === 'string' ? product.category : (product.category?.name || ''),
+      subcategory: product.subcategory?.name || '',
+      brand: product.brand?.name || '',
+      price: product.sellingPrice,
+      originalPrice: product.sellingPrice,
+      discount: product.discount,
+      rating: product.avgRating,
+      reviewCount: product.reviewCount,
+      condition: product.units?.[0]?.conditionGrade?.name || 'Grade A',
+      badge: product.badge as "HOT DEAL" | "BEST SELLER" | "NEW" | undefined,
+      image: '',
+      specs: (product.specs || []).map((s: any) => `${s.key}: ${s.value}`),
+      weight: product.weight || undefined,
+      dimensions: product.dimensions || undefined,
+    }, quantity);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };
+
+  const categoryName = typeof product?.category === 'string' 
+    ? product.category 
+    : (product?.category as any)?.name || '';
+  const categorySlug = typeof product?.category === 'string'
+    ? product.category.toLowerCase().replace(/ & /g, '-').replace(/[^a-z0-9-]/g, '')
+    : (product?.category as any)?.slug || '';
 
   if (!loaded) {
     return (
@@ -78,10 +104,14 @@ export default function ProductClient({ slug }: { slug: string }) {
             <ChevronRight size={14} />
             <Link href="/products" className="hover:text-brand">Produk</Link>
             <ChevronRight size={14} />
-            <Link href={`/category/${product.category.toLowerCase().replace(/ & /g, "-")}`} className="hover:text-brand">
-              {product.category}
-            </Link>
-            <ChevronRight size={14} />
+            {categoryName && (
+              <>
+                <Link href={`/category/${categorySlug}`} className="hover:text-brand">
+                  {categoryName}
+                </Link>
+                <ChevronRight size={14} />
+              </>
+            )}
             <span className="text-brand-navy font-medium">{product.name}</span>
           </nav>
 
@@ -110,7 +140,7 @@ export default function ProductClient({ slug }: { slug: string }) {
 
             <div>
               <span className="text-sm font-semibold text-brand bg-brand/10 px-3 py-1 rounded-md">
-                {product.category?.name}
+                {categoryName}
               </span>
               <h1 className="text-3xl font-bold text-brand-navy mt-4 mb-3">{product.name}</h1>
 

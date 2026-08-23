@@ -6,19 +6,28 @@ import { ChevronRight } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
-import { getProducts, categories } from "@/data/products";
-import type { Product } from "@/data/products";
+import { getProducts as fetchProductsAPI, type ProductResponse } from "@/lib/api";
 
 export default function CategoryClient({ slug }: { slug: string }) {
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<ProductResponse[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    setAllProducts(getProducts());
-    setLoaded(true);
-  }, []);
+    fetchProductsAPI({ category: slug, limit: 50 })
+      .then((res) => { if (res?.data) setAllProducts(res.data); })
+      .catch(() => {})
+      .finally(() => setLoaded(true));
+  }, [slug]);
 
-  const category = categories.find((c) => c.slug === slug);
+  const categoryNames: Record<string, string> = {
+    "laptop-notebook": "💻 Laptop & Notebook",
+    "smartphone-tablet": "📱 Smartphone & Tablet",
+    "monitor-tv": "🖥️ Monitor & TV",
+    "networking-it": "🌐 Networking & IT",
+    "peripheral-aksesoris": "⌨️ Peripheral & Aksesoris",
+  };
+
+  const categoryName = categoryNames[slug] || slug;
 
   if (!loaded) {
     return (
@@ -32,29 +41,6 @@ export default function CategoryClient({ slug }: { slug: string }) {
     );
   }
 
-  if (!category) {
-    return (
-      <>
-        <Header />
-        <main className="flex-1 pt-20 min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-6xl mb-4">😕</div>
-            <h1 className="text-2xl font-bold text-brand-navy mb-2">Kategori Tidak Ditemukan</h1>
-            <p className="text-brand-muted mb-6">Kategori yang Anda cari tidak tersedia.</p>
-            <Link href="/products" className="px-6 py-3 bg-brand text-white font-semibold rounded-lg hover:bg-brand-dark transition-colors">
-              Lihat Semua Produk
-            </Link>
-          </div>
-        </main>
-        <Footer />
-      </>
-    );
-  }
-
-  const categoryProducts = allProducts.filter((p) =>
-    p.category.toLowerCase().includes(category.name.toLowerCase().split(" & ")[0].toLowerCase())
-  );
-
   return (
     <>
       <Header />
@@ -66,21 +52,21 @@ export default function CategoryClient({ slug }: { slug: string }) {
               <ChevronRight size={14} />
               <Link href="/products" className="hover:text-white">Produk</Link>
               <ChevronRight size={14} />
-              <span className="text-white">{category.name}</span>
+              <span className="text-white">{categoryName}</span>
             </nav>
             <h1 className="text-4xl font-bold text-white mb-2">
-              {category.icon} {category.name}
+              {categoryName}
             </h1>
             <p className="text-white/70 text-lg">
-              {categoryProducts.length} produk elektronik bekas berkualitas tersedia
+              {allProducts.length} produk elektronik bekas berkualitas tersedia
             </p>
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          {categoryProducts.length > 0 ? (
+          {allProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              {categoryProducts.map((product) => (
+              {allProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
