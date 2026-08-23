@@ -2,8 +2,9 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, X, Save, ArrowLeft, Plus, ImageIcon } from "lucide-react";
+import { Upload, X, Save, ArrowLeft, Plus, Loader2 } from "lucide-react";
 import type { Product } from "@/data/products";
+import { uploadToCloudinary, CLOUDINARY_CONFIG } from "@/lib/cloudinary";
 
 interface ProductFormProps {
   initialData?: Product;
@@ -30,9 +31,11 @@ export default function ProductForm({
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Photo state - support up to 5 photos
+  // Photo state - store Cloudinary URLs or base64
   const [photos, setPhotos] = useState<string[]>(initialData?.images || (initialData?.imageBase64 ? [initialData.imageBase64] : []));
   const [mainPhotoIndex, setMainPhotoIndex] = useState(0);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState("");
 
   const [sku, setSku] = useState(initialData?.sku || "");
   const [name, setName] = useState(initialData?.name || "");
@@ -80,10 +83,10 @@ export default function ProductForm({
     }
   };
 
-  // Handle photo upload - supports multiple
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Upload photo to Cloudinary
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files) return;
+    if (!files || files.length === 0) return;
 
     const remainingSlots = MAX_PHOTOS - photos.length;
     const filesToProcess = Array.from(files).slice(0, remainingSlots);
@@ -92,22 +95,55 @@ export default function ProductForm({
       setErrors((prev) => ({ ...prev, photo: `Maks ${MAX_PHOTOS} foto. Hanya ${filesToProcess.length} yang ditambahkan.` }));
     }
 
-    filesToProcess.forEach((file) => {
+    // Validate sizes
+    const validFiles = filesToProcess.filter((file) => {
       if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-        setErrors((prev) => ({ ...prev, photo: `Ukuran foto maks ${MAX_SIZE_MB}MB` }));
-        return;
+        setErrors((prev) => ({ ...prev, photo: `${file.name} terlalu besar (maks ${MAX_SIZE_MB}MB)` }));
+        return false;
       }
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const result = ev.target?.result as string;
-        setPhotos((prev) => [...prev, result]);
-        setErrors((prev) => ({ ...prev, photo: "" }));
-      };
-      reader.readAsDataURL(file);
+      return true;
     });
 
-    // Reset input
+    if (validFiles.length === 0) return;
+
+    setUploading(true);
+    setUploadProgress(`Mengupload 0/${validFiles.length} foto...`);
+
+    try {
+      const uploadedUrls: string[] = [];
+
+      for (let i = 0; i < validFiles.length; i++) {
+        setUploadProgress(`Mengupload ${i + 1}/${validFiles.length} foto...`);
+
+        // Try Cloudinary first
+        const result = await uploadToCloudinary(validFiles[i], "beliseken/products");
+        if (result) {
+          uploadedUrls.push(result.url);
+        } else {
+          // Fallback to base64
+          const base64 = await fileToBase64(validFiles[i]);
+          uploadedUrls.push(base64);
+        }
+      }
+
+      setPhotos((prev) => [...prev, ...uploadedUrls]);
+      setErrors((prev) => ({ ...prev, photo: "" }));
+    } catch (error) {
+      setErrors((prev) => ({ ...prev, photo: "Gagal upload foto. Coba lagi." }));
+    }
+
+    setUploading(false);
+    setUploadProgress("");
     if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  // Convert file to base64 as fallback
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => resolve(ev.target?.result as string);
+      reader.readAsDataURL(file);
+    });
   };
 
   const removePhoto = (index: number) => {
@@ -189,14 +225,12 @@ export default function ProductForm({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={photo} alt={`Foto ${index + 1}`} className="w-full h-full object-cover" />
 
-              {/* Main badge */}
               {index === mainPhotoIndex && (
                 <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-brand text-white text-[9px] font-bold rounded">
                   UTAMA
                 </div>
               )}
 
-              {/* Actions overlay */}
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
                 {index !== mainPhotoIndex && (
                   <button
@@ -218,8 +252,7 @@ export default function ProductForm({
             </div>
           ))}
 
-          {/* Add Photo Button */}
-          {photos.length < MAX_PHOTOS && (
+          {photos.length < MAX_PHOTOS && !uploading && (
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
@@ -240,18 +273,27 @@ export default function ProductForm({
           className="hidden"
         />
 
+        {/* Upload Progress */}
+        {uploading && (
+          <div className="flex items-center gap-3 p-3 bg-brand/5 rounded-lg mb-3">
+            <Loader2 size={18} className="animate-spin text-brand" />
+            <span className="text-sm text-brand font-medium">{uploadProgress}</span>
+          </div>
+        )}
+
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            disabled={photos.length >= MAX_PHOTOS}
-            className={`px-4 py-2 font-semibold text-sm rounded-lg transition-colors ${
-              photos.length >= MAX_PHOTOS
+            disabled={photos.length >= MAX_PHOTOS || uploading}
+            className={`px-4 py-2 font-semibold text-sm rounded-lg transition-colors flex items-center gap-2 ${
+              photos.length >= MAX_PHOTOS || uploading
                 ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                 : "bg-brand/10 hover:bg-brand/20 text-brand"
             }`}
           >
-            📁 Pilih Foto ({MAX_PHOTOS - photos.length} slot tersisa)
+            {uploading ? <Loader2 size={14} className="animate-spin" /> : "📁"}
+            Pilih Foto ({MAX_PHOTOS - photos.length} slot tersisa)
           </button>
           {errors.photo && <p className="text-xs text-red-500">{errors.photo}</p>}
         </div>
@@ -410,8 +452,9 @@ export default function ProductForm({
         <button type="button" onClick={() => router.back()} className="flex items-center gap-2 px-5 py-2.5 border border-brand-border text-brand-navy hover:bg-brand-gray font-semibold rounded-xl text-sm transition-colors">
           <ArrowLeft size={16} /> Batal
         </button>
-        <button type="submit" className="flex items-center gap-2 px-6 py-2.5 bg-brand hover:bg-brand-dark text-white font-semibold rounded-xl text-sm transition-colors">
-          <Save size={16} /> {submitLabel}
+        <button type="submit" disabled={uploading} className="flex items-center gap-2 px-6 py-2.5 bg-brand hover:bg-brand-dark text-white font-semibold rounded-xl text-sm transition-colors disabled:opacity-50">
+          {uploading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+          {submitLabel}
         </button>
       </div>
     </form>
