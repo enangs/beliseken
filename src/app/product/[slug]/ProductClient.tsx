@@ -242,7 +242,7 @@ export default function ProductClient({ slug }: { slug: string }) {
                   </div>
                   <div className="p-4">
                     <h3 className="font-semibold text-brand-navy text-sm group-hover:text-brand transition-colors line-clamp-2">{p.name}</h3>
-                    <p className="text-brand font-bold mt-2">{formatPrice(p.price)}</p>
+                    <p className="text-brand font-bold mt-2">{formatPrice(p.sellingPrice)}</p>
                   </div>
                 </Link>
               ))}

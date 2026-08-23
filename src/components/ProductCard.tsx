@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ShoppingCart, Star, Check } from "lucide-react";
 import { type ProductResponse } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
-import { useCart } from "@/lib/cart";
+import { useCart, type CartItem } from "@/lib/cart";
 
 interface ProductCardProps {
   product: ProductResponse;
@@ -15,7 +15,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
 
-  const badgeColors = {
+  const badgeColors: Record<string, string> = {
     "HOT DEAL": "bg-brand text-white",
     "BEST SELLER": "bg-amber-500 text-white",
     NEW: "bg-emerald-500 text-white",
@@ -24,45 +24,48 @@ export default function ProductCard({ product }: ProductCardProps) {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addItem(product);
+    // Adapt ProductResponse to CartItem shape
+    addItem({
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      category: product.category?.name || "",
+      subcategory: product.subcategory?.name || "",
+      brand: product.brand?.name || "",
+      price: product.sellingPrice,
+      originalPrice: product.sellingPrice,
+      discount: product.discount,
+      rating: product.avgRating,
+      reviewCount: product.reviewCount,
+      condition: product.units?.[0]?.conditionGrade?.name || "Grade A",
+      badge: product.badge as "HOT DEAL" | "BEST SELLER" | "NEW" | undefined,
+      image: "",
+      specs: [],
+    });
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };
+
+  const originalPrice = product.discount > 0
+    ? Math.round(product.sellingPrice / (1 - product.discount / 100))
+    : product.sellingPrice;
 
   return (
     <div className="group bg-white rounded-xl border border-brand-border overflow-hidden hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 w-full">
       {/* Image Container */}
       <Link href={`/product/${product.slug}`}>
         <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
-          {product.imageBase64 ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={product.imageBase64}
-              alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          ) : (
-            <>
-              <div className="absolute inset-0 bg-gradient-to-br from-brand/10 to-brand-dark/10" />
-              <div className="absolute inset-0 flex items-center justify-center text-4xl opacity-30">
-                📦
-              </div>
-            </>
-          )}
+          <div className="absolute inset-0 bg-gradient-to-br from-brand/10 to-brand-dark/10" />
+          <div className="absolute inset-0 flex items-center justify-center text-4xl opacity-30">
+            📦
+          </div>
 
           {/* Badge */}
           {product.badge && (
             <span
-              className={`absolute top-3 left-3 px-2.5 py-1 text-[11px] font-bold rounded-md ${badgeColors[product.badge]}`}
+              className={`absolute top-3 left-3 px-2.5 py-1 text-[11px] font-bold rounded-md ${badgeColors[product.badge] || "bg-gray-500 text-white"}`}
             >
               {product.badge}
-            </span>
-          )}
-
-          {/* Time Added (for new arrivals) */}
-          {product.timeAdded && (
-            <span className="absolute top-3 right-3 px-2.5 py-1 text-[11px] font-semibold rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">
-              🕐 {product.timeAdded}
             </span>
           )}
         </div>
@@ -85,7 +88,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 key={i}
                 size={13}
                 className={
-                  i < Math.floor(product.rating)
+                  i < Math.floor(product.avgRating)
                     ? "fill-amber-400 text-amber-400"
                     : "fill-gray-200 text-gray-200"
                 }
@@ -102,15 +105,19 @@ export default function ProductCard({ product }: ProductCardProps) {
           <span className="text-lg font-bold text-brand">
             {formatPrice(product.sellingPrice)}
           </span>
-          <span className="text-sm text-brand-muted line-through">
-            {formatPrice(product.sellingPrice * (1 + product.discount / 100))}
-          </span>
+          {product.discount > 0 && (
+            <span className="text-sm text-brand-muted line-through">
+              {formatPrice(originalPrice)}
+            </span>
+          )}
         </div>
 
         {/* Discount */}
-        <span className="text-xs font-bold text-brand mb-3 block">
-          -{product.discount}% OFF
-        </span>
+        {product.discount > 0 && (
+          <span className="text-xs font-bold text-brand mb-3 block">
+            -{product.discount}% OFF
+          </span>
+        )}
 
         {/* Add to Cart Button */}
         <button

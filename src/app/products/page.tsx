@@ -40,7 +40,7 @@ export default function ProductsPage() {
     .filter((p) => {
       const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || (p.brand?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = selectedCategory === "semua" || (p.category?.name || '').toLowerCase().includes(selectedCategory);
-      const matchesCondition = selectedCondition === "Semua" || p.condition === selectedCondition;
+      const matchesCondition = selectedCondition === "Semua" || (p.units?.[0]?.conditionGrade?.name || 'Grade A') === selectedCondition;
       return matchesSearch && matchesCategory && matchesCondition;
     })
     .sort((a, b) => {
