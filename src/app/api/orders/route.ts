@@ -124,77 +124,59 @@ export async function POST(request: NextRequest) {
     const shippingCost = shipping.cost || 0;
     const total = subtotal + shippingCost;
 
-    // Create order in database
-    const order = await prisma.$transaction(async (tx) => {
-      const newOrder = await tx.order.create({
-        data: {
-          orderNumber,
-          userId: userId || null,
-          status: paymentMethod === 'cod' ? 'PROCESSING' : 'WAITING_PAYMENT',
-          paymentStatus: 'UNPAID',
-          paymentMethod: paymentMethod || 'bank_transfer',
-          subtotal,
-          shippingCost,
-          total,
-          courier: shipping.courier,
-          shippingService: shipping.service,
-          shippingEtd: shipping.etd,
-          addressSnapshot: JSON.stringify(address),
-          items: {
-            create: items.map((item: any, idx: number) => ({
-              productName: item.productName || 'Unknown Product',
-              productSlug: item.productSlug || '',
-              productImage: item.productImage?.startsWith('data:') ? '[base64-image]' : (item.productImage || null),
-              unitSku: item.unitSku || `GEN-${orderNumber}-${idx + 1}`,
-              price: item.price || 0,
-              quantity: item.quantity || 1,
-              subtotal: (item.price || 0) * (item.quantity || 1),
-            })),
-          },
-          statusHistory: {
-            create: {
-              status: paymentMethod === 'cod' ? 'PROCESSING' : 'WAITING_PAYMENT',
-              note: 'Pesanan dibuat',
-              changedBy: 'system',
-            },
-          },
-        },
-        include: {
-          items: true,
-          statusHistory: true,
-        },
-      });
+    // Create order in database (step by step, no nested relation creates)
+    const status = paymentMethod === 'cod' ? 'PROCESSING' : 'WAITING_PAYMENT';
+    
+    const newOrder = await prisma.order.create({
+      data: {
+        orderNumber,
+        userId: userId || null,
+        status,
+        paymentStatus: 'UNPAID',
+        paymentMethod: paymentMethod || 'bank_transfer',
+        subtotal,
+        shippingCost,
+        total,
+        courier: shipping.courier,
+        shippingService: shipping.service,
+        shippingEtd: shipping.etd || null,
+        addressSnapshot: JSON.stringify(address),
+      },
+    });
 
-      // Reserve stock for each item
-      for (const item of items) {
-        if (item.unitId && item.unitId !== 'unknown') {
-          await tx.productUnit.update({
-            where: { id: item.unitId },
-            data: { status: 'RESERVED' },
-          });
+    // Create order items (separately to avoid relation issues)
+    for (let idx = 0; idx < items.length; idx++) {
+      const item = items[idx];
+      await prisma.$executeRaw`
+        INSERT INTO order_items ("id", "orderId", "productName", "productSlug", "productImage", "unitSku", "price", "quantity", "subtotal")
+        VALUES (${`oi-${Date.now()}-${idx}`}, ${newOrder.id}, ${item.productName || 'Unknown Product'}, ${item.productSlug || ''}, ${item.productImage?.startsWith('data:') ? null : (item.productImage || null)}, ${`GEN-${orderNumber}-${idx + 1}`}, ${item.price || 0}, ${item.quantity || 1}, ${(item.price || 0) * (item.quantity || 1)})
+      `;
+    }
 
-          await tx.inventoryLog.create({
-            data: {
-              unitId: item.unitId,
-              action: 'STATUS_CHANGE',
-              fromStatus: 'AVAILABLE',
-              toStatus: 'RESERVED',
-              notes: `Reserved for order ${orderNumber}`,
-              performedBy: 'system',
-            },
-          });
-        }
-      }
+    // Create status history
+    await prisma.$executeRaw`
+      INSERT INTO order_status_logs ("id", "orderId", "status", "note", "changedBy")
+      VALUES (${`osl-${Date.now()}`}, ${newOrder.id}, ${status}, 'Pesanan dibuat', 'system')
+    `;
 
-      return newOrder;
+    // Fetch full order with items
+    const order = await prisma.order.findUnique({
+      where: { id: newOrder.id },
+      include: {
+        items: true,
+        statusHistory: true,
+      },
     });
 
     // Transform response
+    if (!order) {
+      return NextResponse.json({ success: false, error: 'Order created but not found' }, { status: 500 });
+    }
     const transformedOrder = {
       id: order.id,
       orderNumber: order.orderNumber,
       userId: order.userId,
-      items: order.items.map(item => ({
+      items: (order.items || []).map(item => ({
         productId: item.productId,
         productName: item.productName,
         productSlug: item.productSlug,
