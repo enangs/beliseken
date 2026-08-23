@@ -92,6 +92,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { items, address, shipping, paymentMethod, userId } = body;
 
+    console.log('POST /api/orders received:', {
+      itemCount: items?.length,
+      paymentMethod,
+      userId,
+      shippingCost: shipping?.cost,
+      firstItem: items?.[0]?.productName,
+    });
+
     if (!items || items.length === 0) {
       return NextResponse.json(
         { success: false, error: 'No items in order' },
@@ -134,12 +142,12 @@ export async function POST(request: NextRequest) {
           addressSnapshot: JSON.stringify(address),
           items: {
             create: items.map((item: any) => ({
-              productName: item.productName,
+              productName: item.productName || 'Unknown Product',
               productSlug: item.productSlug || '',
-              productImage: item.productImage,
-              price: item.price,
-              quantity: item.quantity,
-              subtotal: item.price * item.quantity,
+              productImage: item.productImage?.startsWith('data:') ? '[base64-image]' : (item.productImage || null),
+              price: item.price || 0,
+              quantity: item.quantity || 1,
+              subtotal: (item.price || 0) * (item.quantity || 1),
             })),
           },
           statusHistory: {
@@ -217,10 +225,13 @@ export async function POST(request: NextRequest) {
     };
 
     return NextResponse.json({ success: true, data: transformedOrder }, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Create order error:', error);
+    console.error('Error code:', error.code);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
     return NextResponse.json(
-      { success: false, error: 'Failed to create order' },
+      { success: false, error: error.message || 'Failed to create order', code: error.code },
       { status: 500 }
     );
   }
