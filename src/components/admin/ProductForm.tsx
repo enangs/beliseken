@@ -54,6 +54,9 @@ export default function ProductForm({
   const [specs, setSpecs] = useState(initialData?.specs?.join(", ") || "");
   const [weight, setWeight] = useState(initialData?.weight?.toString() || "");
   const [dimensions, setDimensions] = useState(initialData?.dimensions || "");
+  const [stock, setStock] = useState(initialData?.stock?.toString() || "1");
+  const [supplier, setSupplier] = useState(initialData?.supplier || "");
+  const [status, setStatus] = useState<Product["status"]>(initialData?.status || "ACTIVE");
   const [imageBase64, setImageBase64] = useState(initialData?.imageBase64 || "");
   const [imagePreview, setImagePreview] = useState(initialData?.imageBase64 || "");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -158,6 +161,9 @@ export default function ProductForm({
         .filter(Boolean),
       weight: weight ? parseInt(weight) : undefined,
       dimensions: dimensions.trim() || undefined,
+      stock: stock ? parseInt(stock) : 1,
+      supplier: supplier.trim(),
+      status: status || "ACTIVE",
     };
 
     onSubmit(data);
@@ -378,6 +384,53 @@ export default function ProductForm({
               className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
             />
             <p className="text-xs text-brand-muted mt-1">Panjang x Lebar x Tinggi dalam cm</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Stock & Supplier */}
+      <div className="bg-white rounded-xl border border-brand-border p-5">
+        <h2 className="font-bold text-brand-navy mb-4">📦 Inventori & Supplier</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-semibold text-brand-navy mb-1">
+              Stok (Unit) *
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={stock}
+              onChange={(e) => setStock(e.target.value)}
+              placeholder="Jumlah stok"
+              className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
+            />
+            <p className="text-xs text-brand-muted mt-1">Set 0 untuk SOLD OUT</p>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-brand-navy mb-1">
+              Supplier
+            </label>
+            <input
+              type="text"
+              value={supplier}
+              onChange={(e) => setSupplier(e.target.value)}
+              placeholder="Nama supplier / penjual"
+              className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-brand-navy mb-1">
+              Status
+            </label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as any)}
+              className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all bg-white"
+            >
+              <option value="ACTIVE">Aktif (Tersedia)</option>
+              <option value="SOLD_OUT">Sold Out</option>
+              <option value="RESERVED">Reserved (Ditahan)</option>
+            </select>
           </div>
         </div>
       </div>

@@ -14,6 +14,10 @@ export default function AdminDashboardPage() {
     setProducts(getProducts());
   }, []);
 
+  const totalStock = products.reduce((sum, p) => sum + (p.stock || 0), 0);
+  const soldOutCount = products.filter((p) => p.stock === 0).length;
+  const lowStockCount = products.filter((p) => p.stock > 0 && p.stock <= 2).length;
+
   const stats = [
     {
       label: "Total Produk",
@@ -22,28 +26,22 @@ export default function AdminDashboardPage() {
       color: "bg-blue-500",
     },
     {
-      label: "Harga Rata-rata",
-      value: formatPrice(
-        products.length
-          ? Math.round(products.reduce((a, p) => a + p.price, 0) / products.length)
-          : 0
-      ),
+      label: "Total Stok",
+      value: `${totalStock} unit`,
       icon: TrendingUp,
       color: "bg-emerald-500",
     },
     {
-      label: "Rating Tertinggi",
-      value: products.length
-        ? Math.max(...products.map((p) => p.rating)).toFixed(1)
-        : "0",
+      label: "Stok Menipis",
+      value: lowStockCount,
       icon: Star,
       color: "bg-amber-500",
     },
     {
-      label: "Hot Deals",
-      value: products.filter((p) => p.badge === "HOT DEAL").length,
+      label: "Sold Out",
+      value: soldOutCount,
       icon: Eye,
-      color: "bg-brand",
+      color: "bg-red-500",
     },
   ];
 
@@ -133,8 +131,8 @@ export default function AdminDashboardPage() {
               <tr className="text-left text-brand-muted border-b border-brand-border">
                 <th className="px-5 py-3 font-medium">Nama Produk</th>
                 <th className="px-5 py-3 font-medium">Harga</th>
-                <th className="px-5 py-3 font-medium">Kondisi</th>
-                <th className="px-5 py-3 font-medium">Badge</th>
+                <th className="px-5 py-3 font-medium">Stok</th>
+                <th className="px-5 py-3 font-medium">Status</th>
                 <th className="px-5 py-3 font-medium">Aksi</th>
               </tr>
             </thead>
@@ -144,18 +142,20 @@ export default function AdminDashboardPage() {
                   <td className="px-5 py-3 font-medium text-brand-navy">{product.name}</td>
                   <td className="px-5 py-3 text-brand font-semibold">{formatPrice(product.price)}</td>
                   <td className="px-5 py-3">
-                    <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-xs font-semibold rounded-full">
-                      {product.condition}
+                    <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${
+                      product.stock === 0 ? "bg-red-100 text-red-600" :
+                      product.stock <= 2 ? "bg-amber-100 text-amber-600" :
+                      "bg-emerald-100 text-emerald-600"
+                    }`}>
+                      {product.stock} unit
                     </span>
                   </td>
                   <td className="px-5 py-3">
-                    {product.badge ? (
-                      <span className="px-2 py-0.5 bg-brand/10 text-brand text-xs font-semibold rounded-full">
-                        {product.badge}
-                      </span>
-                    ) : (
-                      <span className="text-brand-muted">—</span>
-                    )}
+                    <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
+                      product.stock === 0 ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"
+                    }`}>
+                      {product.stock === 0 ? "SOLD OUT" : "Aktif"}
+                    </span>
                   </td>
                   <td className="px-5 py-3">
                     <Link

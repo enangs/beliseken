@@ -218,18 +218,29 @@ export default function ProductClient({ slug }: { slug: string }) {
                   <button onClick={() => setQuantity(quantity + 1)} className="w-10 h-10 border border-brand-border rounded-lg flex items-center justify-center hover:bg-gray-100">
                     <Plus size={16} />
                   </button>
-                  <span className="text-sm text-brand-muted ml-2">Stok: 1 unit</span>
+                  <span className={`text-sm font-semibold ml-2 ${
+                    product.stock === 0 ? "text-red-500" : product.stock <= 2 ? "text-amber-600" : "text-brand-muted"
+                  }`}>
+                    Stok: {product.stock} unit
+                    {product.stock <= 2 && product.stock > 0 && " ⚠️"}
+                  </span>
                 </div>
               </div>
 
               <div className="flex gap-3 mb-6">
-                <button
-                  onClick={handleAddToCart}
-                  className={`flex-1 flex items-center justify-center gap-2 py-4 font-bold rounded-xl transition-colors ${added ? "bg-emerald-500 text-white" : "bg-brand hover:bg-brand-dark text-white"}`}
-                >
-                  <ShoppingCart size={20} />
-                  {added ? "Ditambahkan!" : "Tambah ke Keranjang"}
-                </button>
+                {product.stock === 0 ? (
+                  <div className="flex-1 py-4 bg-red-100 text-red-600 font-bold rounded-xl text-center">
+                    ❌ SOLD OUT - Stok Habis
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleAddToCart}
+                    className={`flex-1 flex items-center justify-center gap-2 py-4 font-bold rounded-xl transition-colors ${added ? "bg-emerald-500 text-white" : "bg-brand hover:bg-brand-dark text-white"}`}
+                  >
+                    <ShoppingCart size={20} />
+                    {added ? "Ditambahkan!" : "Tambah ke Keranjang"}
+                  </button>
+                )}
                 <button className="w-14 h-14 border-2 border-brand-border rounded-xl flex items-center justify-center hover:border-brand hover:text-brand transition-colors">
                   <Heart size={20} />
                 </button>

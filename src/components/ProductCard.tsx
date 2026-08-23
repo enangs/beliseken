@@ -120,26 +120,32 @@ export default function ProductCard({ product }: ProductCardProps) {
         )}
 
         {/* Add to Cart Button */}
-        <button
-          onClick={handleAddToCart}
-          className={`w-full flex items-center justify-center gap-2 py-2.5 text-white text-sm font-semibold rounded-lg transition-colors duration-200 ${
-            added
-              ? "bg-emerald-500"
-              : "bg-brand-navy hover:bg-brand"
-          }`}
-        >
-          {added ? (
-            <>
-              <Check size={15} />
-              Ditambahkan!
-            </>
-          ) : (
-            <>
-              <ShoppingCart size={15} />
-              Keranjang
-            </>
-          )}
-        </button>
+        {product.stock === 0 ? (
+          <div className="w-full py-2.5 bg-red-100 text-red-600 text-sm font-bold rounded-lg text-center">
+            SOLD OUT
+          </div>
+        ) : (
+          <button
+            onClick={handleAddToCart}
+            className={`w-full flex items-center justify-center gap-2 py-2.5 text-white text-sm font-semibold rounded-lg transition-colors duration-200 ${
+              added
+                ? "bg-emerald-500"
+                : "bg-brand-navy hover:bg-brand"
+            }`}
+          >
+            {added ? (
+              <>
+                <Check size={15} />
+                Ditambahkan!
+              </>
+            ) : (
+              <>
+                <ShoppingCart size={15} />
+                Keranjang
+              </>
+            )}
+          </button>
+        )}
       </div>
     </div>
   );

@@ -2,15 +2,16 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
-import { getAdminProducts, deleteProduct } from "@/lib/api";
+import { Plus, Pencil, Trash2, Search, Package, Truck, AlertTriangle } from "lucide-react";
+import { getAdminProducts, deleteProduct, type ProductResponse } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
 
 export default function AdminProductsPage() {
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<ProductResponse[]>([]);
   const [search, setSearch] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [filterStatus, setFilterStatus] = useState("all");
 
   const loadProducts = async () => {
     try {
@@ -32,20 +33,37 @@ export default function AdminProductsPage() {
     setDeleteConfirm(null);
   };
 
-  const filtered = products.filter(
-    (p) =>
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      (p.brand?.name || '').toLowerCase().includes(search.toLowerCase()) ||
-      (p.category?.name || '').toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = products
+    .filter(
+      (p) =>
+        p.name.toLowerCase().includes(search.toLowerCase()) ||
+        (p.brand?.name || '').toLowerCase().includes(search.toLowerCase()) ||
+        (p.category?.name || '').toLowerCase().includes(search.toLowerCase()) ||
+        (p.supplier || '').toLowerCase().includes(search.toLowerCase())
+    )
+    .filter((p) => {
+      if (filterStatus === "all") return true;
+      if (filterStatus === "active") return p.stock > 0;
+      if (filterStatus === "low") return p.stock > 0 && p.stock <= 2;
+      if (filterStatus === "sold_out") return p.stock === 0;
+      return true;
+    });
+
+  const stats = {
+    total: products.length,
+    active: products.filter(p => p.stock > 0).length,
+    lowStock: products.filter(p => p.stock > 0 && p.stock <= 2).length,
+    soldOut: products.filter(p => p.stock === 0).length,
+    totalStock: products.reduce((sum, p) => sum + (p.stock || 0), 0),
+  };
 
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-brand-navy">Semua Produk</h1>
+          <h1 className="text-2xl font-bold text-brand-navy">Manajemen Produk & Inventori</h1>
           <p className="text-brand-muted text-sm mt-1">
-            {products.length} produk total
+            {stats.total} produk · {stats.totalStock} unit stok
           </p>
         </div>
         <Link
@@ -57,17 +75,87 @@ export default function AdminProductsPage() {
         </Link>
       </div>
 
-      {/* Search */}
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white rounded-xl border border-brand-border p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Package size={20} className="text-blue-600" />
+            </div>
+            <div>
+              <p className="text-xs text-brand-muted">Total Produk</p>
+              <p className="text-xl font-bold text-brand-navy">{stats.total}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl border border-brand-border p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+              <Package size={20} className="text-emerald-600" />
+            </div>
+            <div>
+              <p className="text-xs text-brand-muted">Aktif</p>
+              <p className="text-xl font-bold text-emerald-600">{stats.active}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl border border-brand-border p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+              <AlertTriangle size={20} className="text-amber-600" />
+            </div>
+            <div>
+              <p className="text-xs text-brand-muted">Stok Menipis</p>
+              <p className="text-xl font-bold text-amber-600">{stats.lowStock}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl border border-brand-border p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+              <Truck size={20} className="text-red-600" />
+            </div>
+            <div>
+              <p className="text-xs text-brand-muted">Sold Out</p>
+              <p className="text-xl font-bold text-red-600">{stats.soldOut}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Search & Filter */}
       <div className="bg-white rounded-xl border border-brand-border p-4 mb-6">
-        <div className="relative">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-muted" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Cari produk..."
-            className="w-full pl-10 pr-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
-          />
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-muted" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cari produk, brand, supplier..."
+              className="w-full pl-10 pr-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
+            />
+          </div>
+          <div className="flex gap-2">
+            {[
+              { value: "all", label: "Semua" },
+              { value: "active", label: "Aktif" },
+              { value: "low", label: "Stok ≤2" },
+              { value: "sold_out", label: "Sold Out" },
+            ].map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setFilterStatus(opt.value)}
+                className={`px-3 py-2 text-xs font-semibold rounded-lg transition-colors ${
+                  filterStatus === opt.value
+                    ? "bg-brand text-white"
+                    : "bg-brand-gray text-brand-navy hover:bg-brand/10"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -77,51 +165,65 @@ export default function AdminProductsPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-brand-muted bg-brand-gray border-b border-brand-border">
-                <th className="px-5 py-3 font-medium">Produk</th>
-                <th className="px-5 py-3 font-medium">Harga</th>
-                <th className="px-5 py-3 font-medium">Diskon</th>
-                <th className="px-5 py-3 font-medium">Kondisi</th>
-                <th className="px-5 py-3 font-medium">Badge</th>
-                <th className="px-5 py-3 font-medium text-right">Aksi</th>
+                <th className="px-4 py-3 font-medium">Produk</th>
+                <th className="px-4 py-3 font-medium">Harga</th>
+                <th className="px-4 py-3 font-medium text-center">Stok</th>
+                <th className="px-4 py-3 font-medium">Supplier</th>
+                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium text-right">Aksi</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((product) => (
                 <tr key={product.id} className="border-b border-brand-border last:border-0 hover:bg-brand-gray/30 transition-colors">
-                  <td className="px-5 py-4">
+                  <td className="px-4 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-xl flex-shrink-0">
+                      <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-lg flex-shrink-0">
                         📦
                       </div>
-                      <div>
-                        <p className="font-semibold text-brand-navy">{product.name}</p>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-brand-navy truncate max-w-[200px]">{product.name}</p>
                         <p className="text-xs text-brand-muted">{product.brand?.name || '-'} · {product.category?.name || '-'}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-5 py-4">
+                  <td className="px-4 py-4">
                     <p className="font-semibold text-brand">{formatPrice(product.sellingPrice)}</p>
-                  </td>
-                  <td className="px-5 py-4">
-                    <span className="px-2 py-0.5 bg-red-50 text-red-500 text-xs font-bold rounded-full">
-                      -{product.discount}%
-                    </span>
-                  </td>
-                  <td className="px-5 py-4">
-                    <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-xs font-semibold rounded-full">
-                      {product.badge || 'Aktif'}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4">
-                    {product.badge ? (
-                      <span className="px-2 py-0.5 bg-brand/10 text-brand text-xs font-semibold rounded-full">
-                        {product.badge}
-                      </span>
-                    ) : (
-                      <span className="text-brand-muted text-xs">—</span>
+                    {product.discount > 0 && (
+                      <p className="text-xs text-red-500">-{product.discount}%</p>
                     )}
                   </td>
-                  <td className="px-5 py-4">
+                  <td className="px-4 py-4 text-center">
+                    <span className={`inline-flex items-center justify-center min-w-[40px] px-2 py-1 rounded-full text-xs font-bold ${
+                      product.stock === 0
+                        ? "bg-red-100 text-red-600"
+                        : product.stock <= 2
+                        ? "bg-amber-100 text-amber-600"
+                        : "bg-emerald-100 text-emerald-600"
+                    }`}>
+                      {product.stock}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4">
+                    <div className="flex items-center gap-1.5">
+                      <Truck size={12} className="text-brand-muted flex-shrink-0" />
+                      <span className="text-xs text-brand-muted truncate max-w-[120px]">
+                        {product.supplier || '-'}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-4">
+                    <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
+                      product.stock === 0
+                        ? "bg-red-50 text-red-600"
+                        : product.stock <= 2
+                        ? "bg-amber-50 text-amber-600"
+                        : "bg-emerald-50 text-emerald-600"
+                    }`}>
+                      {product.stock === 0 ? "SOLD OUT" : product.stock <= 2 ? "Stok Menipis" : "Aktif"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4">
                     <div className="flex items-center justify-end gap-2">
                       <Link
                         href={`/admin/products/edit?id=${product.id}`}

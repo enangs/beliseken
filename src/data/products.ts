@@ -19,6 +19,10 @@ export interface Product {
   specs: string[];
   weight?: number; // gram
   dimensions?: string; // PxLxT in cm
+  // Inventory fields
+  stock: number; // jumlah unit tersedia
+  supplier: string; // nama supplier
+  status?: "ACTIVE" | "SOLD_OUT" | "RESERVED"; // status produk
 }
 
 export interface Category {
@@ -88,6 +92,9 @@ export const initialProducts: Product[] = [
     specs: ["8GB RAM", "256GB SSD", "M1 Chip", "13.3 inch Retina", "Baterai 95%"],
     weight: 1290,
     dimensions: "30.41 x 21.24 x 1.61 cm",
+    stock: 3,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "2",
@@ -108,6 +115,9 @@ export const initialProducts: Product[] = [
     specs: ["i5-1135G7", "16GB RAM", "512GB SSD", "14 inch FHD", "Baterai 90%"],
     weight: 1090,
     dimensions: "32.3 x 21.7 x 1.49 cm",
+    stock: 2,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "3",
@@ -128,6 +138,9 @@ export const initialProducts: Product[] = [
     specs: ["Ryzen 9 5900HX", "16GB RAM", "RTX 3060", "512GB SSD", "14 inch 144Hz"],
     weight: 1700,
     dimensions: "32.4 x 22.2 x 1.99 cm",
+    stock: 1,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "4",
@@ -147,6 +160,9 @@ export const initialProducts: Product[] = [
     specs: ["i5-1135G7", "8GB RAM", "256GB SSD", "14 inch FHD", "Baterai 85%"],
     weight: 1380,
     dimensions: "32.4 x 22.5 x 1.90 cm",
+    stock: 5,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "5",
@@ -167,6 +183,9 @@ export const initialProducts: Product[] = [
     specs: ["i5-1145G7", "8GB RAM", "256GB SSD", "14 inch FHD", "Baterai 88%"],
     weight: 1410,
     dimensions: "32.1 x 21.3 x 1.84 cm",
+    stock: 2,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "6",
@@ -186,6 +205,9 @@ export const initialProducts: Product[] = [
     specs: ["i3-1115G4", "4GB RAM", "256GB SSD", "14 inch HD", "Baterai 80%"],
     weight: 1410,
     dimensions: "32.7 x 24.1 x 1.99 cm",
+    stock: 4,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "7",
@@ -206,6 +228,9 @@ export const initialProducts: Product[] = [
     specs: ["M1 Pro", "16GB RAM", "512GB SSD", "14.2 inch Liquid Retina XDR", "Baterai 92%"],
     weight: 1600,
     dimensions: "31.26 x 22.12 x 1.55 cm",
+    stock: 0,
+    supplier: "Unknown",
+    status: "SOLD_OUT",
   },
   {
     id: "8",
@@ -225,6 +250,9 @@ export const initialProducts: Product[] = [
     specs: ["i5-1035G1", "8GB RAM", "256GB SSD", "14 inch FHD", "Baterai 78%"],
     weight: 1400,
     dimensions: "32.5 x 21.6 x 1.90 cm",
+    stock: 3,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "9",
@@ -244,6 +272,9 @@ export const initialProducts: Product[] = [
     specs: ["Ryzen 5 3500U", "8GB RAM", "256GB SSD", "15.6 inch FHD", "Baterai 82%"],
     weight: 1740,
     dimensions: "36.3 x 25.1 x 1.80 cm",
+    stock: 4,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "10",
@@ -264,6 +295,9 @@ export const initialProducts: Product[] = [
     specs: ["i5-8250U", "8GB RAM", "256GB SSD", "14 inch FHD", "Dual Battery"],
     weight: 1650,
     dimensions: "33.6 x 23.2 x 1.99 cm",
+    stock: 2,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
 
   // ══════════════════════════════════════════
@@ -288,6 +322,9 @@ export const initialProducts: Product[] = [
     specs: ["128GB", "A15 Bionic", "ProMotion 120Hz", "Kondisi 93%", "Baterai 89%"],
     weight: 203,
     dimensions: "14.67 x 7.15 x 0.77 cm",
+    stock: 2,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "12",
@@ -307,6 +344,9 @@ export const initialProducts: Product[] = [
     specs: ["256GB", "Snapdragon 8 Gen 1", "S Pen", "Kondisi 88%", "Layar AMOLED"],
     weight: 228,
     dimensions: "16.33 x 7.79 x 0.89 cm",
+    stock: 0,
+    supplier: "Unknown",
+    status: "SOLD_OUT",
   },
   {
     id: "13",
@@ -327,6 +367,9 @@ export const initialProducts: Product[] = [
     specs: ["128GB", "A15 Bionic", "6.1 inch OLED", "Kondisi 95%", "Baterai 91%"],
     weight: 172,
     dimensions: "14.67 x 7.15 x 0.78 cm",
+    stock: 3,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "14",
@@ -346,6 +389,9 @@ export const initialProducts: Product[] = [
     specs: ["128GB", "Exynos 1380", "6.4 inch AMOLED 120Hz", "IP67", "Baterai 90%"],
     weight: 202,
     dimensions: "15.82 x 7.67 x 0.82 cm",
+    stock: 4,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "15",
@@ -366,6 +412,9 @@ export const initialProducts: Product[] = [
     specs: ["64GB", "M1 Chip", "10.9 inch Liquid Retina", "Apple Pencil 2", "Baterai 95%"],
     weight: 461,
     dimensions: "24.76 x 17.85 x 0.61 cm",
+    stock: 2,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "16",
@@ -385,6 +434,9 @@ export const initialProducts: Product[] = [
     specs: ["128GB", "Snapdragon 8 Gen 1", "11 inch LTPS 120Hz", "S Pen", "Baterai 88%"],
     weight: 502,
     dimensions: "25.38 x 16.53 x 0.63 cm",
+    stock: 1,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "17",
@@ -405,6 +457,9 @@ export const initialProducts: Product[] = [
     specs: ["128GB", "Snapdragon 685", "6.67 inch AMOLED 120Hz", "50MP Camera", "Baterai 87%"],
     weight: 183,
     dimensions: "16.59 x 7.62 x 0.80 cm",
+    stock: 5,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "18",
@@ -424,6 +479,9 @@ export const initialProducts: Product[] = [
     specs: ["64GB", "A14 Bionic", "5.4 inch OLED", "Kondisi 85%", "Baterai 82%"],
     weight: 135,
     dimensions: "13.15 x 6.42 x 0.74 cm",
+    stock: 2,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "19",
@@ -443,6 +501,9 @@ export const initialProducts: Product[] = [
     specs: ["64GB", "Unisoc T618", "10.5 inch TFT", "Speaker Quad", "Baterai 85%"],
     weight: 508,
     dimensions: "24.68 x 16.13 x 0.69 cm",
+    stock: 3,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "20",
@@ -463,6 +524,9 @@ export const initialProducts: Product[] = [
     specs: ["128GB", "Dimensity 8100", "6.7 inch AMOLED 120Hz", "150W Charging", "Baterai 90%"],
     weight: 194,
     dimensions: "16.33 x 7.56 x 0.82 cm",
+    stock: 1,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
 
   // ══════════════════════════════════════════
@@ -487,6 +551,9 @@ export const initialProducts: Product[] = [
     specs: ["27 inch 4K IPS", "USB-C 90W", "HDR 400", "100% sRGB", "60Hz"],
     weight: 6600,
     dimensions: "61.1 x 22.0 x 51.5 cm",
+    stock: 0,
+    supplier: "Unknown",
+    status: "SOLD_OUT",
   },
   {
     id: "22",
@@ -507,6 +574,9 @@ export const initialProducts: Product[] = [
     specs: ["27 inch QHD Nano IPS", "144Hz", "1ms GTG", "HDR 10", "G-Sync Compatible"],
     weight: 5800,
     dimensions: "61.3 x 23.7 x 45.8 cm",
+    stock: 2,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "23",
@@ -526,6 +596,9 @@ export const initialProducts: Product[] = [
     specs: ["32 inch 4K UHD", "IPS Panel", "60Hz", "HDMI + DisplayPort", "AMD FreeSync"],
     weight: 7500,
     dimensions: "73.0 x 22.0 x 59.7 cm",
+    stock: 3,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "24",
@@ -546,6 +619,9 @@ export const initialProducts: Product[] = [
     specs: ["55 inch 4K UHD", "webOS", "ThinQ AI", "HDR10 Pro", "3x HDMI"],
     weight: 14400,
     dimensions: "123.5 x 71.9 x 25.9 cm",
+    stock: 2,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "25",
@@ -566,6 +642,9 @@ export const initialProducts: Product[] = [
     specs: ["24 inch FHD IPS", "60Hz", "Low Blue Light", "Flicker-Free", "Built-in Speakers"],
     weight: 3700,
     dimensions: "54.0 x 22.5 x 40.2 cm",
+    stock: 4,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "26",
@@ -585,6 +664,9 @@ export const initialProducts: Product[] = [
     specs: ["27 inch QHD IPS", "100% sRGB", "Calman Verified", "USB-C", "65W PD"],
     weight: 7120,
     dimensions: "61.4 x 23.0 x 50.5 cm",
+    stock: 1,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "27",
@@ -604,6 +686,9 @@ export const initialProducts: Product[] = [
     specs: ["43 inch FHD", "VIDAA OS", "HDR", "DTS Virtual", "2x HDMI"],
     weight: 7800,
     dimensions: "96.5 x 56.2 x 18.5 cm",
+    stock: 2,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "28",
@@ -624,6 +709,9 @@ export const initialProducts: Product[] = [
     specs: ["27 inch QHD VA", "165Hz", "1ms", "1000R Curved", "FreeSync Premium"],
     weight: 5500,
     dimensions: "61.7 x 24.4 x 47.3 cm",
+    stock: 2,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "29",
@@ -643,6 +731,9 @@ export const initialProducts: Product[] = [
     specs: ["24 inch FHD VA", "144Hz", "1ms MPRT", "Adaptive Sync", "LowBlue Mode"],
     weight: 4200,
     dimensions: "55.5 x 22.0 x 40.2 cm",
+    stock: 3,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "30",
@@ -663,6 +754,9 @@ export const initialProducts: Product[] = [
     specs: ["32 inch HD", "Android TV", "Google Assistant", "Chromecast", "2x HDMI"],
     weight: 4500,
     dimensions: "73.0 x 45.6 x 18.0 cm",
+    stock: 2,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
 
   // ══════════════════════════════════════════
@@ -687,6 +781,9 @@ export const initialProducts: Product[] = [
     specs: ["Gigabit Ethernet", "750MHz CPU", "256MB RAM", "RouterOS L4", "5 Port"],
     weight: 280,
     dimensions: "11.4 x 13.7 x 3.6 cm",
+    stock: 5,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "32",
@@ -707,6 +804,9 @@ export const initialProducts: Product[] = [
     specs: ["WiFi 6 AX3000", "Gigabit", "MU-MIMO", "Beamforming", "4 Port LAN"],
     weight: 550,
     dimensions: "25.7 x 16.8 x 8.0 cm",
+    stock: 3,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "33",
@@ -726,6 +826,9 @@ export const initialProducts: Product[] = [
     specs: ["Dual Band AC", "Quad-Core CPU", "256MB RAM", "RouterOS L4", "PoE Out"],
     weight: 280,
     dimensions: "11.4 x 13.7 x 3.6 cm",
+    stock: 2,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "34",
@@ -746,6 +849,9 @@ export const initialProducts: Product[] = [
     specs: ["Dual Band AC", "867Mbps 5GHz", "PoE Powered", "UniFi Controller", "2x2 MIMO"],
     weight: 185,
     dimensions: "16.0 x 16.0 x 3.1 cm",
+    stock: 2,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "35",
@@ -766,6 +872,9 @@ export const initialProducts: Product[] = [
     specs: ["8 Port Gigabit", "Plug & Play", "Fanless", "MDI/MDIX", "48Gbps Backplane"],
     weight: 340,
     dimensions: "19.0 x 12.8 x 2.7 cm",
+    stock: 8,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "36",
@@ -785,6 +894,9 @@ export const initialProducts: Product[] = [
     specs: ["WiFi N300", "650MHz CPU", "64MB RAM", "RouterOS L4", "PoE In"],
     weight: 200,
     dimensions: "11.3 x 8.9 x 2.8 cm",
+    stock: 3,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "37",
@@ -804,6 +916,9 @@ export const initialProducts: Product[] = [
     specs: ["Wireless N300", "4 Port Fast Ethernet", "WPS Button", "WPA2", "Parental Control"],
     weight: 220,
     dimensions: "19.2 x 12.5 x 3.2 cm",
+    stock: 6,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "38",
@@ -824,6 +939,9 @@ export const initialProducts: Product[] = [
     specs: ["8 Port Gigabit", "4 PoE Ports", "42W PoE Budget", "Fanless", "UniFi Managed"],
     weight: 460,
     dimensions: "16.0 x 12.0 x 3.2 cm",
+    stock: 0,
+    supplier: "Unknown",
+    status: "SOLD_OUT",
   },
   {
     id: "39",
@@ -843,6 +961,9 @@ export const initialProducts: Product[] = [
     specs: ["WiFi AC1200", "Dual Band", "MU-MIMO", "4 Port Gigabit", "App Control"],
     weight: 310,
     dimensions: "24.0 x 15.8 x 3.8 cm",
+    stock: 4,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "40",
@@ -863,6 +984,9 @@ export const initialProducts: Product[] = [
     specs: ["880MHz CPU", "256MB RAM", "5 Gigabit + SFP", "USB 2.0", "RouterOS L5"],
     weight: 440,
     dimensions: "11.4 x 13.7 x 3.6 cm",
+    stock: 2,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
 
   // ══════════════════════════════════════════
@@ -887,6 +1011,9 @@ export const initialProducts: Product[] = [
     specs: ["Wireless", "USB-C", "4000 DPI", "Multi-Device", "Thumb Wheel"],
     weight: 141,
     dimensions: "12.4 x 8.4 x 5.1 cm",
+    stock: 2,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "42",
@@ -907,6 +1034,9 @@ export const initialProducts: Product[] = [
     specs: ["Wireless", "Backlight", "Multi-Device", "USB-C", "Perfect Stroke Keys"],
     weight: 810,
     dimensions: "43.0 x 13.0 x 2.0 cm",
+    stock: 0,
+    supplier: "Unknown",
+    status: "SOLD_OUT",
   },
   {
     id: "43",
@@ -927,6 +1057,9 @@ export const initialProducts: Product[] = [
     specs: ["20K DPI Optical", "8 Buttons", "Optical Switches", "Chroma RGB", "63g"],
     weight: 82,
     dimensions: "12.7 x 6.17 x 4.27 cm",
+    stock: 3,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "44",
@@ -946,6 +1079,9 @@ export const initialProducts: Product[] = [
     specs: ["Wireless BT 5.1", "Hot-Swappable", "RGB Backlit", "Gateron Switch", "75% Layout"],
     weight: 770,
     dimensions: "31.5 x 12.6 x 3.1 cm",
+    stock: 2,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "45",
@@ -966,6 +1102,9 @@ export const initialProducts: Product[] = [
     specs: ["Virtual 7.1 Surround", "53mm Drivers", "Memory Foam", "Detachable Mic", "USB DAC"],
     weight: 309,
     dimensions: "22.0 x 10.5 x 21.0 cm",
+    stock: 2,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "46",
@@ -986,6 +1125,9 @@ export const initialProducts: Product[] = [
     specs: ["1080p 30fps", "Stereo Mic", "Autofocus", "Wide 78° FOV", "USB 2.0"],
     weight: 162,
     dimensions: "10.0 x 7.0 x 5.0 cm",
+    stock: 4,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "47",
@@ -1005,6 +1147,9 @@ export const initialProducts: Product[] = [
     specs: ["Wireless 2.4GHz", "DTS v2", "24hr Battery", "ClearCast Mic", "Discord Certified"],
     weight: 353,
     dimensions: "18.5 x 10.0 x 20.0 cm",
+    stock: 0,
+    supplier: "Unknown",
+    status: "SOLD_OUT",
   },
   {
     id: "48",
@@ -1024,6 +1169,9 @@ export const initialProducts: Product[] = [
     specs: ["Cherry MX Red", "Per-key RGB", "Aluminum Frame", "USB Pass-through", "Full N-Key"],
     weight: 1250,
     dimensions: "43.8 x 16.6 x 3.7 cm",
+    stock: 2,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "49",
@@ -1044,6 +1192,9 @@ export const initialProducts: Product[] = [
     specs: ["65W Output", "GaN Tech", "2x USB-C + 1x USB-A", "PD 3.0", "Compact Size"],
     weight: 155,
     dimensions: "5.0 x 5.0 x 3.2 cm",
+    stock: 5,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
   {
     id: "50",
@@ -1063,6 +1214,9 @@ export const initialProducts: Product[] = [
     specs: ["12K DPI HERO", "Wireless LIGHTSPEED", "250hr Battery", "6 Buttons", "100g"],
     weight: 99,
     dimensions: "11.6 x 6.2 x 3.8 cm",
+    stock: 3,
+    supplier: "Unknown",
+    status: "ACTIVE",
   },
 ];
 
@@ -1074,7 +1228,16 @@ export function getProducts(): Product[] {
   if (typeof window === "undefined") return initialProducts;
   try {
     const stored = localStorage.getItem(PRODUCTS_KEY);
-    if (stored) return JSON.parse(stored);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      // Ensure all products have stock/supplier fields
+      return parsed.map((p: any) => ({
+        stock: p.stock ?? 1,
+        supplier: p.supplier || "",
+        status: p.status || (p.stock === 0 ? "SOLD_OUT" : "ACTIVE"),
+        ...p,
+      }));
+    }
   } catch {}
   return initialProducts;
 }

@@ -27,6 +27,11 @@ export interface ProductResponse {
   subcategory: { id: string; name: string; slug: string } | null;
   brand: { id: string; name: string; slug: string } | null;
   availableUnits: number;
+  // Inventory fields
+  stock: number;
+  supplier: string;
+  status: string; // ACTIVE, SOLD_OUT, RESERVED
+  condition: string;
 }
 
 export interface ProductDetailResponse extends ProductResponse {
@@ -57,7 +62,11 @@ function toProductResponse(p: LocalProduct): ProductResponse {
     category: { id: '', name: p.category, slug: p.category.toLowerCase().replace(/[^a-z0-9]+/g, '-'), icon: null, color: null },
     subcategory: p.subcategory ? { id: '', name: p.subcategory, slug: p.subcategory.toLowerCase().replace(/[^a-z0-9]+/g, '-') } : null,
     brand: p.brand ? { id: '', name: p.brand, slug: p.brand.toLowerCase().replace(/[^a-z0-9]+/g, '-') } : null,
-    availableUnits: 3,
+    availableUnits: p.stock ?? 1,
+    stock: p.stock ?? 1,
+    supplier: p.supplier || '',
+    status: p.status || (p.stock === 0 ? 'SOLD_OUT' : 'ACTIVE'),
+    condition: p.condition || 'Grade A',
   };
 }
 
