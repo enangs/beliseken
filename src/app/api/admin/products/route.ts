@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
     const transformed = products.map((p: any) => ({
       ...p,
       imageBase64: p.images?.[0]?.url || null,
-      images: undefined, // Don't send all images in list view
+      images: undefined,
     }));
 
     return NextResponse.json({
@@ -102,7 +102,6 @@ export async function POST(request: NextRequest) {
       name, slug, sku, description, categoryId, subcategoryId,
       brandId, basePrice, sellingPrice, discount, weight, dimensions,
       badge, isFeatured, specs, imageBase64, images,
-      stock, supplier, condition, status,
     } = body;
 
     const productSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
@@ -123,7 +122,7 @@ export async function POST(request: NextRequest) {
         dimensions: dimensions || null,
         badge,
         isFeatured: isFeatured || false,
-        isActive: status !== 'SOLD_OUT',
+        isActive: true,
         publishedAt: new Date(),
         specs: specs ? {
           create: specs.map((spec: any, index: number) => ({
@@ -173,13 +172,13 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, imageBase64, images, specs, ...updates } = body;
+    const { id, imageBase64, images, specs, ...rawUpdates } = body;
 
     if (!id) {
       return NextResponse.json({ success: false, error: 'Product ID required' }, { status: 400 });
     }
 
-    // Handle specs: delete old and create new if provided
+    // Handle specs
     if (specs && Array.isArray(specs)) {
       await prisma.productSpec.deleteMany({ where: { productId: id } });
       for (let i = 0; i < specs.length; i++) {
@@ -188,38 +187,57 @@ export async function PUT(request: NextRequest) {
         const value = typeof spec === 'string' ? spec.split(':').slice(1).join(':').trim() : spec.value;
         if (key) {
           await prisma.productSpec.create({
-            data: {
-              productId: id,
-              key,
-              value: value || '',
-              sortOrder: i,
-            },
+            data: { productId: id, key, value: value || '', sortOrder: i },
           });
         }
       }
-      delete updates.specs;
     }
 
-    // Update product fields
+    // Only allow valid Prisma Product fields
+    const validFields = [
+      'name', 'slug', 'sku', 'description', 'shortDesc',
+      'categoryId', 'subcategoryId', 'brandId', 'modelId',
+      'basePrice', 'sellingPrice', 'minPrice', 'discount',
+      'weight', 'dimensions',
+      'metaTitle', 'metaDesc', 'ogImage',
+      'isActive', 'isFeatured', 'badge', 'sortOrder',
+      'avgRating', 'reviewCount', 'soldCount', 'viewCount',
+    ];
+
+    const updates: Record<string, any> = {};
+    for (const key of validFields) {
+      if (rawUpdates[key] !== undefined) {
+        updates[key] = rawUpdates[key];
+      }
+    }
+
+    // Map common aliases
+    if (rawUpdates.price !== undefined && !updates.sellingPrice) {
+      updates.sellingPrice = rawUpdates.price;
+    }
+    if (rawUpdates.originalPrice !== undefined && !updates.basePrice) {
+      updates.basePrice = rawUpdates.originalPrice;
+    }
+    if (rawUpdates.status !== undefined) {
+      updates.isActive = rawUpdates.status !== 'SOLD_OUT' && rawUpdates.status !== 'RESERVED';
+    }
+
+    console.log('Updating product with fields:', Object.keys(updates));
+
+    // Update product
     const product = await prisma.product.update({
       where: { id },
-      data: {
-        ...updates,
-        sellingPrice: updates.sellingPrice || updates.price,
-        isActive: updates.status !== 'SOLD_OUT',
-      },
+      data: updates,
       include: {
         category: true,
         brand: true,
       },
     });
 
-    // Update images if provided
+    // Update images
     if (imageBase64 !== undefined || (images && Array.isArray(images))) {
-      // Delete existing images
       await prisma.productImage.deleteMany({ where: { productId: id } });
       
-      // Build image list - deduplicated
       const allImages: string[] = [];
       if (imageBase64) allImages.push(imageBase64);
       if (images && Array.isArray(images)) {
@@ -246,7 +264,7 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ success: true, data: product });
   } catch (error) {
     console.error('Update product error:', error);
-    return NextResponse.json({ success: false, error: 'Failed to update product' }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Failed to update product: ' + (error as Error).message }, { status: 500 });
   }
 }
 
