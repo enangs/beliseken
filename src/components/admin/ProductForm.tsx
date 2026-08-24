@@ -83,7 +83,36 @@ export default function ProductForm({
     }
   };
 
-  // Upload photo to Cloudinary
+  // Compress image client-side before upload
+  const compressImage = (file: File, maxWidth = 1200, quality = 0.8): Promise<File> => {
+    return new Promise((resolve) => {
+      // Skip if already small
+      if (file.size < 200 * 1024) { resolve(file); return; }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let w = img.width, h = img.height;
+          if (w > maxWidth) { h = (maxWidth / w) * h; w = maxWidth; }
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d')!;
+          ctx.drawImage(img, 0, 0, w, h);
+          canvas.toBlob((blob) => {
+            if (blob && blob.size < file.size) {
+              resolve(new File([blob], file.name, { type: 'image/jpeg' }));
+            } else {
+              resolve(file);
+            }
+          }, 'image/jpeg', quality);
+        };
+        img.src = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Upload photo to Cloudinary — PARALLEL + compressed
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -107,26 +136,30 @@ export default function ProductForm({
     if (validFiles.length === 0) return;
 
     setUploading(true);
-    setUploadProgress(`Mengupload 0/${validFiles.length} foto...`);
+    setUploadProgress(`Mengupload ${validFiles.length} foto...`);
 
     try {
+      // Compress all files in parallel
+      const compressedFiles = await Promise.all(validFiles.map(f => compressImage(f)));
+      
+      // Upload ALL to Cloudinary in parallel (not sequential)
+      const uploadResults = await Promise.all(
+        compressedFiles.map((file) => uploadToCloudinary(file, "beliseken/products"))
+      );
+
       const uploadedUrls: string[] = [];
-
-      for (let i = 0; i < validFiles.length; i++) {
-        setUploadProgress(`Mengupload ${i + 1}/${validFiles.length} foto...`);
-
-        // Try Cloudinary first
-        const result = await uploadToCloudinary(validFiles[i], "beliseken/products");
-        if (result) {
-          uploadedUrls.push(result.url);
+      for (let i = 0; i < uploadResults.length; i++) {
+        if (uploadResults[i]) {
+          uploadedUrls.push(uploadResults[i]!.url);
         } else {
-          // Fallback to base64
+          // Fallback to base64 only if Cloudinary fails
           const base64 = await fileToBase64(validFiles[i]);
           uploadedUrls.push(base64);
         }
       }
 
       setPhotos((prev) => [...prev, ...uploadedUrls]);
+      setUploadProgress("");
       setErrors((prev) => ({ ...prev, photo: "" }));
     } catch (error) {
       setErrors((prev) => ({ ...prev, photo: "Gagal upload foto. Coba lagi." }));

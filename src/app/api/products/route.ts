@@ -95,20 +95,36 @@ export async function GET(request: NextRequest) {
       where.badge = badge;
     }
 
-    // Execute query
+    // Execute query — optimized with select
     const [products, total] = await Promise.all([
       prisma.product.findMany({
         where,
-        include: {
-          category: true,
-          subcategory: true,
-          brand: true,
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          sku: true,
+          description: true,
+          shortDesc: true,
+          sellingPrice: true,
+          basePrice: true,
+          discount: true,
+          weight: true,
+          dimensions: true,
+          badge: true,
+          isFeatured: true,
+          avgRating: true,
+          reviewCount: true,
+          soldCount: true,
+          viewCount: true,
+          createdAt: true,
+          category: { select: { id: true, name: true, slug: true, icon: true, color: true } },
+          subcategory: { select: { id: true, name: true, slug: true } },
+          brand: { select: { id: true, name: true, slug: true } },
           images: {
-            orderBy: { sortOrder: 'asc' },
-          },
-          units: {
-            where: { status: 'AVAILABLE' },
-            select: { id: true, status: true },
+            where: { isPrimary: true },
+            take: 1,
+            select: { url: true },
           },
           _count: {
             select: { units: { where: { status: 'AVAILABLE' } } },
@@ -121,19 +137,33 @@ export async function GET(request: NextRequest) {
       prisma.product.count({ where }),
     ]);
 
-    // Transform response — include imageBase64 from images table
-    const transformedProducts = products.map((product: any) => {
-      const primaryImage = product.images?.find((img: any) => img.isPrimary) || product.images?.[0];
-      return {
-        ...product,
-        imageBase64: primaryImage?.url || null,
-        allImages: product.images?.map((img: any) => img.url) || [],
-        availableUnits: product._count.units,
-        units: undefined,
-        _count: undefined,
-        images: undefined,
-      };
-    });
+    // Transform response — minimal payload
+    const transformedProducts = products.map((product: any) => ({
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      sku: product.sku,
+      description: product.description,
+      shortDesc: product.shortDesc,
+      sellingPrice: product.sellingPrice,
+      basePrice: product.basePrice,
+      discount: product.discount,
+      weight: product.weight,
+      dimensions: product.dimensions,
+      badge: product.badge,
+      isFeatured: product.isFeatured,
+      avgRating: product.avgRating,
+      reviewCount: product.reviewCount,
+      soldCount: product.soldCount,
+      viewCount: product.viewCount,
+      createdAt: product.createdAt,
+      category: product.category,
+      subcategory: product.subcategory,
+      brand: product.brand,
+      imageBase64: product.images?.[0]?.url || null,
+      allImages: [],
+      availableUnits: product._count.units,
+    }));
 
     return NextResponse.json({
       success: true,

@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: true, data: product });
     }
 
-    // GET all products
+    // GET all products — optimized for speed
     const where: any = {};
     
     if (search) {
@@ -49,21 +49,34 @@ export async function GET(request: NextRequest) {
     if (status === 'active') where.isActive = true;
     if (status === 'inactive') where.isActive = false;
 
+    // Use select instead of include for speed — only fetch needed fields
     const [products, total] = await Promise.all([
       prisma.product.findMany({
         where,
-        include: {
-          category: true,
-          brand: true,
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          sku: true,
+          sellingPrice: true,
+          basePrice: true,
+          discount: true,
+          isActive: true,
+          isFeatured: true,
+          badge: true,
+          avgRating: true,
+          reviewCount: true,
+          soldCount: true,
+          createdAt: true,
+          category: { select: { id: true, name: true, slug: true } },
+          brand: { select: { id: true, name: true, slug: true } },
           images: {
             where: { isPrimary: true },
             take: 1,
+            select: { url: true },
           },
           _count: {
-            select: {
-              units: true,
-              orderItems: true,
-            },
+            select: { units: { where: { status: 'AVAILABLE' } }, orderItems: true },
           },
         },
         orderBy: { createdAt: 'desc' },
@@ -73,11 +86,28 @@ export async function GET(request: NextRequest) {
       prisma.product.count({ where }),
     ]);
 
-    // Transform to include imageBase64 for compatibility
+    // Transform — minimal payload
     const transformed = products.map((p: any) => ({
-      ...p,
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      sku: p.sku,
+      sellingPrice: p.sellingPrice,
+      basePrice: p.basePrice,
+      discount: p.discount,
+      isActive: p.isActive,
+      isFeatured: p.isFeatured,
+      badge: p.badge,
+      avgRating: p.avgRating,
+      reviewCount: p.reviewCount,
+      soldCount: p.soldCount,
       imageBase64: p.images?.[0]?.url || null,
-      images: undefined,
+      category: p.category,
+      brand: p.brand,
+      stock: p._count.units,
+      supplier: "",
+      status: p.isActive ? (p._count.units > 0 ? 'ACTIVE' : 'SOLD_OUT') : 'SOLD_OUT',
+      condition: 'Grade A',
     }));
 
     return NextResponse.json({
@@ -138,7 +168,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Save images
+    // Save images — BATCH insert
     const allImages: string[] = [];
     if (imageBase64) allImages.push(imageBase64);
     if (images && Array.isArray(images)) {
@@ -147,18 +177,16 @@ export async function POST(request: NextRequest) {
       });
     }
     
-    for (let i = 0; i < allImages.length; i++) {
-      if (allImages[i]) {
-        await prisma.productImage.create({
-          data: {
-            productId: product.id,
-            url: allImages[i],
-            alt: `${name} - foto ${i + 1}`,
-            sortOrder: i,
-            isPrimary: i === 0,
-          },
-        });
-      }
+    if (allImages.length > 0) {
+      await prisma.productImage.createMany({
+        data: allImages.filter(Boolean).map((url, i) => ({
+          productId: product.id,
+          url,
+          alt: `${name} - foto ${i + 1}`,
+          sortOrder: i,
+          isPrimary: i === 0,
+        })),
+      });
     }
 
     return NextResponse.json({ success: true, data: product });
@@ -234,10 +262,8 @@ export async function PUT(request: NextRequest) {
       },
     });
 
-    // Update images
+    // Update images — BATCH operations for speed
     if (imageBase64 !== undefined || (images && Array.isArray(images))) {
-      await prisma.productImage.deleteMany({ where: { productId: id } });
-      
       const allImages: string[] = [];
       if (imageBase64) allImages.push(imageBase64);
       if (images && Array.isArray(images)) {
@@ -246,18 +272,25 @@ export async function PUT(request: NextRequest) {
         });
       }
       
-      for (let i = 0; i < allImages.length; i++) {
-        if (allImages[i]) {
-          await prisma.productImage.create({
-            data: {
-              productId: id,
-              url: allImages[i],
-              alt: `${product.name} - foto ${i + 1}`,
-              sortOrder: i,
-              isPrimary: i === 0,
-            },
-          });
-        }
+      // Use $transaction: delete all then create all in one round-trip
+      if (allImages.length > 0) {
+        await prisma.$transaction([
+          prisma.productImage.deleteMany({ where: { productId: id } }),
+          ...allImages.filter(Boolean).map((url, i) =>
+            prisma.productImage.create({
+              data: {
+                productId: id,
+                url,
+                alt: `${product.name} - foto ${i + 1}`,
+                sortOrder: i,
+                isPrimary: i === 0,
+              },
+            })
+          ),
+        ]);
+      } else {
+        // No images — just delete
+        await prisma.productImage.deleteMany({ where: { productId: id } });
       }
     }
 
