@@ -103,6 +103,9 @@ export async function GET(request: NextRequest) {
           category: true,
           subcategory: true,
           brand: true,
+          images: {
+            orderBy: { sortOrder: 'asc' },
+          },
           units: {
             where: { status: 'AVAILABLE' },
             select: { id: true, status: true },
@@ -118,13 +121,19 @@ export async function GET(request: NextRequest) {
       prisma.product.count({ where }),
     ]);
 
-    // Transform response
-    const transformedProducts = products.map((product) => ({
-      ...product,
-      availableUnits: product._count.units,
-      units: undefined,
-      _count: undefined,
-    }));
+    // Transform response — include imageBase64 from images table
+    const transformedProducts = products.map((product: any) => {
+      const primaryImage = product.images?.find((img: any) => img.isPrimary) || product.images?.[0];
+      return {
+        ...product,
+        imageBase64: primaryImage?.url || null,
+        allImages: product.images?.map((img: any) => img.url) || [],
+        availableUnits: product._count.units,
+        units: undefined,
+        _count: undefined,
+        images: undefined,
+      };
+    });
 
     return NextResponse.json({
       success: true,

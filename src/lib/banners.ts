@@ -97,96 +97,111 @@ const defaultPromoCards: PromoCard[] = [
 
 // ── Banners ──
 
-export function getBanners(): Banner[] {
-  if (typeof window === "undefined") return defaultBanners;
+export async function getBanners(): Promise<Banner[]> {
   try {
-    const stored = localStorage.getItem(BANNERS_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      if (parsed.length > 0) return parsed;
+    const res = await fetch('/api/banners', { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && data.data?.length > 0) return data.data;
     }
   } catch {}
   return defaultBanners;
 }
 
-export function saveBanners(banners: Banner[]) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(BANNERS_KEY, JSON.stringify(banners));
+export async function saveBanners(banners: Banner[]) {
+  try {
+    await fetch('/api/banners', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ banners }),
+    });
+  } catch {}
 }
 
-export function getActiveBanners(): Banner[] {
-  return getBanners().filter((b) => b.active);
+export async function getActiveBanners(): Promise<Banner[]> {
+  const banners = await getBanners();
+  return banners.filter((b) => b.active);
 }
 
-export function addBanner(banner: Omit<Banner, "id">): Banner {
-  const banners = getBanners();
+export async function addBanner(banner: Omit<Banner, "id">): Promise<Banner> {
+  const banners = await getBanners();
   const newBanner: Banner = { ...banner, id: String(Date.now()) };
   banners.push(newBanner);
-  saveBanners(banners);
+  await saveBanners(banners);
   return newBanner;
 }
 
-export function updateBanner(id: string, updates: Partial<Banner>): Banner | null {
-  const banners = getBanners();
+export async function updateBanner(id: string, updates: Partial<Banner>): Promise<Banner | null> {
+  const banners = await getBanners();
   const idx = banners.findIndex((b) => b.id === id);
   if (idx === -1) return null;
   banners[idx] = { ...banners[idx], ...updates };
-  saveBanners(banners);
+  await saveBanners(banners);
   return banners[idx];
 }
 
-export function deleteBanner(id: string): boolean {
-  const banners = getBanners();
+export async function deleteBanner(id: string): Promise<boolean> {
+  const banners = await getBanners();
   const filtered = banners.filter((b) => b.id !== id);
   if (filtered.length === banners.length) return false;
-  saveBanners(filtered);
+  await saveBanners(filtered);
   return true;
 }
 
 // ── Promo Cards ──
 
-export function getPromoCards(): PromoCard[] {
-  if (typeof window === "undefined") return defaultPromoCards;
+export async function getPromoCards(): Promise<PromoCard[]> {
+  // Promo cards use same banner API with type=PROMO
   try {
-    const stored = localStorage.getItem(PROMO_CARDS_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      if (parsed.length > 0) return parsed;
+    const res = await fetch('/api/banners', { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success) {
+        const promos = data.data.filter((b: any) => b.type === 'PROMO_CARD');
+        if (promos.length > 0) return promos;
+      }
     }
   } catch {}
   return defaultPromoCards;
 }
 
-export function savePromoCards(cards: PromoCard[]) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(PROMO_CARDS_KEY, JSON.stringify(cards));
+export async function savePromoCards(cards: PromoCard[]) {
+  try {
+    const promoData = cards.map(c => ({ ...c, type: 'PROMO_CARD' }));
+    await fetch('/api/banners', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ banners: promoData }),
+    });
+  } catch {}
 }
 
-export function getActivePromoCards(): PromoCard[] {
-  return getPromoCards().filter((c) => c.active);
+export async function getActivePromoCards(): Promise<PromoCard[]> {
+  const cards = await getPromoCards();
+  return cards.filter((c) => c.active);
 }
 
-export function addPromoCard(card: Omit<PromoCard, "id">): PromoCard {
-  const cards = getPromoCards();
+export async function addPromoCard(card: Omit<PromoCard, "id">): Promise<PromoCard> {
+  const cards = await getPromoCards();
   const newCard: PromoCard = { ...card, id: String(Date.now()) };
   cards.push(newCard);
-  savePromoCards(cards);
+  await savePromoCards(cards);
   return newCard;
 }
 
-export function updatePromoCard(id: string, updates: Partial<PromoCard>): PromoCard | null {
-  const cards = getPromoCards();
+export async function updatePromoCard(id: string, updates: Partial<PromoCard>): Promise<PromoCard | null> {
+  const cards = await getPromoCards();
   const idx = cards.findIndex((c) => c.id === id);
   if (idx === -1) return null;
   cards[idx] = { ...cards[idx], ...updates };
-  savePromoCards(cards);
+  await savePromoCards(cards);
   return cards[idx];
 }
 
-export function deletePromoCard(id: string): boolean {
-  const cards = getPromoCards();
+export async function deletePromoCard(id: string): Promise<boolean> {
+  const cards = await getPromoCards();
   const filtered = cards.filter((c) => c.id !== id);
   if (filtered.length === cards.length) return false;
-  savePromoCards(filtered);
+  await savePromoCards(filtered);
   return true;
 }

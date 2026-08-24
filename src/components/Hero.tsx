@@ -11,8 +11,8 @@ export default function Hero() {
   const [currentBanner, setCurrentBanner] = useState(0);
 
   useEffect(() => {
-    setBanners(getActiveBanners());
-    setPromoCards(getActivePromoCards());
+    getActiveBanners().then(setBanners).catch(() => {});
+    getActivePromoCards().then(setPromoCards).catch(() => {});
   }, []);
 
   // Auto-rotate banner

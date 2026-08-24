@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     const {
       name, slug, sku, description, categoryId, subcategoryId,
       brandId, basePrice, sellingPrice, discount, weight, dimensions,
-      badge, isFeatured, specs,
+      badge, isFeatured, specs, imageBase64, images,
     } = body;
 
     // Generate slug if not provided
@@ -74,11 +74,11 @@ export async function POST(request: NextRequest) {
       data: {
         name,
         slug: productSlug,
-        sku,
+        sku: sku || `SKU-${Date.now()}`,
         description,
-        categoryId,
-        subcategoryId,
-        brandId,
+        categoryId: categoryId || '',
+        subcategoryId: subcategoryId || null,
+        brandId: brandId || null,
         basePrice: basePrice || 0,
         sellingPrice: sellingPrice || 0,
         discount: discount || 0,
@@ -103,6 +103,25 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Save images to product_images table
+    const allImages: string[] = [];
+    if (imageBase64) allImages.push(imageBase64);
+    if (images && Array.isArray(images)) allImages.push(...images);
+    
+    for (let i = 0; i < allImages.length; i++) {
+      if (allImages[i]) {
+        await prisma.productImage.create({
+          data: {
+            productId: product.id,
+            url: allImages[i],
+            alt: `${name} - foto ${i + 1}`,
+            sortOrder: i,
+            isPrimary: i === 0,
+          },
+        });
+      }
+    }
+
     return NextResponse.json({
       success: true,
       data: product,
@@ -120,7 +139,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, ...updates } = body;
+    const { id, imageBase64, images, specs, ...updates } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -137,6 +156,30 @@ export async function PUT(request: NextRequest) {
         brand: true,
       },
     });
+
+    // Update images if provided
+    if (imageBase64 !== undefined || (images && Array.isArray(images))) {
+      // Delete existing images
+      await prisma.productImage.deleteMany({ where: { productId: id } });
+      
+      const allImages: string[] = [];
+      if (imageBase64) allImages.push(imageBase64);
+      if (images) allImages.push(...images);
+      
+      for (let i = 0; i < allImages.length; i++) {
+        if (allImages[i]) {
+          await prisma.productImage.create({
+            data: {
+              productId: id,
+              url: allImages[i],
+              alt: `${product.name} - foto ${i + 1}`,
+              sortOrder: i,
+              isPrimary: i === 0,
+            },
+          });
+        }
+      }
+    }
 
     return NextResponse.json({
       success: true,

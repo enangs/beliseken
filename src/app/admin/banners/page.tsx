@@ -43,68 +43,75 @@ export default function BannersPage() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    setBanners(getBanners());
-    setPromoCards(getPromoCards());
+    getBanners().then(setBanners).catch(() => {});
+    getPromoCards().then(setPromoCards).catch(() => {});
   }, []);
 
-  const handleSaveBanners = () => {
-    saveBanners(banners);
+  const handleSaveBanners = async () => {
+    await saveBanners(banners);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
 
-  const handleSavePromoCards = () => {
-    savePromoCards(promoCards);
+  const handleSavePromoCards = async () => {
+    await savePromoCards(promoCards);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
 
-  const handleAddBanner = () => {
-    const newBanner = addBanner({
+  const reloadAll = async () => {
+    const b = await getBanners();
+    setBanners(b);
+    const p = await getPromoCards();
+    setPromoCards(p);
+  };
+
+  const handleAddBanner = async () => {
+    const newBanner = await addBanner({
       title: "Banner Baru", subtitle: "Subtitle", highlight: "Highlight",
       description: "Deskripsi banner", cta: "Lihat Sekarang", href: "/products",
       bg: "from-brand to-brand-dark", active: true,
     });
-    setBanners(getBanners());
+    await reloadAll();
     setEditingBanner(newBanner);
     setShowForm(true);
   };
 
-  const handleAddPromo = () => {
-    const newPromo = addPromoCard({
+  const handleAddPromo = async () => {
+    const newPromo = await addPromoCard({
       title: "Kategori Baru", subtitle: "Mulai Rp100rb", price: "Mulai Rp100rb",
       description: "Deskripsi promo", href: "/products",
       bg: "from-blue-500 to-blue-600", active: true,
     });
-    setPromoCards(getPromoCards());
+    await reloadAll();
     setEditingPromo(newPromo);
     setShowForm(true);
   };
 
-  const handleDeleteBanner = (id: string) => {
+  const handleDeleteBanner = async (id: string) => {
     if (confirm("Yakin ingin menghapus banner ini?")) {
-      deleteBanner(id);
-      setBanners(getBanners());
+      await deleteBanner(id);
+      await reloadAll();
       if (editingBanner?.id === id) { setEditingBanner(null); setShowForm(false); }
     }
   };
 
-  const handleDeletePromo = (id: string) => {
+  const handleDeletePromo = async (id: string) => {
     if (confirm("Yakin ingin menghapus kartu promo ini?")) {
-      deletePromoCard(id);
-      setPromoCards(getPromoCards());
+      await deletePromoCard(id);
+      await reloadAll();
       if (editingPromo?.id === id) { setEditingPromo(null); setShowForm(false); }
     }
   };
 
-  const handleToggleBanner = (id: string) => {
+  const handleToggleBanner = async (id: string) => {
     const banner = banners.find((b) => b.id === id);
-    if (banner) { updateBanner(id, { active: !banner.active }); setBanners(getBanners()); }
+    if (banner) { await updateBanner(id, { active: !banner.active }); await reloadAll(); }
   };
 
-  const handleTogglePromo = (id: string) => {
+  const handleTogglePromo = async (id: string) => {
     const promo = promoCards.find((c) => c.id === id);
-    if (promo) { updatePromoCard(id, { active: !promo.active }); setPromoCards(getPromoCards()); }
+    if (promo) { await updatePromoCard(id, { active: !promo.active }); await reloadAll(); }
   };
 
   return (
@@ -208,12 +215,12 @@ export default function BannersPage() {
 
         {showForm && tab === "banners" && editingBanner && (
           <BannerForm banner={editingBanner}
-            onSave={(updates) => { updateBanner(editingBanner.id, updates); setBanners(getBanners()); setEditingBanner({ ...editingBanner, ...updates }); }}
+            onSave={async (updates) => { await updateBanner(editingBanner.id, updates); await reloadAll(); setEditingBanner({ ...editingBanner, ...updates }); }}
             onClose={() => { setShowForm(false); setEditingBanner(null); }} />
         )}
         {showForm && tab === "promo" && editingPromo && (
           <PromoForm promo={editingPromo}
-            onSave={(updates) => { updatePromoCard(editingPromo.id, updates); setPromoCards(getPromoCards()); setEditingPromo({ ...editingPromo, ...updates }); }}
+            onSave={async (updates) => { await updatePromoCard(editingPromo.id, updates); await reloadAll(); setEditingPromo({ ...editingPromo, ...updates }); }}
             onClose={() => { setShowForm(false); setEditingPromo(null); }} />
         )}
       </div>
