@@ -4,7 +4,6 @@ import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getProductById, updateProduct } from "@/lib/api";
 import ProductForm from "@/components/admin/ProductForm";
-import type { Product } from "@/data/products";
 import { Loader2 } from "lucide-react";
 
 function EditProductContent() {
@@ -19,44 +18,56 @@ function EditProductContent() {
   useEffect(() => {
     if (!id) { setNotFound(true); return; }
     
-    getProductById(id).then((p) => {
-      if (p) {
-        // Map API response to Product type for ProductForm
-        setProduct({
-          id: p.id,
-          name: p.name,
-          slug: p.slug,
-          sku: p.sku,
-          description: p.description || "",
-          category: p.category?.name || "",
-          subcategory: p.subcategory?.name || "",
-          brand: p.brand?.name || "",
-          price: p.sellingPrice || p.sellingPrice,
-          originalPrice: p.originalPrice || p.sellingPrice,
-          discount: p.discount || 0,
-          stock: p.stock || p.availableUnits || 0,
-          weight: p.weight,
-          dimensions: p.dimensions,
-          badge: p.badge,
-          imageBase64: p.imageBase64,
-          specs: p.specs?.map((s: any) => `${s.key}: ${s.value}`) || [],
-          rating: p.avgRating || 0,
-          reviewCount: p.reviewCount || 0,
-          status: p.status || "ACTIVE",
-          supplier: p.supplier || "",
-          condition: p.condition || "Grade A",
-        } as any);
-      } else {
-        setNotFound(true);
-      }
-    }).catch(() => setNotFound(true));
+    // Fetch product with images from API
+    fetch(`/api/admin/products?id=${id}`, { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.data) {
+          const p = data.data;
+          // Extract images from product_images table
+          const imageUrls = p.images?.map((img: any) => img.url) || [];
+          const mainImage = imageUrls.length > 0 ? imageUrls[0] : p.imageBase64;
+          
+          setProduct({
+            id: p.id,
+            name: p.name,
+            slug: p.slug,
+            sku: p.sku,
+            description: p.description || "",
+            category: p.category?.name || "",
+            subcategoryId: p.categoryId || "",
+            subcategory: p.subcategory?.name || "",
+            brandId: p.brandId || "",
+            brand: p.brand?.name || "",
+            price: p.sellingPrice || 0,
+            originalPrice: p.basePrice || p.sellingPrice || 0,
+            discount: p.discount || 0,
+            stock: p._count?.units || 0,
+            weight: p.weight,
+            dimensions: p.dimensions,
+            badge: p.badge,
+            imageBase64: mainImage,
+            images: imageUrls, // All images including main
+            specs: p.specs?.map((s: any) => `${s.key}: ${s.value}`) || [],
+            rating: p.avgRating || 0,
+            reviewCount: p.reviewCount || 0,
+            status: p.isActive ? "ACTIVE" : "SOLD_OUT",
+            supplier: "",
+            condition: "Grade A",
+          });
+        } else {
+          setNotFound(true);
+        }
+      })
+      .catch(() => setNotFound(true));
   }, [id]);
 
-  const handleSubmit = async (data: Omit<Product, "id"> & { id?: string }) => {
+  const handleSubmit = async (data: any) => {
     if (!id) return;
     setSaving(true);
     setError("");
     try {
+      // Send ALL images to API
       const result = await updateProduct(id, {
         name: data.name,
         slug: data.slug,
@@ -64,15 +75,15 @@ function EditProductContent() {
         description: data.description,
         sellingPrice: data.price,
         originalPrice: data.originalPrice,
-        discount: data.discount,
         weight: data.weight,
         dimensions: data.dimensions,
         badge: data.badge,
         imageBase64: data.imageBase64,
+        images: data.images, // Send ALL images array!
         specs: data.specs,
         stock: data.stock,
-        supplier: data.supplier,
         condition: data.condition,
+        status: data.status,
       });
       if (result.success) {
         router.push("/admin/products");
