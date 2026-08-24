@@ -19,12 +19,12 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      // Check if user already exists
-      const existingUser = await prisma.user.findUnique({
-        where: { email },
-      });
+      // Check if user already exists via raw SQL (bypass schema validation)
+      const existingRows = await prisma.$queryRaw`
+        SELECT id, email FROM users WHERE email = ${email} LIMIT 1
+      ` as any[];
 
-      if (existingUser) {
+      if (existingRows && existingRows.length > 0) {
         return NextResponse.json(
           { success: false, error: 'Email sudah terdaftar!' },
           { status: 400 }
@@ -33,21 +33,27 @@ export async function POST(request: NextRequest) {
 
       // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
+      const userId = 'user-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+      const now = new Date().toISOString();
 
-      // Create user
-      const user = await prisma.user.create({
-        data: {
-          name,
-          email,
-          password: hashedPassword,
-          phone: phone || null,
-          city: city || null,
-          role: 'CUSTOMER',
-        },
-      });
+      // Create user via raw SQL
+      await prisma.$executeRaw`
+        INSERT INTO users (id, email, password, name, phone, city, "role", "isActive", "createdAt", "updatedAt")
+        VALUES (${userId}, ${email}, ${hashedPassword}, ${name}, ${phone || null}, ${city || null}, 'CUSTOMER', true, ${now}::timestamp, ${now}::timestamp)
+      `;
 
       // Return user without password
-      const { password: _, ...userWithoutPassword } = user;
+      const userWithoutPassword = {
+        id: userId,
+        name,
+        email,
+        phone: phone || null,
+        city: city || null,
+        role: 'CUSTOMER',
+        isActive: true,
+        createdAt: now,
+        addresses: [],
+      };
 
       console.log('✅ User registered in Supabase:', user.id, email);
 

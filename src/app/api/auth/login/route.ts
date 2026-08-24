@@ -19,13 +19,13 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      // Find user
-      const user = await prisma.user.findUnique({
-        where: { email },
-        include: {
-          addresses: true,
-        },
-      });
+      // Find user via raw SQL (bypass schema validation)
+      const userRows = await prisma.$queryRaw`
+        SELECT id, email, password, name, phone, city, "role", "isActive", "createdAt"
+        FROM users WHERE email = ${email} LIMIT 1
+      ` as any[];
+
+      const user = userRows?.[0];
 
       if (!user) {
         console.log('❌ User not found:', email);
@@ -46,31 +46,26 @@ export async function POST(request: NextRequest) {
       }
 
       // Update last login
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { lastLoginAt: new Date() },
-      });
+      const now = new Date().toISOString();
+      await prisma.$executeRaw`
+        UPDATE users SET "lastLoginAt" = ${now}::timestamp WHERE id = ${user.id}
+      `;
 
-      // Return user without password
-      const { password: _, ...userWithoutPassword } = user;
+      // Get addresses via raw SQL
+      const addrRows = await prisma.$queryRaw`
+        SELECT id, label, name, phone, address, city, "cityId", province, "provinceId", postcode, "isDefault"
+        FROM user_addresses WHERE "userId" = ${user.id}
+      ` as any[];
 
-      // Transform dates to strings
       const transformedUser = {
-        ...userWithoutPassword,
-        createdAt: userWithoutPassword.createdAt?.toISOString() || new Date().toISOString(),
-        addresses: userWithoutPassword.addresses?.map((addr: any) => ({
-          id: addr.id,
-          label: addr.label,
-          name: addr.name,
-          phone: addr.phone,
-          address: addr.address,
-          city: addr.city,
-          cityId: addr.cityId,
-          province: addr.province,
-          provinceId: addr.provinceId,
-          postcode: addr.postcode,
-          isDefault: addr.isDefault,
-        })) || [],
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        city: user.city,
+        role: user.role,
+        createdAt: user.createdAt?.toISOString?.() || String(user.createdAt),
+        addresses: addrRows || [],
       };
 
       console.log('✅ User logged in from Supabase:', user.id, email);

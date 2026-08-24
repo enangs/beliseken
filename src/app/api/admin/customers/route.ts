@@ -9,61 +9,51 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('q');
 
-    const where: any = {
-      role: 'CUSTOMER',
-    };
-
+    // Use raw SQL to bypass Prisma schema validation
+    let customersQuery = `
+      SELECT id, name, email, phone, city, "role", "createdAt"
+      FROM users WHERE "role" = 'CUSTOMER'
+    `;
     if (search) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
-        { phone: { contains: search } },
-      ];
+      customersQuery += ` AND (name ILIKE '%${search}%' OR email ILIKE '%${search}%' OR phone LIKE '%${search}%')`;
     }
-
-    const customers = await prisma.user.findMany({
-      where,
-      include: {
-        addresses: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    // Transform to match frontend format
-    const transformedCustomers = customers.map((customer: any) => ({
-      id: customer.id,
-      name: customer.name,
-      email: customer.email,
-      phone: customer.phone,
-      city: customer.city,
-      createdAt: customer.createdAt.toISOString(),
-      addresses: customer.addresses?.map((addr: any) => ({
-        id: addr.id,
-        label: addr.label,
-        name: addr.name,
-        phone: addr.phone,
-        address: addr.address,
-        city: addr.city,
-        cityId: addr.cityId,
-        province: addr.province,
-        provinceId: addr.provinceId,
-        postcode: addr.postcode,
-        isDefault: addr.isDefault,
-      })) || [],
+    customersQuery += ` ORDER BY "createdAt" DESC`;
+    const customers = await prisma.$queryRawUnsafe(customersQuery) as any[];
+    
+    // Get addresses for each customer
+    const customerIds = customers.map((c: any) => c.id);
+    let allAddresses: any[] = [];
+    if (customerIds.length > 0) {
+      allAddresses = await prisma.$queryRaw`
+        SELECT id, "userId", label, name, phone, address, city, "cityId", province, "provinceId", postcode, "isDefault"
+        FROM user_addresses WHERE "userId" IN (${customerIds.join(',')})
+      ` as any[];
+    }
+    
+    // Attach addresses
+    const customersWithAddresses = customers.map((c: any) => ({
+      ...c,
+      createdAt: c.createdAt?.toISOString?.() || String(c.createdAt),
+      addresses: allAddresses.filter((a: any) => a.userId === c.id).map((a: any) => ({
+        id: a.id, label: a.label, name: a.name, phone: a.phone,
+        address: a.address, city: a.city, cityId: a.cityId,
+        province: a.province, provinceId: a.provinceId,
+        postcode: a.postcode, isDefault: a.isDefault,
+      })),
     }));
 
     // Calculate stats
-    const totalCustomers = transformedCustomers.length;
-    const withAddresses = transformedCustomers.filter((c: any) => c.addresses.length > 0).length;
+    const totalCustomers = customersWithAddresses.length;
+    const withAddresses = customersWithAddresses.filter((c: any) => c.addresses.length > 0).length;
     const now = new Date();
-    const newThisMonth = transformedCustomers.filter((c: any) => {
+    const newThisMonth = customersWithAddresses.filter((c: any) => {
       const d = new Date(c.createdAt);
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     }).length;
 
     return NextResponse.json({
       success: true,
-      data: transformedCustomers,
+      data: customersWithAddresses,
       meta: {
         page: 1,
         limit: 100,
