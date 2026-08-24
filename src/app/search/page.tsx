@@ -46,9 +46,13 @@ function SearchResults() {
         });
         if (res?.data) {
           setAllProducts(res.data);
+        } else {
+          setAllProducts([]);
         }
-      } catch (err) {
-        if (err !== abortRef.current?.signal) {
+      } catch (err: any) {
+        // Ignore abort errors
+        if (err?.name !== 'AbortError') {
+          console.error('Search error:', err);
           setError("Gagal memuat produk. Coba lagi.");
         }
       } finally {
