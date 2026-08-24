@@ -15,6 +15,7 @@ const statusConfig: Record<string, { label: string; color: string; bg: string; i
   delivered: { label: "Diterima", color: "text-emerald-600", bg: "bg-emerald-50", icon: CheckCircle },
   completed: { label: "Selesai", color: "text-emerald-600", bg: "bg-emerald-50", icon: CheckCircle },
   cancelled: { label: "Dibatalkan", color: "text-red-600", bg: "bg-red-50", icon: XCircle },
+  refunded: { label: "Refund", color: "text-red-600", bg: "bg-red-50", icon: XCircle },
 };
 
 const nextStatuses: Record<string, { status: string; label: string }[]> = {
@@ -54,10 +55,7 @@ export default function AdminOrdersPage() {
       setError(null);
       const data = await fetchOrders({ admin: true, status: filter === "all" ? undefined : filter });
       setOrders(data || []);
-      
-      // Check data source
-      const localOrders = JSON.parse(localStorage.getItem('beliseken_orders') || '[]');
-      setDataSource(`${data?.length || 0} orders (local: ${localOrders.length})`);
+      setDataSource(`${data?.length || 0} pesanan`);
     } catch (err) {
       console.error('Failed to load orders:', err);
       setError('Gagal memuat pesanan. Silakan coba lagi.');
@@ -195,7 +193,6 @@ export default function AdminOrdersPage() {
           <Package size={48} className="mx-auto text-brand-muted mb-4" />
           <p className="text-brand-muted font-medium">Belum ada pesanan</p>
           <p className="text-xs text-brand-muted mt-1">Pesanan akan muncul di sini setelah pelanggan checkout</p>
-          <p className="text-xs text-red-500 mt-3">⚠️ Jika sudah pesan tapi tidak muncul, kemungkinan DATABASE_URL belum terhubung di Vercel</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -235,11 +232,6 @@ export default function AdminOrdersPage() {
                         <div className="flex items-center gap-1 text-xs text-purple-600 mt-1">
                           <Truck size={12} />
                           <span className="font-mono">{order.trackingNumber}</span>
-                          {order.trackingUrl && (
-                            <a href={order.trackingUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-                              <ExternalLink size={10} />
-                            </a>
-                          )}
                         </div>
                       )}
                     </div>
@@ -261,18 +253,22 @@ export default function AdminOrdersPage() {
                       {/* Items */}
                       <div>
                         <h4 className="text-sm font-semibold text-brand-navy mb-2">📦 Item Pesanan:</h4>
-                        {order.items?.map((item, i) => (
-                          <div key={i} className="flex justify-between text-sm py-1 border-b border-brand-border last:border-0">
-                            <span className="text-brand-muted">{item.productName} × {item.quantity}</span>
-                            <span className="font-medium">{formatPrice(item.subtotal)}</span>
-                          </div>
-                        ))}
+                        {order.items && order.items.length > 0 ? (
+                          order.items.map((item, i) => (
+                            <div key={i} className="flex justify-between text-sm py-1 border-b border-brand-border last:border-0">
+                              <span className="text-brand-muted">{item.productName} × {item.quantity}</span>
+                              <span className="font-medium">{formatPrice(item.subtotal)}</span>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-xs text-brand-muted italic">Item tidak tersedia di database</p>
+                        )}
                         <div className="flex justify-between text-sm pt-2 mt-2 border-t border-brand-border">
                           <span className="text-brand-muted">Subtotal</span>
                           <span className="font-medium">{formatPrice(order.subtotal)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-brand-muted">Ongkir ({order.shipping?.courier} {order.shipping?.service})</span>
+                          <span className="text-brand-muted">Ongkir ({order.shipping?.courier || '-'})</span>
                           <span className="font-medium">{formatPrice(order.shippingCost)}</span>
                         </div>
                         <div className="flex justify-between text-sm font-bold pt-2 border-t border-brand-border">
@@ -285,10 +281,10 @@ export default function AdminOrdersPage() {
                       <div>
                         <h4 className="text-sm font-semibold text-brand-navy mb-2">📍 Alamat Pengiriman:</h4>
                         <div className="bg-white rounded-lg p-3 border border-brand-border text-sm">
-                          <p className="font-semibold">{order.address?.name}</p>
-                          <p className="text-brand-muted text-xs">{order.address?.phone} • {order.address?.email}</p>
-                          <p className="text-brand-muted text-xs mt-1">{order.address?.address}</p>
-                          <p className="text-brand-muted text-xs">{order.address?.city}, {order.address?.province} {order.address?.postcode}</p>
+                          <p className="font-semibold">{order.address?.name || '-'}</p>
+                          <p className="text-brand-muted text-xs">{order.address?.phone || '-'} • {order.address?.email || '-'}</p>
+                          <p className="text-brand-muted text-xs mt-1">{order.address?.address || '-'}</p>
+                          <p className="text-brand-muted text-xs">{order.address?.city || ''}, {order.address?.province || ''} {order.address?.postcode || ''}</p>
                         </div>
 
                         <h4 className="text-sm font-semibold text-brand-navy mb-2 mt-3">💳 Pembayaran:</h4>
@@ -296,7 +292,9 @@ export default function AdminOrdersPage() {
                           <p className="text-brand-muted">
                             {order.paymentMethod === "bank_transfer" ? "🏦 Transfer Bank" :
                              order.paymentMethod === "ewallet" ? "📱 E-Wallet" :
-                             "💵 COD (Bayar di Tempat)"}
+                             order.paymentMethod === "qris" ? "📱 QRIS" :
+                             order.paymentMethod === "cod" ? "💵 COD (Bayar di Tempat)" :
+                             order.paymentMethod || '-'}
                           </p>
                         </div>
 
@@ -352,16 +350,6 @@ export default function AdminOrdersPage() {
                                     <div>
                                       <p className="text-xs text-brand-muted">Kurir: {order.shipping?.courier}</p>
                                       <p className="font-mono font-semibold text-brand-navy">{order.trackingNumber}</p>
-                                      {order.trackingUrl && (
-                                        <a 
-                                          href={order.trackingUrl} 
-                                          target="_blank" 
-                                          rel="noopener noreferrer"
-                                          className="text-xs text-brand hover:underline flex items-center gap-1 mt-1"
-                                        >
-                                          📌 Lacak Kiriman <ExternalLink size={10} />
-                                        </a>
-                                      )}
                                     </div>
                                     <button
                                       onClick={() => startEditTracking(order)}
