@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
         addresses: [],
       };
 
-      console.log('✅ User registered in Supabase:', user.id, email);
+      console.log('✅ User registered in Supabase:', userId, email);
 
       return NextResponse.json({ 
         success: true, 
