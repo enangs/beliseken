@@ -1,16 +1,20 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { addBlogPost } from "@/data/products";
+import { createBlogPost } from "@/lib/blog-api";
 import BlogForm from "@/components/admin/BlogForm";
 import type { BlogPost } from "@/data/products";
 
 export default function NewBlogPage() {
   const router = useRouter();
 
-  const handleSubmit = (data: Omit<BlogPost, "id">) => {
-    addBlogPost(data);
-    router.push("/admin/blog");
+  const handleSubmit = async (data: Omit<BlogPost, "id">) => {
+    const result = await createBlogPost(data);
+    if (result) {
+      router.push("/admin/blog");
+    } else {
+      alert("Gagal membuat artikel. Coba lagi.");
+    }
   };
 
   return (

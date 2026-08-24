@@ -5,7 +5,8 @@ import Link from "next/link";
 import { ChevronRight, Clock, User } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { getBlogPosts, storeInfo } from "@/data/products";
+import { fetchBlogPosts } from "@/lib/blog-api";
+import { storeInfo } from "@/data/products";
 import type { BlogPost } from "@/data/products";
 
 export default function BlogClient({ slug }: { slug: string }) {
@@ -14,13 +15,21 @@ export default function BlogClient({ slug }: { slug: string }) {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    const all = getBlogPosts();
-    const found = all.find((p) => p.slug === slug);
-    setPost(found);
-    if (found) {
-      setRelatedPosts(all.filter((p) => p.id !== found.id).slice(0, 3));
-    }
-    setLoaded(true);
+    const loadPost = async () => {
+      try {
+        const all = await fetchBlogPosts();
+        const found = all.find((p) => p.slug === slug);
+        setPost(found);
+        if (found) {
+          setRelatedPosts(all.filter((p) => p.id !== found.id).slice(0, 3));
+        }
+      } catch (error) {
+        console.error('Failed to load blog post:', error);
+      } finally {
+        setLoaded(true);
+      }
+    };
+    loadPost();
   }, [slug]);
 
   if (!loaded) {

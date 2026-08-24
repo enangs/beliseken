@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getBlogPostById, updateBlogPost } from "@/data/products";
+import { getAdminBlogPosts, updateBlogPost } from "@/lib/blog-api";
 import BlogForm from "@/components/admin/BlogForm";
 import type { BlogPost } from "@/data/products";
 
@@ -14,14 +14,29 @@ function EditBlogContent() {
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    if (!id) { setNotFound(true); return; }
-    const p = getBlogPostById(id);
-    if (p) setPost(p);
-    else setNotFound(true);
+    const loadPost = async () => {
+      if (!id) { setNotFound(true); return; }
+      
+      try {
+        const posts = await getAdminBlogPosts();
+        const found = posts.find(p => p.id === id);
+        if (found) {
+          setPost(found);
+        } else {
+          setNotFound(true);
+        }
+      } catch (error) {
+        console.error('Failed to load blog post:', error);
+        setNotFound(true);
+      }
+    };
+    loadPost();
   }, [id]);
 
-  const handleSubmit = (data: Omit<BlogPost, "id"> & { id?: string }) => {
-    if (data.id) updateBlogPost(data.id, data);
+  const handleSubmit = async (data: Omit<BlogPost, "id"> & { id?: string }) => {
+    if (data.id) {
+      await updateBlogPost(data.id, data);
+    }
     router.push("/admin/blog");
   };
 
