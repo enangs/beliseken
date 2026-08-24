@@ -397,6 +397,7 @@ model User {
   password    String
   name        String
   phone       String?
+  city        String?
   role        String   @default("CUSTOMER") // CUSTOMER, ADMIN, SUPER_ADMIN
   avatarUrl   String?
   isActive    Boolean  @default(true)
