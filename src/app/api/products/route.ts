@@ -3,6 +3,14 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+// Optimize Cloudinary URLs — add auto format (WebP/AVIF) and quality
+function optimizeImageUrl(url: string | null): string | null {
+  if (!url || !url.includes('cloudinary.com')) return url;
+  const parts = url.split('/upload/');
+  if (parts.length !== 2) return url;
+  return `${parts[0]}/upload/q_auto,f_auto,w_800/${parts[1]}`;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -160,12 +168,12 @@ export async function GET(request: NextRequest) {
       category: product.category,
       subcategory: product.subcategory,
       brand: product.brand,
-      imageBase64: product.images?.[0]?.url || null,
+      imageBase64: optimizeImageUrl(product.images?.[0]?.url || null),
       allImages: [],
       availableUnits: product._count.units,
     }));
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: transformedProducts,
       meta: {
@@ -175,6 +183,11 @@ export async function GET(request: NextRequest) {
         totalPages: Math.ceil(total / limit),
       },
     });
+
+    // Cache for 5 minutes, stale-while-revalidate for 30 minutes
+    response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=1800');
+    
+    return response;
   } catch (error) {
     console.error('Products API error:', error);
     return NextResponse.json(

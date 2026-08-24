@@ -32,10 +32,12 @@ export async function GET() {
       _count: undefined,
     }));
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: transformedCategories,
     });
+    response.headers.set('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=3600');
+    return response;
   } catch (error) {
     console.error('Categories API error:', error);
     return NextResponse.json(

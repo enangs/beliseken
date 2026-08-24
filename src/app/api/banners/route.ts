@@ -3,6 +3,14 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+// Optimize Cloudinary URLs — add auto format (WebP/AVIF) and quality
+function optimizeImageUrl(url: string | null): string {
+  if (!url || !url.includes('cloudinary.com')) return url || '';
+  const parts = url.split('/upload/');
+  if (parts.length !== 2) return url;
+  return `${parts[0]}/upload/q_auto,f_auto,w_1200/${parts[1]}`;
+}
+
 // GET all banners
 export async function GET() {
   try {
@@ -19,12 +27,14 @@ export async function GET() {
       cta: b.ctaText || 'Lihat Sekarang',
       href: b.ctaLink || '/products',
       bg: b.gradient || 'from-brand to-brand-dark',
-      imageBase64: b.imageUrl || '',
+      imageBase64: optimizeImageUrl(b.imageUrl),
       active: b.isActive,
       type: b.type,
     }));
 
-    return NextResponse.json({ success: true, data: transformed });
+    const response = NextResponse.json({ success: true, data: transformed });
+    response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=1800');
+    return response;
   } catch (error) {
     console.error('Banners API error:', error);
     return NextResponse.json({ success: false, error: 'Failed to fetch banners' }, { status: 500 });

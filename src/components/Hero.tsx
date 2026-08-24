@@ -33,7 +33,25 @@ export default function Hero() {
     setCurrentBanner((prev) => (prev - 1 + banners.length) % banners.length);
   };
 
-  if (banners.length === 0) return null;
+  // Show skeleton while loading — fixed height prevents CLS
+  if (banners.length === 0) {
+    return (
+      <section className="bg-brand-gray pt-4 pb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2 relative">
+              <div className="w-full aspect-[16/7] bg-gray-200 rounded-2xl animate-pulse" />
+            </div>
+            <div className="flex flex-col gap-4">
+              <div className="flex-1 aspect-[4/3] bg-gray-200 rounded-2xl animate-pulse" />
+              <div className="flex-1 aspect-[4/3] bg-gray-200 rounded-2xl animate-pulse" />
+            </div>
+          </div>
+          <div className="mt-6 bg-gray-200 rounded-2xl h-16 animate-pulse" />
+        </div>
+      </section>
+    );
+  }
 
   const banner = banners[currentBanner];
 
@@ -44,13 +62,20 @@ export default function Hero() {
           {/* Main Banner (Left - 2/3 width) */}
           <div className="lg:col-span-2 relative">
             <div
-              className={`relative bg-gradient-to-r ${banner.bg} rounded-2xl overflow-hidden min-h-[320px] md:min-h-[400px] transition-all duration-500`}
+              className={`relative bg-gradient-to-r ${banner.bg} rounded-2xl overflow-hidden aspect-[16/7] transition-all duration-500`}
             >
               {/* Background Image (if uploaded) */}
               {banner.imageBase64 && (
                 <div className="absolute inset-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={banner.imageBase64} alt="" className="w-full h-full object-cover" />
+                  <img
+                    src={banner.imageBase64}
+                    alt={banner.title}
+                    width={1200}
+                    height={525}
+                    fetchPriority="high"
+                    className="w-full h-full object-cover"
+                  />
                   <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
                 </div>
               )}
@@ -114,35 +139,49 @@ export default function Hero() {
 
           {/* Promo Cards (Right - 1/3 width) */}
           <div className="flex flex-col gap-4">
-            {promoCards.map((promo) => (
-              <Link
-                key={promo.id}
-                href={promo.href}
-                className="flex-1 relative rounded-2xl p-6 overflow-hidden hover:shadow-xl transition-shadow group"
-              >
-                {/* Background */}
-                {promo.imageBase64 ? (
-                  <div className="absolute inset-0">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={promo.imageBase64} alt="" className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-br from-black/50 to-black/70" />
+            {promoCards.length > 0 ? (
+              promoCards.map((promo) => (
+                <Link
+                  key={promo.id}
+                  href={promo.href}
+                  className="flex-1 relative rounded-2xl overflow-hidden hover:shadow-xl transition-shadow group aspect-[4/3]"
+                >
+                  {/* Background */}
+                  {promo.imageBase64 ? (
+                    <div className="absolute inset-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={promo.imageBase64}
+                        alt={promo.title}
+                        width={400}
+                        height={300}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-br from-black/50 to-black/70" />
+                    </div>
+                  ) : (
+                    <div className={`absolute inset-0 bg-gradient-to-br ${promo.bg}`} />
+                  )}
+
+                  {/* Decorative circles */}
+                  <div className="absolute top-2 right-2 w-16 h-16 bg-white/10 rounded-full" />
+                  <div className="absolute bottom-2 right-4 w-12 h-12 bg-white/5 rounded-full" />
+
+                  {/* Content */}
+                  <div className="relative z-10 p-6">
+                    <p className="text-white/80 text-sm font-semibold mb-1">{promo.title}</p>
+                    <p className="text-2xl font-extrabold text-white mb-2">{promo.price}</p>
+                    <p className="text-white/60 text-xs">{promo.description}</p>
                   </div>
-                ) : (
-                  <div className={`absolute inset-0 bg-gradient-to-br ${promo.bg}`} />
-                )}
-
-                {/* Decorative circles */}
-                <div className="absolute top-2 right-2 w-16 h-16 bg-white/10 rounded-full" />
-                <div className="absolute bottom-2 right-4 w-12 h-12 bg-white/5 rounded-full" />
-
-                {/* Content */}
-                <div className="relative z-10">
-                  <p className="text-white/80 text-sm font-semibold mb-1">{promo.title}</p>
-                  <p className="text-2xl font-extrabold text-white mb-2">{promo.price}</p>
-                  <p className="text-white/60 text-xs">{promo.description}</p>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              ))
+            ) : (
+              <>
+                <div className="flex-1 aspect-[4/3] bg-gray-200 rounded-2xl animate-pulse" />
+                <div className="flex-1 aspect-[4/3] bg-gray-200 rounded-2xl animate-pulse" />
+              </>
+            )}
           </div>
         </div>
 

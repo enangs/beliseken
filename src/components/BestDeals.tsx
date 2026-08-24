@@ -59,6 +59,29 @@ export default function BestDeals() {
           return true;
         });
 
+  if (products.length === 0) return (
+    <section className="py-16 md:py-20 bg-brand-gray">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <div className="h-9 w-64 bg-gray-200 rounded animate-pulse" />
+          <div className="h-5 w-48 bg-gray-200 rounded animate-pulse mt-2" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-white rounded-xl border border-brand-border overflow-hidden">
+              <div className="aspect-[4/3] bg-gray-200 animate-pulse" />
+              <div className="p-4 space-y-2">
+                <div className="h-5 w-2/3 bg-gray-200 rounded animate-pulse" />
+                <div className="h-4 w-full bg-gray-200 rounded animate-pulse" />
+                <div className="h-3 w-1/2 bg-gray-200 rounded animate-pulse" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
   return (
     <section className="py-16 md:py-20 bg-brand-gray">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -56,7 +56,31 @@ export default function FlashSale() {
     setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 10);
   };
 
-  if (products.length === 0) return null;
+  if (products.length === 0) return (
+    <section className="py-12 md:py-16 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-3 mb-8">
+          <div className="w-12 h-12 bg-gray-200 rounded-xl animate-pulse" />
+          <div>
+            <div className="h-7 w-48 bg-gray-200 rounded animate-pulse" />
+            <div className="h-4 w-32 bg-gray-200 rounded animate-pulse mt-1" />
+          </div>
+        </div>
+        <div className="flex gap-4 overflow-hidden">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex-none w-[200px] bg-white rounded-xl border border-brand-border overflow-hidden">
+              <div className="aspect-square bg-gray-200 animate-pulse" />
+              <div className="p-3 space-y-2">
+                <div className="h-5 bg-gray-200 rounded animate-pulse w-2/3" />
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-full" />
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 
   return (
     <section className="py-12 md:py-16 bg-white">

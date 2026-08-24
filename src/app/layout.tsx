@@ -82,6 +82,11 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="BeliSeken" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+        {/* Preload critical resources for LCP */}
+        <link rel="preload" href="/hero.webp" as="image" fetchPriority="high" />
+        {/* Preconnect to Cloudinary for faster image loads */}
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
       </head>
       <body className="min-h-full flex flex-col font-sans pb-20 lg:pb-0">
         <Providers>{children}</Providers>

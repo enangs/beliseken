@@ -3,6 +3,13 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+function optimizeImageUrl(url: string | null): string {
+  if (!url || !url.includes('cloudinary.com')) return url || '';
+  const parts = url.split('/upload/');
+  if (parts.length !== 2) return url;
+  return `${parts[0]}/upload/q_auto,f_auto,w_1200/${parts[1]}`;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { slug: string } }
@@ -63,8 +70,15 @@ export async function GET(
     });
 
     // Transform response
+    // Optimize all image URLs
+    const optimizedImages = product.images.map((img: any) => ({
+      ...img,
+      url: optimizeImageUrl(img.url),
+    }));
+
     const transformedProduct = {
       ...product,
+      images: optimizedImages,
       availableUnits: product._count.units,
       totalReviews: product._count.reviews,
       units: product.units.map((unit: any) => ({

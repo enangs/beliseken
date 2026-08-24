@@ -3,6 +3,13 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+function optimizeImageUrl(url: string | null): string {
+  if (!url || !url.includes('cloudinary.com')) return url || '';
+  const parts = url.split('/upload/');
+  if (parts.length !== 2) return url;
+  return `${parts[0]}/upload/q_auto,f_auto,w_800/${parts[1]}`;
+}
+
 // GET all blog posts (public)
 export async function GET(request: NextRequest) {
   try {
@@ -54,15 +61,17 @@ export async function GET(request: NextRequest) {
         : new Date(post.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
       readTime: post.readTime || `${Math.ceil((post.content?.length || 0) / 1000)} menit`,
       category: post.category || 'Umum',
-      imageBase64: post.imageUrl || null,
+      imageBase64: optimizeImageUrl(post.imageUrl),
       featured: post.isFeatured || false,
     }));
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: transformedPosts,
       meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
     });
+    response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=1800');
+    return response;
   } catch (error) {
     console.error('Blog API error:', error);
     return NextResponse.json(
