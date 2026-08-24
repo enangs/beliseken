@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Package, TrendingUp, Star, Eye, ShoppingCart, Users, Loader2 } from "lucide-react";
-import { getProducts } from "@/data/products";
+import { getAdminProducts } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
 import { fetchOrders } from "@/lib/orders-api";
-import { getAllCustomers } from "@/lib/user-auth";
+import { getAllCustomers } from "@/lib/auth-api";
 import type { Product } from "@/data/products";
 import type { Order } from "@/lib/orders";
 
@@ -17,15 +17,24 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     const loadData = async () => {
-      setProducts(getProducts());
-      const ordersData = await fetchOrders({ admin: true });
-      setOrders(ordersData);
+      try {
+        const productsRes = await getAdminProducts({ limit: 100 });
+        if (productsRes?.data) setProducts(productsRes.data as any);
+      } catch {}
+      try {
+        const ordersData = await fetchOrders({ admin: true });
+        setOrders(ordersData);
+      } catch {}
       setLoading(false);
     };
     loadData();
   }, []);
 
-  const customers = getAllCustomers();
+  const [customers, setCustomers] = useState<any[]>([]);
+
+  useEffect(() => {
+    getAllCustomers().then(setCustomers).catch(() => setCustomers([]));
+  }, []);
   const totalStock = products.reduce((sum, p) => sum + (p.stock || 0), 0);
   const soldOutCount = products.filter((p) => p.stock === 0).length;
   const totalRevenue = orders.filter(o => o.status === 'completed' || o.status === 'delivered').reduce((sum, o) => sum + o.total, 0);

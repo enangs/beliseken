@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { getCategories, type CategoryResponse } from "@/lib/api";
 import { useCart } from "@/lib/cart";
-import { getCurrentUser, logoutUser, type User as UserType } from "@/lib/user-auth";
+import { getCurrentUser, logoutUser, type User as UserType } from "@/lib/auth-api";
 
 const storeInfo = {
   phoneFormatted: '0851-0125-6123',

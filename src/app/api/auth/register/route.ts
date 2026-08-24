@@ -1,8 +1,9 @@
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
 
-// POST register new user
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -17,20 +18,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Try to connect to database
     try {
-      const { PrismaClient } = await import('@prisma/client');
-      const bcrypt = await import('bcryptjs');
-      
-      const prisma = new PrismaClient();
-      
       // Check if user already exists
       const existingUser = await prisma.user.findUnique({
         where: { email },
       });
 
       if (existingUser) {
-        await prisma.$disconnect();
         return NextResponse.json(
           { success: false, error: 'Email sudah terdaftar!' },
           { status: 400 }
@@ -52,33 +46,23 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      await prisma.$disconnect();
-
       // Return user without password
       const { password: _, ...userWithoutPassword } = user;
 
-      console.log('User registered successfully:', user.id);
+      console.log('✅ User registered in Supabase:', user.id, email);
 
       return NextResponse.json({ 
         success: true, 
         data: userWithoutPassword 
       }, { status: 201 });
+
     } catch (dbError: any) {
-      console.error('Database error:', dbError.message);
+      console.error('❌ Database register error:', dbError.message);
       
-      // Return success anyway - frontend will handle localStorage fallback
-      return NextResponse.json({ 
-        success: true, 
-        data: { 
-          id: String(Date.now()), 
-          name, 
-          email, 
-          phone, 
-          city,
-          createdAt: new Date().toISOString() 
-        },
-        note: 'Saved locally'
-      }, { status: 201 });
+      return NextResponse.json(
+        { success: false, error: `Database error: ${dbError.message}` },
+        { status: 500 }
+      );
     }
   } catch (error: any) {
     console.error('Register error:', error.message);

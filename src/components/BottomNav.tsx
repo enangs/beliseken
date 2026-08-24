@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Home, Grid3X3, ShoppingCart, User, Search } from "lucide-react";
 import { useCart } from "@/lib/cart";
-import { getCurrentUser } from "@/lib/user-auth";
+import { getCurrentUser } from "@/lib/auth-api";
 
 const navItems = [
   { href: "/", icon: Home, label: "Beranda" },

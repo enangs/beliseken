@@ -1,8 +1,9 @@
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
 
-// POST login user
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -17,13 +18,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Try to connect to database
     try {
-      const { PrismaClient } = await import('@prisma/client');
-      const bcrypt = await import('bcryptjs');
-      
-      const prisma = new PrismaClient();
-      
       // Find user
       const user = await prisma.user.findUnique({
         where: { email },
@@ -33,7 +28,7 @@ export async function POST(request: NextRequest) {
       });
 
       if (!user) {
-        await prisma.$disconnect();
+        console.log('❌ User not found:', email);
         return NextResponse.json(
           { success: false, error: 'Email atau password salah!' },
           { status: 401 }
@@ -43,7 +38,7 @@ export async function POST(request: NextRequest) {
       // Check password
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
-        await prisma.$disconnect();
+        console.log('❌ Invalid password for:', email);
         return NextResponse.json(
           { success: false, error: 'Email atau password salah!' },
           { status: 401 }
@@ -56,12 +51,10 @@ export async function POST(request: NextRequest) {
         data: { lastLoginAt: new Date() },
       });
 
-      await prisma.$disconnect();
-
       // Return user without password
       const { password: _, ...userWithoutPassword } = user;
 
-      // Transform addresses to match frontend format
+      // Transform dates to strings
       const transformedUser = {
         ...userWithoutPassword,
         createdAt: userWithoutPassword.createdAt?.toISOString() || new Date().toISOString(),
@@ -80,19 +73,19 @@ export async function POST(request: NextRequest) {
         })) || [],
       };
 
-      console.log('User logged in successfully:', user.id);
+      console.log('✅ User logged in from Supabase:', user.id, email);
 
       return NextResponse.json({ 
         success: true, 
         data: transformedUser 
       });
+
     } catch (dbError: any) {
-      console.error('Database error:', dbError.message);
+      console.error('❌ Database login error:', dbError.message);
       
-      // Return error - frontend will handle localStorage fallback
       return NextResponse.json(
-        { success: false, error: 'Database tidak tersedia. Silakan coba lagi.' },
-        { status: 503 }
+        { success: false, error: `Database error: ${dbError.message}` },
+        { status: 500 }
       );
     }
   } catch (error: any) {

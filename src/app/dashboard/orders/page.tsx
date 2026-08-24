@@ -8,7 +8,7 @@ import Footer from "@/components/Footer";
 import { fetchOrders } from "@/lib/orders-api";
 import { formatPrice } from "@/lib/utils";
 import { storeInfo } from "@/data/products";
-import { getCurrentUser } from "@/lib/user-auth";
+import { getCurrentUser } from "@/lib/auth-api";
 import type { Order, OrderStatus } from "@/lib/orders";
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType; step: number }> = {

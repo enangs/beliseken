@@ -11,7 +11,7 @@ import { createOrder } from "@/lib/orders-api";
 import { PROVINCES, CITIES, STORE_ORIGIN, type OrderAddress, type ShippingOption } from "@/lib/orders";
 import { formatPrice } from "@/lib/utils";
 import { storeInfo } from "@/data/products";
-import { getCurrentUser, getDefaultAddress, saveUserAddress } from "@/lib/user-auth";
+import { getCurrentUser, getDefaultAddress, saveUserAddress } from "@/lib/auth-api";
 
 type Step = 1 | 2 | 3;
 

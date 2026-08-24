@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Package, ShoppingCart, Heart, CreditCard, Star, Settings, LogOut, User } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { getCurrentUser, logoutUser, type User as UserType } from "@/lib/user-auth";
+import { getCurrentUser, logoutUser, type User as UserType } from "@/lib/auth-api";
 import { getUserOrders } from "@/lib/orders";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/utils";
