@@ -43,8 +43,8 @@ export default function Hero() {
               <div className="w-full aspect-[16/7] bg-gray-200 rounded-2xl animate-pulse" />
             </div>
             <div className="flex flex-col gap-4">
-              <div className="flex-1 aspect-[4/3] bg-gray-200 rounded-2xl animate-pulse" />
-              <div className="flex-1 aspect-[4/3] bg-gray-200 rounded-2xl animate-pulse" />
+              <div className="flex-1 bg-gray-200 rounded-2xl animate-pulse min-h-[150px]" />
+              <div className="flex-1 bg-gray-200 rounded-2xl animate-pulse min-h-[150px]" />
             </div>
           </div>
           <div className="mt-6 bg-gray-200 rounded-2xl h-16 animate-pulse" />
@@ -144,7 +144,7 @@ export default function Hero() {
                 <Link
                   key={promo.id}
                   href={promo.href}
-                  className="flex-1 relative rounded-2xl overflow-hidden hover:shadow-xl transition-shadow group aspect-[4/3]"
+                  className="flex-1 relative rounded-2xl overflow-hidden hover:shadow-xl transition-shadow group"
                 >
                   {/* Background */}
                   {promo.imageBase64 ? (
@@ -178,8 +178,8 @@ export default function Hero() {
               ))
             ) : (
               <>
-                <div className="flex-1 aspect-[4/3] bg-gray-200 rounded-2xl animate-pulse" />
-                <div className="flex-1 aspect-[4/3] bg-gray-200 rounded-2xl animate-pulse" />
+                <div className="flex-1 bg-gray-200 rounded-2xl animate-pulse min-h-[150px]" />
+                <div className="flex-1 bg-gray-200 rounded-2xl animate-pulse min-h-[150px]" />
               </>
             )}
           </div>
