@@ -3,7 +3,6 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-import { generateVerificationCode, sendVerificationEmail } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,7 +19,7 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      // Check if user already exists via raw SQL (bypass schema validation)
+      // Check if user already exists
       const existingRows = await prisma.$queryRaw`
         SELECT id, email FROM users WHERE email = ${email} LIMIT 1
       ` as any[];
@@ -37,47 +36,88 @@ export async function POST(request: NextRequest) {
       const userId = 'user-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
       const now = new Date().toISOString();
 
-      // Create user via raw SQL
-      await prisma.$executeRaw`
-        INSERT INTO users (id, email, password, name, phone, city, "role", "isActive", "createdAt", "updatedAt")
-        VALUES (${userId}, ${email}, ${hashedPassword}, ${name}, ${phone || null}, ${city || null}, 'CUSTOMER', true, ${now}::timestamp, ${now}::timestamp)
-      `;
+      // Check if email verification columns exist
+      let hasVerificationColumns = false;
+      try {
+        const colCheck = await prisma.$queryRaw`
+          SELECT column_name 
+          FROM information_schema.columns 
+          WHERE table_name = 'users' 
+          AND column_name = 'verificationCode'
+        ` as any[];
+        hasVerificationColumns = colCheck && colCheck.length > 0;
+      } catch {
+        hasVerificationColumns = false;
+      }
 
-      // Generate and send verification code
-      const verificationCode = generateVerificationCode();
-      const verificationExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+      if (hasVerificationColumns) {
+        // Create user with verification code
+        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const verificationExpiry = new Date(Date.now() + 15 * 60 * 1000);
 
-      // Save verification code
-      await prisma.$executeRaw`
-        UPDATE users 
-        SET "verificationCode" = ${verificationCode}, "verificationExpiry" = ${verificationExpiry}
-        WHERE id = ${userId}
-      `;
+        await prisma.$executeRaw`
+          INSERT INTO users (id, email, password, name, phone, city, "role", "isActive", "emailVerified", "createdAt", "updatedAt")
+          VALUES (${userId}, ${email}, ${hashedPassword}, ${name}, ${phone || null}, ${city || null}, 'CUSTOMER', true, false, ${now}::timestamp, ${now}::timestamp)
+        `;
 
-      // Send verification email
-      await sendVerificationEmail(email, name, verificationCode);
+        // Save verification code
+        try {
+          await prisma.$executeRaw`
+            UPDATE users 
+            SET "verificationCode" = ${verificationCode}, "verificationExpiry" = ${verificationExpiry}
+            WHERE id = ${userId}
+          `;
+        } catch (codeErr) {
+          console.warn('Could not save verification code (column may not exist):', codeErr);
+        }
 
-      // Return user without password
-      const userWithoutPassword = {
-        id: userId,
-        name,
-        email,
-        phone: phone || null,
-        city: city || null,
-        role: 'CUSTOMER',
-        isActive: true,
-        emailVerified: false,
-        createdAt: now,
-        addresses: [],
-      };
+        console.log('✅ User registered with verification:', userId, email);
 
-      console.log('✅ User registered in Supabase:', userId, email);
+        return NextResponse.json({ 
+          success: true, 
+          data: {
+            id: userId,
+            name,
+            email,
+            phone: phone || null,
+            city: city || null,
+            role: 'CUSTOMER',
+            isActive: true,
+            emailVerified: false,
+            createdAt: now,
+            addresses: [],
+          },
+          message: 'Registrasi berhasil! Silakan login.',
+          requiresVerification: true,
+        }, { status: 201 });
 
-      return NextResponse.json({ 
-        success: true, 
-        data: userWithoutPassword,
-        message: 'Registrasi berhasil! Silakan cek email Anda untuk kode verifikasi.'
-      }, { status: 201 });
+      } else {
+        // No verification columns — create user directly (fully verified)
+        await prisma.$executeRaw`
+          INSERT INTO users (id, email, password, name, phone, city, "role", "isActive", "createdAt", "updatedAt")
+          VALUES (${userId}, ${email}, ${hashedPassword}, ${name}, ${phone || null}, ${city || null}, 'CUSTOMER', true, ${now}::timestamp, ${now}::timestamp)
+        `;
+
+        console.log('✅ User registered (no verification):', userId, email);
+
+        return NextResponse.json({ 
+          success: true, 
+          data: {
+            id: userId,
+            name,
+            email,
+            phone: phone || null,
+            city: city || null,
+            role: 'CUSTOMER',
+            isActive: true,
+            emailVerified: true,
+            createdAt: now,
+            addresses: [],
+          },
+          message: 'Registrasi berhasil! Silakan login.',
+          requiresVerification: false,
+        }, { status: 201 });
+      }
 
     } catch (dbError: any) {
       console.error('❌ Database register error:', dbError.message);

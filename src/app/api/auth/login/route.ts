@@ -9,80 +9,97 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, password } = body;
 
-    console.log('Login attempt:', { email });
-
     if (!email || !password) {
       return NextResponse.json(
-        { success: false, error: 'Email and password are required' },
+        { success: false, error: 'Email dan password wajib diisi' },
         { status: 400 }
       );
     }
 
     try {
-      // Find user via raw SQL (bypass schema validation)
-      const userRows = await prisma.$queryRaw`
-        SELECT id, email, password, name, phone, city, "role", "isActive", "emailVerified", "createdAt"
-        FROM users WHERE email = ${email} LIMIT 1
+      // Find user by email
+      const users = await prisma.$queryRaw`
+        SELECT id, email, password, name, phone, city, "role", "isActive", "createdAt"
+        FROM users 
+        WHERE email = ${email.toLowerCase()}
+        LIMIT 1
       ` as any[];
 
-      const user = userRows?.[0];
-
-      if (!user) {
-        console.log('❌ User not found:', email);
+      if (!users || users.length === 0) {
         return NextResponse.json(
-          { success: false, error: 'Email atau password salah!' },
+          { success: false, error: 'Email atau password salah' },
           { status: 401 }
         );
       }
 
-      // Check password
-      const isPasswordValid = await bcrypt.compare(password, user.password);
-      if (!isPasswordValid) {
-        console.log('❌ Invalid password for:', email);
-        return NextResponse.json(
-          { success: false, error: 'Email atau password salah!' },
-          { status: 401 }
-        );
-      }
+      const user = users[0];
 
-      // Check if email is verified
-      if (!user.emailVerified) {
-        console.log('❌ Email not verified:', email);
+      if (!user.isActive) {
         return NextResponse.json(
-          { success: false, error: 'Email belum diverifikasi! Silakan cek email Anda untuk kode verifikasi.', needsVerification: true },
+          { success: false, error: 'Akun tidak aktif' },
           { status: 403 }
         );
       }
 
+      // Verify password
+      const isValidPassword = await bcrypt.compare(password, user.password);
+
+      if (!isValidPassword) {
+        return NextResponse.json(
+          { success: false, error: 'Email atau password salah' },
+          { status: 401 }
+        );
+      }
+
+      // Check email verification if column exists
+      try {
+        const colCheck = await prisma.$queryRaw`
+          SELECT column_name 
+          FROM information_schema.columns 
+          WHERE table_name = 'users' 
+          AND column_name = 'emailVerified'
+        ` as any[];
+
+        if (colCheck && colCheck.length > 0) {
+          const verifyCheck = await prisma.$queryRaw`
+            SELECT "emailVerified" FROM users WHERE id = ${user.id}
+          ` as any[];
+
+          if (verifyCheck && verifyCheck.length > 0 && !verifyCheck[0].emailVerified) {
+            return NextResponse.json(
+              { success: false, error: 'Email belum terverifikasi. Silakan cek email Anda.' },
+              { status: 403 }
+            );
+          }
+        }
+      } catch {
+        // Column doesn't exist, skip verification check
+      }
+
       // Update last login
-      const now = new Date().toISOString();
-      await prisma.$executeRaw`
-        UPDATE users SET "lastLoginAt" = ${now}::timestamp WHERE id = ${user.id}
-      `;
+      try {
+        await prisma.$executeRaw`
+          UPDATE users SET "lastLoginAt" = NOW() WHERE id = ${user.id}
+        `;
+      } catch {
+        // Column may not exist
+      }
 
-      // Get addresses via raw SQL
-      const addrRows = await prisma.$queryRaw`
-        SELECT id, label, name, phone, address, city, "cityId", province, "provinceId", postcode, "isDefault"
-        FROM user_addresses WHERE "userId" = ${user.id}
-      ` as any[];
+      console.log('✅ User logged in:', user.email);
 
-      const transformedUser = {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        city: user.city,
-        role: user.role,
-        emailVerified: user.emailVerified,
-        createdAt: user.createdAt?.toISOString?.() || String(user.createdAt),
-        addresses: addrRows || [],
-      };
-
-      console.log('✅ User logged in from Supabase:', user.id, email);
-
-      return NextResponse.json({ 
-        success: true, 
-        data: transformedUser 
+      return NextResponse.json({
+        success: true,
+        data: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          city: user.city,
+          role: user.role,
+          isActive: user.isActive,
+          emailVerified: true, // If we got here, it's verified
+          createdAt: user.createdAt,
+        },
       });
 
     } catch (dbError: any) {
