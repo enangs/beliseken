@@ -1,0 +1,62 @@
+name: Deploy to cPanel
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build static export
+        run: |
+          # Hide API routes and auth-server during static export
+          mv src/app/api src/app/_api_bak
+          mv src/lib/auth-server.ts src/lib/_auth-server_bak.ts
+          mv src/lib/prisma.ts src/lib/_prisma_bak.ts
+          
+          # Create stub prisma for build
+          echo 'export const prisma = null;' > src/lib/prisma.ts
+          
+          # Create stub auth for build
+          echo 'export const handlers = {}; export const signIn = null; export const signOut = null;' > src/lib/auth-server.ts
+          
+          # Enable static export
+          sed -i 's/const nextConfig = {/const nextConfig = {\n  output: "export",/' next.config.mjs
+          
+          npm run build
+          
+          # Restore original files
+          mv src/app/_api_bak src/app/api
+          mv src/lib/_auth-server_bak.ts src/lib/auth-server.ts
+          mv src/lib/_prisma_bak.ts src/lib/prisma.ts
+
+      - name: Deploy to cPanel via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.CPANEL_FTP_HOST }}
+          username: ${{ secrets.CPANEL_FTP_USERNAME }}
+          password: ${{ secrets.CPANEL_FTP_PASSWORD }}
+          port: 21
+          server-dir: /public_html/
+          local-dir: ./out/
+          security: loose
+          timeout: 60000

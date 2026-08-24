@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -15,36 +15,55 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Memoized form validation
+  const isFormValid = useMemo(() => {
+    return email.trim() && password;
+  }, [email, password]);
+
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!email.trim() || !password) {
+    if (!isFormValid) {
       setError("Email dan password wajib diisi!");
       return;
     }
 
     setLoading(true);
 
-    const result = await loginUser(email, password);
-    setLoading(false);
-
-    if (result.success) {
-      router.push("/dashboard");
-    } else {
-      setError(result.error || "Gagal masuk!");
+    try {
+      const result = await loginUser(email, password);
+      if (result.success) {
+        // Check if admin
+        if (result.user?.email === "admin@beliseken.com") {
+          router.push("/admin");
+        } else {
+          router.push("/dashboard");
+        }
+      } else {
+        setError(result.error || "Email atau password salah!");
+      }
+    } catch (err) {
+      setError("Terjadi kesalahan. Coba lagi.");
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [email, password, isFormValid, router]);
 
   return (
     <>
       <Header />
-      <main className="flex-1 pt-20 min-h-screen flex items-center justify-center bg-brand-gray px-4">
+      <main className="flex-1 pt-20 min-h-screen flex items-center justify-center bg-brand-gray px-4 py-10">
         <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl border border-brand-border p-8 shadow-sm">
             <div className="text-center mb-8">
-              <h1 className="text-2xl font-bold text-brand-navy">Masuk ke Akun Anda</h1>
-              <p className="text-sm text-brand-muted mt-1">Belum punya akun? <Link href="/register" className="text-brand font-semibold hover:underline">Daftar sekarang</Link></p>
+              <h1 className="text-2xl font-bold text-brand-navy">Masuk ke Akun</h1>
+              <p className="text-sm text-brand-muted mt-1">
+                Belum punya akun?{" "}
+                <Link href="/register" className="text-brand font-semibold hover:underline">
+                  Daftar Sekarang
+                </Link>
+              </p>
             </div>
 
             {error && (
@@ -54,35 +73,55 @@ export default function LoginPage() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Email field */}
               <div>
-                <label className="text-sm font-semibold text-brand-navy block mb-1.5">Email</label>
+                <label className="text-sm font-semibold text-brand-navy block mb-1.5">
+                  Email *
+                </label>
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (error) setError("");
+                  }}
                   placeholder="email@contoh.com"
                   className="w-full px-4 py-3 border border-brand-border rounded-xl outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 text-sm"
+                  required
                 />
               </div>
+
+              {/* Password field with show/hide toggle */}
               <div>
-                <label className="text-sm font-semibold text-brand-navy block mb-1.5">Password</label>
+                <label className="text-sm font-semibold text-brand-navy block mb-1.5">
+                  Password *
+                </label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (error) setError("");
+                    }}
+                    placeholder="Masukkan password"
                     className="w-full px-4 py-3 pr-12 border border-brand-border rounded-xl outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 text-sm"
+                    required
                   />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-muted hover:text-brand">
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-muted hover:text-brand"
+                  >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
               </div>
 
+              {/* Submit button */}
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !isFormValid}
                 className="w-full py-3 bg-brand hover:bg-brand-dark text-white font-bold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
@@ -96,22 +135,14 @@ export default function LoginPage() {
               </button>
             </form>
 
-            <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-brand-border" /></div>
-                <div className="relative flex justify-center text-xs"><span className="bg-white px-3 text-brand-muted">atau masuk dengan</span></div>
-              </div>
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <button className="py-2.5 border border-brand-border rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors">Google</button>
-                <a
-                  href="https://wa.me/6285101256123?text=Halo, saya butuh bantuan login"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="py-2.5 border border-brand-border rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors text-center"
-                >
-                  WhatsApp
-                </a>
-              </div>
+            {/* Admin login hint */}
+            <div className="mt-6 pt-4 border-t border-brand-border">
+              <p className="text-xs text-brand-muted text-center">
+                Admin?{" "}
+                <Link href="/admin/login" className="text-brand font-semibold hover:underline">
+                  Login ke Admin Panel
+                </Link>
+              </p>
             </div>
           </div>
         </div>

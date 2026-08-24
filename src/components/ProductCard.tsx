@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, memo } from "react";
 import Link from "next/link";
 import { ShoppingCart, Star, Check } from "lucide-react";
 import { type ProductResponse } from "@/lib/api";
@@ -11,9 +11,11 @@ interface ProductCardProps {
   product: ProductResponse;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+// Memoized ProductCard for performance
+const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const badgeColors: Record<string, string> = {
     "HOT DEAL": "bg-brand text-white",
@@ -21,9 +23,11 @@ export default function ProductCard({ product }: ProductCardProps) {
     NEW: "bg-emerald-500 text-white",
   };
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  // Memoized cart handler
+  const handleAddToCart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
     // Adapt ProductResponse to CartItem shape
     addItem({
       id: product.id,
@@ -44,8 +48,9 @@ export default function ProductCard({ product }: ProductCardProps) {
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
-  };
+  }, [product, addItem]);
 
+  // Memoized original price calculation
   const originalPrice = product.discount > 0
     ? Math.round(product.sellingPrice / (1 - product.discount / 100))
     : product.sellingPrice;
@@ -55,12 +60,22 @@ export default function ProductCard({ product }: ProductCardProps) {
       {/* Image Container */}
       <Link href={`/product/${product.slug}`}>
         <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
-          {(product as any).imageBase64 ? (
+          {/* Loading skeleton */}
+          {!imageLoaded && (
+            <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+          )}
+          
+          {product.imageBase64 ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={(product as any).imageBase64}
+              src={product.imageBase64}
               alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              loading="lazy" // Native lazy loading
+              decoding="async"
+              onLoad={() => setImageLoaded(true)}
+              className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-300 ${
+                imageLoaded ? "opacity-100" : "opacity-0"
+              }`}
             />
           ) : (
             <>
@@ -161,4 +176,6 @@ export default function ProductCard({ product }: ProductCardProps) {
       </div>
     </div>
   );
-}
+});
+
+export default ProductCard;

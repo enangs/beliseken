@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Search, SlidersHorizontal, Grid3X3, List, ChevronDown } from "lucide-react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { Search, SlidersHorizontal, Grid3X3, List, ChevronDown, Loader2 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import ProductCard from "@/components/ProductCard";
+import LazyProductCard from "@/components/LazyProductCard";
 import { getProducts as fetchProductsAPI, getCategories, type ProductResponse, type CategoryResponse } from "@/lib/api";
 
 const sortOptions = [
@@ -26,32 +26,91 @@ export default function ProductsPage() {
   const [selectedCondition, setSelectedCondition] = useState("Semua");
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const debounceRef = useRef<NodeJS.Timeout>();
 
+  // Initial data fetch
   useEffect(() => {
-    fetchProductsAPI({ limit: 50 })
-      .then((res) => setAllProducts(res.data))
-      .catch(() => {});
-    getCategories()
-      .then((res) => setCategories(res.data))
-      .catch(() => {});
+    const loadData = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const [productsRes, categoriesRes] = await Promise.all([
+          fetchProductsAPI({ limit: 50 }),
+          getCategories()
+        ]);
+        
+        if (productsRes?.data) setAllProducts(productsRes.data);
+        if (categoriesRes?.data) setCategories(categoriesRes.data);
+      } catch (err) {
+        setError("Gagal memuat data. Coba lagi.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
-  const filteredProducts = allProducts
-    .filter((p) => {
-      const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || (p.brand?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = selectedCategory === "semua" || (p.category?.name || '').toLowerCase().includes(selectedCategory);
-      const matchesCondition = selectedCondition === "Semua";
-      return matchesSearch && matchesCategory && matchesCondition;
-    })
-    .sort((a, b) => {
-      switch (selectedSort) {
-        case "price-low": return a.sellingPrice - b.sellingPrice;
-        case "price-high": return b.sellingPrice - a.sellingPrice;
-        case "popular": return b.soldCount - a.soldCount;
-        case "rating": return b.avgRating - a.avgRating;
-        default: return 0;
-      }
-    });
+  // Debounced search for client-side filtering
+  const debouncedSearch = useCallback((value: string) => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    debounceRef.current = setTimeout(() => {
+      setSearchQuery(value);
+    }, 200); // 200ms debounce for client-side filtering
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
+  // Memoized filtered products
+  const filteredProducts = useMemo(() => {
+    return allProducts
+      .filter((p) => {
+        const matchesSearch = 
+          p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+          (p.brand?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesCategory = 
+          selectedCategory === "semua" || 
+          (p.category?.name || '').toLowerCase().includes(selectedCategory);
+        const matchesCondition = selectedCondition === "Semua";
+        return matchesSearch && matchesCategory && matchesCondition;
+      })
+      .sort((a, b) => {
+        switch (selectedSort) {
+          case "price-low": return a.sellingPrice - b.sellingPrice;
+          case "price-high": return b.sellingPrice - a.sellingPrice;
+          case "popular": return b.soldCount - a.soldCount;
+          case "rating": return b.avgRating - a.avgRating;
+          default: return 0;
+        }
+      });
+  }, [allProducts, searchQuery, selectedCategory, selectedSort, selectedCondition]);
+
+  // Memoized category list
+  const categoryButtons = useMemo(() => {
+    return categories.map((cat) => (
+      <button
+        key={cat.id}
+        onClick={() => setSelectedCategory(cat.name.toLowerCase())}
+        className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors ${
+          selectedCategory === cat.name.toLowerCase()
+            ? "bg-brand/10 text-brand font-semibold"
+            : "text-brand-muted hover:bg-gray-100"
+        }`}
+      >
+        {cat.icon} {cat.name}
+      </button>
+    ));
+  }, [categories, selectedCategory]);
 
   return (
     <>
@@ -62,7 +121,7 @@ export default function ProductsPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h1 className="text-3xl font-bold text-brand-navy mb-2">Semua Produk</h1>
             <p className="text-brand-muted">
-              Menampilkan {filteredProducts.length} produk elektronik bekas berkualitas
+              {loading ? "Memuat produk..." : `Menampilkan ${filteredProducts.length} produk elektronik bekas berkualitas`}
             </p>
           </div>
         </div>
@@ -82,8 +141,7 @@ export default function ProductsPage() {
                     <input
                       type="text"
                       placeholder="Cari..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onChange={(e) => debouncedSearch(e.target.value)}
                       className="w-full bg-transparent px-3 py-2.5 text-sm outline-none"
                     />
                   </div>
@@ -103,19 +161,7 @@ export default function ProductsPage() {
                     >
                       Semua Kategori
                     </button>
-                    {categories.map((cat) => (
-                      <button
-                        key={cat.id}
-                        onClick={() => setSelectedCategory(cat.name.toLowerCase())}
-                        className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors ${
-                          selectedCategory === cat.name.toLowerCase()
-                            ? "bg-brand/10 text-brand font-semibold"
-                            : "text-brand-muted hover:bg-gray-100"
-                        }`}
-                      >
-                        {cat.icon} {cat.name}
-                      </button>
-                    ))}
+                    {categoryButtons}
                   </div>
                 </div>
 
@@ -162,7 +208,7 @@ export default function ProductsPage() {
                     Filter
                   </button>
                   <span className="text-sm text-brand-muted">
-                    {filteredProducts.length} produk ditemukan
+                    {loading ? "Memuat..." : `${filteredProducts.length} produk ditemukan`}
                   </span>
                 </div>
 
@@ -201,18 +247,33 @@ export default function ProductsPage() {
                 </div>
               </div>
 
+              {/* Loading State */}
+              {loading && (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 size={32} className="animate-spin text-brand" />
+                  <span className="ml-3 text-brand-muted">Memuat produk...</span>
+                </div>
+              )}
+
+              {/* Error State */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm mb-6">
+                  {error}
+                </div>
+              )}
+
               {/* Product Grid */}
-              {filteredProducts.length > 0 ? (
+              {!loading && filteredProducts.length > 0 ? (
                 <div className={`grid gap-5 ${
                   viewMode === "grid"
                     ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
                     : "grid-cols-1"
                 }`}>
                   {filteredProducts.map((product) => (
-                    <ProductCard key={product.id} product={product} />
+                    <LazyProductCard key={product.id} product={product} />
                   ))}
                 </div>
-              ) : (
+              ) : !loading && (
                 <div className="text-center py-20">
                   <div className="text-5xl mb-4">🔍</div>
                   <h3 className="text-xl font-bold text-brand-navy mb-2">Produk Tidak Ditemukan</h3>
