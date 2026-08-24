@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { generateVerificationCode, sendVerificationEmail } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,6 +43,20 @@ export async function POST(request: NextRequest) {
         VALUES (${userId}, ${email}, ${hashedPassword}, ${name}, ${phone || null}, ${city || null}, 'CUSTOMER', true, ${now}::timestamp, ${now}::timestamp)
       `;
 
+      // Generate and send verification code
+      const verificationCode = generateVerificationCode();
+      const verificationExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+      // Save verification code
+      await prisma.$executeRaw`
+        UPDATE users 
+        SET "verificationCode" = ${verificationCode}, "verificationExpiry" = ${verificationExpiry}
+        WHERE id = ${userId}
+      `;
+
+      // Send verification email
+      await sendVerificationEmail(email, name, verificationCode);
+
       // Return user without password
       const userWithoutPassword = {
         id: userId,
@@ -51,6 +66,7 @@ export async function POST(request: NextRequest) {
         city: city || null,
         role: 'CUSTOMER',
         isActive: true,
+        emailVerified: false,
         createdAt: now,
         addresses: [],
       };
@@ -59,7 +75,8 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({ 
         success: true, 
-        data: userWithoutPassword 
+        data: userWithoutPassword,
+        message: 'Registrasi berhasil! Silakan cek email Anda untuk kode verifikasi.'
       }, { status: 201 });
 
     } catch (dbError: any) {

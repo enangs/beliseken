@@ -94,7 +94,7 @@ export async function registerUser(data: {
 export async function loginUser(
   email: string,
   password: string
-): Promise<{ success: boolean; error?: string; user?: User }> {
+): Promise<{ success: boolean; error?: string; user?: User; needsVerification?: boolean }> {
   try {
     const response = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
@@ -112,6 +112,11 @@ export async function loginUser(
       setLocalSession(user);
       console.log('✅ Logged in via API, session saved');
       return { success: true, user };
+    }
+    
+    // Check if needs verification
+    if (result.needsVerification) {
+      return { success: false, error: result.error, needsVerification: true };
     }
     
     return { success: false, error: result.error || 'Login failed' };

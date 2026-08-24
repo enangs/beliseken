@@ -403,6 +403,11 @@ model User {
   isActive    Boolean  @default(true)
   lastLoginAt DateTime?
 
+  // Email Verification
+  emailVerified       Boolean  @default(false)
+  verificationCode    String?
+  verificationExpiry  DateTime?
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     try {
       // Find user via raw SQL (bypass schema validation)
       const userRows = await prisma.$queryRaw`
-        SELECT id, email, password, name, phone, city, "role", "isActive", "createdAt"
+        SELECT id, email, password, name, phone, city, "role", "isActive", "emailVerified", "createdAt"
         FROM users WHERE email = ${email} LIMIT 1
       ` as any[];
 
@@ -45,6 +45,15 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Check if email is verified
+      if (!user.emailVerified) {
+        console.log('❌ Email not verified:', email);
+        return NextResponse.json(
+          { success: false, error: 'Email belum diverifikasi! Silakan cek email Anda untuk kode verifikasi.', needsVerification: true },
+          { status: 403 }
+        );
+      }
+
       // Update last login
       const now = new Date().toISOString();
       await prisma.$executeRaw`
@@ -64,6 +73,7 @@ export async function POST(request: NextRequest) {
         phone: user.phone,
         city: user.city,
         role: user.role,
+        emailVerified: user.emailVerified,
         createdAt: user.createdAt?.toISOString?.() || String(user.createdAt),
         addresses: addrRows || [],
       };

@@ -3,7 +3,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, Mail } from "lucide-react";
 import Header from "@/components/Header";
 import { loginUser } from "@/lib/auth-api";
 
@@ -14,6 +14,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [sendingCode, setSendingCode] = useState(false);
 
   // Memoized form validation
   const isFormValid = useMemo(() => {
@@ -40,6 +42,9 @@ export default function LoginPage() {
         } else {
           router.push("/dashboard");
         }
+      } else if (result.needsVerification) {
+        setNeedsVerification(true);
+        setError(result.error || "Email belum diverifikasi!");
       } else {
         setError(result.error || "Email atau password salah!");
       }
@@ -69,6 +74,41 @@ export default function LoginPage() {
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm mb-4">
                 {error}
+              </div>
+            )}
+
+            {/* Email Verification Notice */}
+            {needsVerification && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+                <div className="flex items-start gap-3">
+                  <Mail size={20} className="text-amber-600 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm text-amber-800 font-medium mb-2">
+                      Email belum diverifikasi!
+                    </p>
+                    <button
+                      onClick={async () => {
+                        setSendingCode(true);
+                        try {
+                          await fetch("/api/auth/send-verification", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ email }),
+                          });
+                          router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+                        } catch {
+                          // ignore
+                        } finally {
+                          setSendingCode(false);
+                        }
+                      }}
+                      disabled={sendingCode}
+                      className="text-sm font-semibold text-amber-700 hover:text-amber-900 underline"
+                    >
+                      {sendingCode ? "Mengirim..." : "Kirim Ulang Kode Verifikasi"}
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
 

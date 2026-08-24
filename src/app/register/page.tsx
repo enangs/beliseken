@@ -46,7 +46,8 @@ export default function RegisterPage() {
     try {
       const result = await registerUser(form);
       if (result.success) {
-        router.push("/dashboard");
+        // Redirect to verification page
+        router.push(`/verify-email?email=${encodeURIComponent(form.email)}&name=${encodeURIComponent(form.name)}`);
       } else {
         setError(result.error || "Gagal mendaftar!");
       }
