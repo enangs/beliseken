@@ -156,7 +156,17 @@ export default function FlashSale() {
               >
                 {/* Image */}
                 <div className="relative aspect-square bg-brand-gray flex items-center justify-center overflow-hidden">
-                  <span className="text-5xl opacity-20">📦</span>
+                  {product.imageBase64 ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={product.imageBase64}
+                      alt={product.name}
+                      loading="lazy"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <span className="text-5xl opacity-20">📦</span>
+                  )}
 
                   {/* Discount Badge */}
                   <div className="absolute top-2 left-2 bg-brand text-white text-xs font-bold px-2 py-1 rounded-lg">
