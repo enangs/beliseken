@@ -104,7 +104,6 @@ export default function RootLayout({
             `,
           }}
         />
-        />
 
         {/* Social Media Schema Markup */}
         <script
