@@ -702,31 +702,31 @@ model SellRequest {
   model               String
 
   // Photos (array of Cloudinary URLs)
-  photos              String   @default("[]") // JSON array
+  photos              String   @default("[]") @map("photos") // JSON array
 
   // Condition
   condition           String
-  functionalCondition String   @default("Semua Berfungsi")
-  damageDescription   String?
+  functionalCondition String   @default("Semua Berfungsi") @map("functional_condition")
+  damageDescription   String?  @map("damage_description")
 
   // Pricing
-  askingPrice         BigInt?
-  wantOffer           Boolean  @default(false)
-  offeredPrice        BigInt?
+  askingPrice         BigInt?  @map("asking_price")
+  wantOffer           Boolean  @default(false) @map("want_offer")
+  offeredPrice        BigInt?  @map("offered_price")
 
   // Contact
   whatsapp            String
   location            String
-  userId              String?
+  userId              String?  @map("user_id")
 
   // Status
   status              String   @default("PENDING") // PENDING, CONTACTED, NEGOTIATION, ACCEPTED, REJECTED, COMPLETED
 
   // Admin notes
-  adminNotes          String?
+  adminNotes          String?  @map("admin_notes")
 
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
 
   @@index([status])
   @@index([createdAt])
