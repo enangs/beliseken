@@ -371,7 +371,7 @@ export default function AdminSellRequestsPage() {
 
               {/* Product Info */}
               <div className="bg-brand-gray rounded-xl p-4">
-                <h3 className="font-bold text-brand-navy mb-3">📦 Informasi Barang</h3>
+                <h3 className="font-bold text-brand-navy mb-3">Informasi Barang</h3>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
                     <span className="text-brand-muted">Brand:</span>

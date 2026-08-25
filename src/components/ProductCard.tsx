@@ -67,7 +67,7 @@ const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
             <>
               <div className="absolute inset-0 bg-gradient-to-br from-brand/10 to-brand-dark/10" />
               <div className="absolute inset-0 flex items-center justify-center text-4xl opacity-30">
-                📦
+                
               </div>
             </>
           )}

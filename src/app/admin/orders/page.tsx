@@ -252,7 +252,7 @@ export default function AdminOrdersPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* Items */}
                       <div>
-                        <h4 className="text-sm font-semibold text-brand-navy mb-2">📦 Item Pesanan:</h4>
+                        <h4 className="text-sm font-semibold text-brand-navy mb-2">Item Pesanan:</h4>
                         {order.items && order.items.length > 0 ? (
                           order.items.map((item, i) => (
                             <div key={i} className="flex justify-between text-sm py-1 border-b border-brand-border last:border-0">

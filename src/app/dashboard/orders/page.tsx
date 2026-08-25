@@ -269,7 +269,7 @@ export default function OrdersPage() {
 
                         {/* Items */}
                         <div className="bg-white rounded-xl p-4 border border-brand-border mb-4">
-                          <h4 className="font-semibold text-brand-navy text-sm mb-3">📦 Item Pesanan</h4>
+                          <h4 className="font-semibold text-brand-navy text-sm mb-3">Item Pesanan</h4>
                           <div className="space-y-3">
                             {order.items?.map((item, idx) => (
                               <div key={idx} className="flex items-center gap-3">

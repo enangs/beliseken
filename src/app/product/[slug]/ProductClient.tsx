@@ -221,7 +221,7 @@ export default function ProductClient({ slug }: { slug: string }) {
 
               {(product.weight || product.dimensions) && (
                 <div className="mb-6">
-                  <h3 className="font-semibold text-brand-navy mb-3">📦 Informasi Pengiriman</h3>
+                  <h3 className="font-semibold text-brand-navy mb-3">Informasi Pengiriman</h3>
                   <div className="grid grid-cols-2 gap-3">
                     {product.weight && (
                       <div className="bg-brand-gray rounded-lg p-3">
@@ -310,7 +310,7 @@ export default function ProductClient({ slug }: { slug: string }) {
               {allProducts.filter((p) => p.id !== product.id).slice(0, 4).map((p) => (
                 <Link key={p.id} href={`/product/${p.slug}`} className="group bg-white rounded-xl border border-brand-border overflow-hidden hover:shadow-lg transition-all">
                   <div className="aspect-[4/3] bg-brand-gray flex items-center justify-center overflow-hidden">
-                    <span className="text-4xl opacity-20">📦</span>
+                    
                   </div>
                   <div className="p-4">
                     <h3 className="font-semibold text-brand-navy text-sm group-hover:text-brand transition-colors line-clamp-2">{p.name}</h3>

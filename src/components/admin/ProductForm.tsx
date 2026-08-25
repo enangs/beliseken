@@ -392,7 +392,7 @@ export default function ProductForm({
 
       {/* Weight & Dimensions */}
       <div className="bg-white rounded-xl border border-brand-border p-5">
-        <h2 className="font-bold text-brand-navy mb-4">📦 Berat & Dimensi (untuk Pengiriman)</h2>
+        <h2 className="font-bold text-brand-navy mb-4">Berat & Dimensi (untuk Pengiriman)</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-semibold text-brand-navy mb-1">Berat (gram)</label>
@@ -408,7 +408,7 @@ export default function ProductForm({
 
       {/* Stock & Supplier */}
       <div className="bg-white rounded-xl border border-brand-border p-5">
-        <h2 className="font-bold text-brand-navy mb-4">📦 Inventori & Supplier</h2>
+        <h2 className="font-bold text-brand-navy mb-4">Inventori & Supplier</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-semibold text-brand-navy mb-1">Stok (Unit) *</label>

@@ -167,7 +167,7 @@ export default function FlashSale() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
-                    <span className="text-5xl opacity-20">📦</span>
+                    
                   )}
 
                   {/* Discount Badge */}
