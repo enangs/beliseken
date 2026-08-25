@@ -283,6 +283,7 @@ export default function Header() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Cari laptop, HP, monitor..."
+              aria-label="Cari produk"
                   className="w-full bg-transparent px-3 py-3 text-sm outline-none"
                 />
                 <button type="submit" className="px-4 py-3 text-sm font-semibold text-brand">

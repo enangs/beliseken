@@ -2,6 +2,7 @@
 
 import { useState, useCallback, memo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ShoppingCart, Star, Check } from "lucide-react";
 import { type ProductResponse } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
@@ -11,11 +12,9 @@ interface ProductCardProps {
   product: ProductResponse;
 }
 
-// Memoized ProductCard for performance
 const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
 
   const badgeColors: Record<string, string> = {
     "HOT DEAL": "bg-brand text-white",
@@ -23,12 +22,9 @@ const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
     NEW: "bg-emerald-500 text-white",
   };
 
-  // Memoized cart handler
   const handleAddToCart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    // Adapt ProductResponse to CartItem shape
     addItem({
       id: product.id,
       name: product.name,
@@ -50,32 +46,23 @@ const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
     setTimeout(() => setAdded(false), 1500);
   }, [product, addItem]);
 
-  // Memoized original price calculation
   const originalPrice = product.discount > 0
     ? Math.round(product.sellingPrice / (1 - product.discount / 100))
     : product.sellingPrice;
 
   return (
     <div className="group bg-white rounded-xl border border-brand-border overflow-hidden hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 w-full">
-      {/* Image Container */}
       <Link href={`/product/${product.slug}`}>
         <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
-          {/* Loading skeleton */}
-          {!imageLoaded && (
-            <div className="absolute inset-0 bg-gray-200 animate-pulse" />
-          )}
-          
           {product.imageBase64 ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={product.imageBase64}
-              alt={product.name}
-              loading="lazy" // Native lazy loading
-              decoding="async"
-              onLoad={() => setImageLoaded(true)}
-              className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-300 ${
-                imageLoaded ? "opacity-100" : "opacity-0"
-              }`}
+              alt={`${product.name} - ${product.brand?.name || ""} ${product.category?.name || ""}`}
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              className="object-cover group-hover:scale-105 transition-all duration-300"
+              loading="lazy"
+              quality={75}
             />
           ) : (
             <>
@@ -86,10 +73,10 @@ const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
             </>
           )}
 
-          {/* Badge */}
           {product.badge && (
             <span
-              className={`absolute top-3 left-3 px-2.5 py-1 text-[11px] font-bold rounded-md ${badgeColors[product.badge] || "bg-gray-500 text-white"}`}
+              className={`absolute top-3 left-3 px-2.5 py-1 text-[11px] font-bold rounded-md z-10 ${badgeColors[product.badge] || "bg-gray-500 text-white"}`}
+              aria-label={`Badge: ${product.badge}`}
             >
               {product.badge}
             </span>
@@ -97,9 +84,7 @@ const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
         </div>
       </Link>
 
-      {/* Content */}
       <div className="p-4">
-        {/* Product Name */}
         <Link href={`/product/${product.slug}`}>
           <p className="text-[10px] font-mono text-brand-muted mb-1">{product.sku}</p>
           <h3 className="font-semibold text-brand-navy text-sm leading-snug line-clamp-2 mb-2 group-hover:text-brand transition-colors min-h-[40px]">
@@ -107,8 +92,7 @@ const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
           </h3>
         </Link>
 
-        {/* Rating */}
-        <div className="flex items-center gap-1 mb-3">
+        <div className="flex items-center gap-1 mb-3" aria-label={`Rating ${product.avgRating} dari 5, ${product.reviewCount} ulasan`}>
           <div className="flex items-center gap-0.5">
             {[...Array(5)].map((_, i) => (
               <Star
@@ -119,6 +103,7 @@ const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
                     ? "fill-amber-400 text-amber-400"
                     : "fill-gray-200 text-gray-200"
                 }
+                aria-hidden="true"
               />
             ))}
           </div>
@@ -127,7 +112,6 @@ const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
           </span>
         </div>
 
-        {/* Price */}
         <div className="flex items-baseline gap-2 mb-3">
           <span className="text-lg font-bold text-brand">
             {formatPrice(product.sellingPrice)}
@@ -139,16 +123,14 @@ const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
 
-        {/* Discount */}
         {product.discount > 0 && (
           <span className="text-xs font-bold text-brand mb-3 block">
             -{product.discount}% OFF
           </span>
         )}
 
-        {/* Add to Cart Button */}
         {product.stock === 0 ? (
-          <div className="w-full py-2.5 bg-red-100 text-red-600 text-sm font-bold rounded-lg text-center">
+          <div className="w-full py-2.5 bg-red-100 text-red-600 text-sm font-bold rounded-lg text-center" role="status">
             SOLD OUT
           </div>
         ) : (
@@ -159,15 +141,16 @@ const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
                 ? "bg-emerald-500"
                 : "bg-brand-navy hover:bg-brand"
             }`}
+            aria-label={`Tambah ${product.name} ke keranjang`}
           >
             {added ? (
               <>
-                <Check size={15} />
+                <Check size={15} aria-hidden="true" />
                 Ditambahkan!
               </>
             ) : (
               <>
-                <ShoppingCart size={15} />
+                <ShoppingCart size={15} aria-hidden="true" />
                 Keranjang
               </>
             )}

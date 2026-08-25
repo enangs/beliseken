@@ -76,7 +76,7 @@ export default function Footer() {
             <h3 className="text-2xl font-bold mb-2">
               📧 Dapatkan Info Promo & Produk Terbaru!
             </h3>
-            <p className="text-white/60 mb-6">
+            <p className="text-white/70 mb-6">
               Berlangganan newsletter kami untuk mendapatkan diskon eksklusif dan
               update produk baru.
             </p>
@@ -96,7 +96,7 @@ export default function Footer() {
                 {isSubscribed ? "✓ Tersubscribe!" : "Berlangganan →"}
               </button>
             </form>
-            <p className="text-white/30 text-xs mt-3">
+            <p className="text-white/50 text-xs mt-3">
               Kami hormati privasi kamu. Unsubscribe kapan saja.
             </p>
           </div>
@@ -111,7 +111,7 @@ export default function Footer() {
             <h4 className="font-bold text-xl mb-4">
               beli<span className="text-brand">seken</span>.com
             </h4>
-            <p className="text-white/50 text-sm leading-relaxed mb-5">
+            <p className="text-white/70 text-sm leading-relaxed mb-5">
               {storeInfo.tagline} — di Bekasi. Hemat hingga 70% dari harga baru.
             </p>
             <div className="flex items-center gap-3">
@@ -119,6 +119,7 @@ export default function Footer() {
                 href={storeInfo.social.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Instagram BeliSeken"
                 className="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center hover:bg-gradient-to-tr hover:from-purple-500 hover:to-pink-500 transition-colors"
               >
                 <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
@@ -126,9 +127,10 @@ export default function Footer() {
                 </svg>
               </a>
               <a
-                href="#"
+                href="https://wa.me/6285101256123"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="WhatsApp BeliSeken"
                 className="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center hover:bg-[#25D366] transition-colors"
               >
                 <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
@@ -139,6 +141,7 @@ export default function Footer() {
                 href={storeInfo.social.facebook}
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Facebook BeliSeken"
                 className="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center hover:bg-blue-600 transition-colors"
               >
                 <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
@@ -149,6 +152,7 @@ export default function Footer() {
                 href={storeInfo.social.tiktok}
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="TikTok BeliSeken"
                 className="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center hover:bg-black transition-colors"
               >
                 <span className="text-xs font-bold">TT</span>
@@ -157,6 +161,7 @@ export default function Footer() {
                 href={storeInfo.social.youtube}
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="YouTube BeliSeken"
                 className="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center hover:bg-red-600 transition-colors"
               >
                 <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">

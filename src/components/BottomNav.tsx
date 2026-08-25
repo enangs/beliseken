@@ -23,7 +23,7 @@ export default function BottomNav() {
   if (pathname.startsWith("/admin")) return null;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-brand-border safe-area-bottom lg:hidden">
+    <nav aria-label="Navigasi mobile" className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-brand-border safe-area-bottom lg:hidden">
       <div className="max-w-lg mx-auto flex items-center justify-around h-16 px-2">
         {navItems.map((item) => {
           const isActive = pathname === item.href || 

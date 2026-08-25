@@ -52,8 +52,7 @@ export default function BlogPreview() {
               >
                 <div className="aspect-[16/9] bg-gradient-to-br from-brand/10 to-brand-dark/10 relative overflow-hidden">
                   {featuredPost.imageBase64 ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={featuredPost.imageBase64} alt={featuredPost.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <Image src={featuredPost.imageBase64} alt={featuredPost.title} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" quality={75} />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-5xl opacity-20">📖</div>
                   )}
@@ -94,8 +93,7 @@ export default function BlogPreview() {
               >
                 <div className="aspect-[16/9] bg-gradient-to-br from-brand/5 to-brand-dark/5 relative overflow-hidden">
                   {post.imageBase64 ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={post.imageBase64} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <Image src={post.imageBase64} alt={post.title} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" quality={75} />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-3xl opacity-20">📝</div>
                   )}

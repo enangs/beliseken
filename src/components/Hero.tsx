@@ -107,15 +107,17 @@ export default function Hero() {
                 <>
                   <button
                     onClick={prevBanner}
+                    aria-label="Banner sebelumnya"
                     className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white backdrop-blur-sm transition-colors"
                   >
-                    <ChevronLeft size={20} />
+                    <ChevronLeft size={20} aria-hidden="true" />
                   </button>
                   <button
                     onClick={nextBanner}
+                    aria-label="Banner berikutnya"
                     className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white backdrop-blur-sm transition-colors"
                   >
-                    <ChevronRight size={20} />
+                    <ChevronRight size={20} aria-hidden="true" />
                   </button>
                 </>
               )}
@@ -127,6 +129,7 @@ export default function Hero() {
                     <button
                       key={i}
                       onClick={() => setCurrentBanner(i)}
+                      aria-label={`Banner ${i + 1}`}
                       className={`w-2 h-2 rounded-full transition-all ${
                         i === currentBanner ? "bg-white w-6" : "bg-white/40"
                       }`}
@@ -198,7 +201,7 @@ export default function Hero() {
                 <span className="text-2xl">{item.icon}</span>
                 <div>
                   <p className="text-sm font-bold text-brand-navy">{item.label}</p>
-                  <p className="text-xs text-brand-muted">{item.sublabel}</p>
+                  <p className="text-xs text-gray-500">{item.sublabel}</p>
                 </div>
               </div>
             ))}
