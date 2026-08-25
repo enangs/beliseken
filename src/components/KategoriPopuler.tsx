@@ -2,15 +2,16 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { getCategories, type CategoryResponse } from "@/lib/api";
 
-// Category icons mapping (SVG-based for clean look)
+// Category icon mapping (SVG files)
 const categoryIcons: Record<string, string> = {
-  "Laptop & Notebook": "💻",
-  "Smartphone & Tablet": "📱",
-  "Monitor & TV": "🖥️",
-  "Networking & IT": "🌐",
-  "Peripheral & Aksesoris": "⌨️",
+  "Laptop & Notebook": "/icons/laptop.svg",
+  "Smartphone & Tablet": "/icons/device-mobile.svg",
+  "Monitor & TV": "/icons/monitor.svg",
+  "Networking & IT": "/icons/network.svg",
+  "Peripheral & Aksesoris": "/icons/circuitry.svg",
 };
 
 // Badge configuration for each category
@@ -45,21 +46,21 @@ export default function KategoriPopuler() {
           </Link>
         </div>
 
-        {/* Category Grid - Jamtangan.com Style */}
-        <div className="grid grid-cols-3 sm:grid-cols-5 gap-4">
+        {/* Category Grid - Clean SVG Icons */}
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-6">
           {categories.length === 0 ? (
             // Skeleton placeholder
             <>
               {[1, 2, 3, 4, 5].map((i) => (
                 <div key={i} className="flex flex-col items-center gap-3">
-                  <div className="w-20 h-20 bg-gray-200 rounded-2xl animate-pulse" />
+                  <div className="w-16 h-16 bg-gray-200 rounded animate-pulse" />
                   <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
                 </div>
               ))}
             </>
           ) : (
             categories.map((category) => {
-              const icon = categoryIcons[category.name] || "📦";
+              const icon = categoryIcons[category.name] || "/icons/lightbulb.svg";
               const badge = categoryBadges[category.name];
 
               return (
@@ -68,22 +69,27 @@ export default function KategoriPopuler() {
                   href={`/category/${category.slug}`}
                   className="group flex flex-col items-center gap-3"
                 >
-                  {/* Icon Card */}
+                  {/* Icon Container - Clean & Transparent */}
                   <div className="relative">
                     {/* Badge */}
                     {badge && (
                       <span
-                        className={`absolute -top-2 -right-2 ${badge.color} text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10`}
+                        className={`absolute -top-2 -right-3 ${badge.color} text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10`}
                       >
                         {badge.label}
                       </span>
                     )}
 
-                    {/* Icon Container */}
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-50 group-hover:bg-brand/5 border-2 border-gray-100 group-hover:border-brand/30 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:shadow-lg group-hover:scale-105">
-                      <span className="text-4xl sm:text-5xl group-hover:scale-110 transition-transform duration-300">
-                        {icon}
-                      </span>
+                    {/* SVG Icon - No background, just transparent */}
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                      <Image
+                        src={icon}
+                        alt={category.name}
+                        width={64}
+                        height={64}
+                        className="w-14 h-14 sm:w-16 sm:h-16 object-contain opacity-80 group-hover:opacity-100 transition-opacity"
+                        style={{ filter: "brightness(0) saturate(100%)" }}
+                      />
                     </div>
                   </div>
 
