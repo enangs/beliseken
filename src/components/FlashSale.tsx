@@ -167,7 +167,9 @@ export default function FlashSale() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
-                    
+                    <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                      <Zap size={20} className="text-gray-400" />
+                    </div>
                   )}
 
                   {/* Discount Badge */}

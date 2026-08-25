@@ -153,7 +153,12 @@ function SearchResults() {
             </div>
           ) : !loading && query ? (
             <div className="text-center py-20">
-              <div className="text-5xl mb-4">🔍</div>
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 text-gray-400">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="M21 21l-4.35-4.35" />
+                </svg>
+              </div>
               <h3 className="text-xl font-bold text-brand-navy mb-2">Tidak Ada Hasil</h3>
               <p className="text-brand-muted">Coba kata kunci lain atau jelajahi katalog kami.</p>
             </div>

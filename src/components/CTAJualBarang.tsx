@@ -12,8 +12,12 @@ export default function CTAJualBarang() {
 
           <div className="relative z-10 max-w-3xl">
             {/* Headline */}
-            <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4">
-              💵 Punya Elektronik Bekas?
+            <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4 flex items-center gap-3">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10">
+                <line x1="12" y1="1" x2="12" y2="23" />
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg>
+              Punya Elektronik Bekas?
             </h2>
 
             <p className="text-xl text-white/90 mb-8">
@@ -32,7 +36,9 @@ export default function CTAJualBarang() {
                   key={i}
                   className="flex items-center gap-2 text-white/95"
                 >
-                  <span className="text-lg">✅</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-green-300 flex-shrink-0">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
                   <span className="text-sm font-medium">{benefit}</span>
                 </div>
               ))}
@@ -42,9 +48,13 @@ export default function CTAJualBarang() {
             <div className="flex flex-wrap gap-4">
               <Link
                 href="/sell"
-                className="px-8 py-4 bg-white text-brand font-bold rounded-xl hover:bg-gray-100 transition-colors text-base shadow-lg"
+                className="px-8 py-4 bg-white text-brand font-bold rounded-xl hover:bg-gray-100 transition-colors text-base shadow-lg flex items-center gap-2"
               >
-                📸 Kirim Foto Sekarang
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                  <circle cx="12" cy="13" r="4" />
+                </svg>
+                Kirim Foto Sekarang
               </Link>
               <a
                 href={`${storeInfo.whatsappLink}?text=Halo, saya ingin menjual barang bekas. Mohon info lebih lanjut.`}
