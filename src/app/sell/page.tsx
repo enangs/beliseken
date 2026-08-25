@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { Camera, CheckCircle, Upload, ArrowRight, ArrowLeft, Loader2, MessageCircle } from "lucide-react";
+import { useState, useRef } from "react";
+import { Camera, CheckCircle, Upload, ArrowRight, ArrowLeft, Loader2, MessageCircle, X, ImageIcon } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getCurrentUser } from "@/lib/auth-api";
+import { CLOUDINARY_CONFIG } from "@/lib/cloudinary";
 
 const steps = ["Info Dasar", "Foto Produk", "Kondisi Barang", "Harga & Kontak"];
 
@@ -24,6 +25,10 @@ export default function SellPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [whatsappLink, setWhatsappLink] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const [formData, setFormData] = useState({
     category: "",
     subcategory: "",
@@ -45,6 +50,120 @@ export default function SellPage() {
 
   const handlePrev = () => {
     if (currentStep > 0) setCurrentStep(currentStep - 1);
+  };
+
+  // Upload photo to Cloudinary
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const remainingSlots = 10 - formData.photos.length;
+    const filesToProcess = Array.from(files).slice(0, remainingSlots);
+
+    setUploading(true);
+    setUploadProgress(`Mengupload 0/${filesToProcess.length} foto...`);
+
+    const uploadedUrls: string[] = [];
+
+    for (let i = 0; i < filesToProcess.length; i++) {
+      setUploadProgress(`Mengupload ${i + 1}/${filesToProcess.length} foto...`);
+      
+      const file = filesToProcess[i];
+      
+      // Compress image before upload
+      const compressedFile = await compressImage(file);
+      
+      try {
+        const formDataUpload = new FormData();
+        formDataUpload.append("file", compressedFile);
+        formDataUpload.append("upload_preset", CLOUDINARY_CONFIG.uploadPreset);
+        formDataUpload.append("folder", "beliseken/sell-requests");
+        formDataUpload.append("resource_type", "image");
+
+        const response = await fetch(
+          `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`,
+          {
+            method: "POST",
+            body: formDataUpload,
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          uploadedUrls.push(data.secure_url);
+        }
+      } catch (error) {
+        console.error("Upload error:", error);
+      }
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      photos: [...prev.photos, ...uploadedUrls],
+    }));
+
+    setUploading(false);
+    setUploadProgress("");
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  // Compress image before upload
+  const compressImage = (file: File): Promise<File> => {
+    return new Promise((resolve) => {
+      if (file.size < 200 * 1024) {
+        resolve(file);
+        return;
+      }
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const img = new Image();
+
+      img.onload = () => {
+        const maxSize = 1200;
+        let { width, height } = img;
+
+        if (width > maxSize || height > maxSize) {
+          if (width > height) {
+            height = (height / width) * maxSize;
+            width = maxSize;
+          } else {
+            width = (width / height) * maxSize;
+            height = maxSize;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            const compressedFile = new File([blob!], file.name, {
+              type: "image/jpeg",
+              lastModified: Date.now(),
+            });
+            resolve(compressedFile);
+          },
+          "image/jpeg",
+          0.8
+        );
+      };
+
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  // Remove photo
+  const removePhoto = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      photos: prev.photos.filter((_, i) => i !== index),
+    }));
   };
 
   const handleSubmit = async () => {
@@ -135,6 +254,10 @@ export default function SellPage() {
                     <span className="ml-2 font-semibold">
                       {formData.wantOffer ? "Minta Penawaran" : `Rp ${parseInt(formData.askingPrice || "0").toLocaleString("id-ID")}`}
                     </span>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-brand-muted">Foto:</span>
+                    <span className="ml-2 font-semibold">{formData.photos.length} foto</span>
                   </div>
                 </div>
               </div>
@@ -261,23 +384,89 @@ export default function SellPage() {
               </div>
             )}
 
-            {/* Step 2: Photos */}
+            {/* Step 2: Photos - NOW WITH WORKING UPLOAD */}
             {currentStep === 1 && (
               <div className="space-y-5">
                 <h2 className="text-xl font-bold text-brand-navy mb-4">LANGKAH 2/4: FOTO PRODUK</h2>
-                <div className="border-2 border-dashed border-brand-border rounded-2xl p-10 text-center hover:border-brand transition-colors cursor-pointer">
-                  <Upload size={48} className="mx-auto text-brand-muted mb-4" />
-                  <p className="font-semibold text-brand-navy mb-1">Klik atau seret foto ke sini</p>
-                  <p className="text-sm text-brand-muted">Minimal 3 foto, maksimal 10. Format: JPG/PNG/WebP (max 2MB per foto)</p>
-                </div>
-                <div className="grid grid-cols-3 gap-3">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="aspect-square bg-brand-gray rounded-xl flex items-center justify-center border border-brand-border">
-                      <Camera size={24} className="text-brand-muted/40" />
+                
+                {/* Upload Area */}
+                <div 
+                  onClick={() => !uploading && fileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-2xl p-10 text-center transition-colors cursor-pointer ${
+                    uploading 
+                      ? "border-brand bg-brand/5" 
+                      : "border-brand-border hover:border-brand hover:bg-brand/5"
+                  }`}
+                >
+                  {uploading ? (
+                    <div className="flex flex-col items-center">
+                      <Loader2 size={48} className="animate-spin text-brand mb-4" />
+                      <p className="font-semibold text-brand-navy">{uploadProgress}</p>
                     </div>
-                  ))}
+                  ) : (
+                    <>
+                      <Upload size={48} className="mx-auto text-brand-muted mb-4" />
+                      <p className="font-semibold text-brand-navy mb-1">Klik atau seret foto ke sini</p>
+                      <p className="text-sm text-brand-muted">
+                        Minimal 3 foto, maksimal 10. Format: JPG/PNG/WebP (max 5MB per foto)
+                      </p>
+                    </>
+                  )}
                 </div>
-                <p className="text-xs text-brand-muted">💡 Tips: Foto dari depan, sisi, belakang, dan detail kondisi barang</p>
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
+
+                {/* Uploaded Photos Preview */}
+                {formData.photos.length > 0 && (
+                  <div>
+                    <p className="text-sm font-semibold text-brand-navy mb-3">
+                      Foto yang diupload ({formData.photos.length}/10)
+                    </p>
+                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                      {formData.photos.map((photo, idx) => (
+                        <div key={idx} className="relative group">
+                          <img
+                            src={photo}
+                            alt={`Foto ${idx + 1}`}
+                            className="w-full aspect-square object-cover rounded-xl border border-brand-border"
+                          />
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removePhoto(idx);
+                            }}
+                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X size={14} />
+                          </button>
+                          {idx === 0 && (
+                            <span className="absolute bottom-1 left-1 bg-brand text-white text-[10px] px-2 py-0.5 rounded-full">
+                              Utama
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Photo Tips */}
+                <div className="bg-brand-gray rounded-xl p-4">
+                  <p className="text-sm font-semibold text-brand-navy mb-2">💡 Tips Foto:</p>
+                  <ul className="text-xs text-brand-muted space-y-1">
+                    <li>• Foto dari depan, sisi, belakang, dan detail kondisi barang</li>
+                    <li>• Pastikan foto jelas dan tidak buram</li>
+                    <li>• Tunjukkan bagian yang rusak/lecet jika ada</li>
+                    <li>• Foto pertama akan menjadi foto utama</li>
+                  </ul>
+                </div>
               </div>
             )}
 
