@@ -2,7 +2,6 @@
 
 import { useState, useCallback, memo } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { ShoppingCart, Star, Check } from "lucide-react";
 import { type ProductResponse } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
@@ -55,14 +54,14 @@ const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
       <Link href={`/product/${product.slug}`}>
         <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
           {product.imageBase64 ? (
-            <Image
+            <img
               src={product.imageBase64}
               alt={`${product.name} - ${product.brand?.name || ""} ${product.category?.name || ""}`}
-              fill
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-cover group-hover:scale-105 transition-all duration-300"
               loading="lazy"
-              quality={75}
+              decoding="async"
+              width={400}
+              height={300}
+              className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
             />
           ) : (
             <>
@@ -93,7 +92,7 @@ const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
         </Link>
 
         <div className="flex items-center gap-1 mb-3" aria-label={`Rating ${product.avgRating} dari 5, ${product.reviewCount} ulasan`}>
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-0.5" aria-hidden="true">
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
@@ -103,7 +102,6 @@ const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
                     ? "fill-amber-400 text-amber-400"
                     : "fill-gray-200 text-gray-200"
                 }
-                aria-hidden="true"
               />
             ))}
           </div>

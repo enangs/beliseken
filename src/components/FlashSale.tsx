@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Zap, ChevronLeft, ChevronRight } from "lucide-react";
 import { getProducts as fetchProductsAPI, type ProductResponse } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
@@ -158,14 +157,14 @@ export default function FlashSale() {
                 {/* Image */}
                 <div className="relative aspect-square bg-brand-gray flex items-center justify-center overflow-hidden">
                   {product.imageBase64 ? (
-                    <Image
+                    <img
                       src={product.imageBase64}
                       alt={`${product.name} - produk flash sale`}
-                      fill
-                      sizes="200px"
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
                       loading="lazy"
-                      quality={75}
+                      decoding="async"
+                      width={200}
+                      height={200}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
                     <span className="text-5xl opacity-20">📦</span>

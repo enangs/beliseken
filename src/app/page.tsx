@@ -1,66 +1,61 @@
+"use client";
+
+import { lazy, Suspense } from "react";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import KategoriPopuler from "@/components/KategoriPopuler";
-import LazySection from "@/components/LazySection";
-
-// Below-fold components loaded lazily for better mobile performance
-import FlashSale from "@/components/FlashSale";
-import BestDeals from "@/components/BestDeals";
-import PromoBanner from "@/components/PromoBanner";
-import ValueProposition from "@/components/ValueProposition";
-import ProdukTerbaru from "@/components/ProdukTerbaru";
-import Testimoni from "@/components/Testimoni";
-import BlogPreview from "@/components/BlogPreview";
-import CTAJualBarang from "@/components/CTAJualBarang";
-import InstagramFeed from "@/components/InstagramFeed";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Footer from "@/components/Footer";
+
+// Lazy load below-fold components for code splitting
+const FlashSale = lazy(() => import("@/components/FlashSale"));
+const BestDeals = lazy(() => import("@/components/BestDeals"));
+const PromoBanner = lazy(() => import("@/components/PromoBanner"));
+const ValueProposition = lazy(() => import("@/components/ValueProposition"));
+const ProdukTerbaru = lazy(() => import("@/components/ProdukTerbaru"));
+const Testimoni = lazy(() => import("@/components/Testimoni"));
+const BlogPreview = lazy(() => import("@/components/BlogPreview"));
+const CTAJualBarang = lazy(() => import("@/components/CTAJualBarang"));
+const InstagramFeed = lazy(() => import("@/components/InstagramFeed"));
+
+function SectionFallback() {
+  return <div className="min-h-[80px]" />;
+}
 
 export default function Home() {
   return (
     <>
-      {/* Above-fold: loads immediately */}
       <Header />
       <main className="flex-1">
         <Hero />
         <KategoriPopuler />
-
-        {/* Below-fold: lazy loaded on scroll */}
-        <LazySection>
+        <Suspense fallback={<SectionFallback />}>
           <FlashSale />
-        </LazySection>
-
-        <LazySection>
+        </Suspense>
+        <Suspense fallback={<SectionFallback />}>
           <BestDeals />
-        </LazySection>
-
-        <LazySection>
+        </Suspense>
+        <Suspense fallback={<SectionFallback />}>
           <PromoBanner />
-        </LazySection>
-
-        <LazySection>
+        </Suspense>
+        <Suspense fallback={<SectionFallback />}>
           <ValueProposition />
-        </LazySection>
-
-        <LazySection>
+        </Suspense>
+        <Suspense fallback={<SectionFallback />}>
           <ProdukTerbaru />
-        </LazySection>
-
-        <LazySection>
+        </Suspense>
+        <Suspense fallback={<SectionFallback />}>
           <Testimoni />
-        </LazySection>
-
-        <LazySection>
+        </Suspense>
+        <Suspense fallback={<SectionFallback />}>
           <BlogPreview />
-        </LazySection>
-
-        <LazySection>
+        </Suspense>
+        <Suspense fallback={<SectionFallback />}>
           <CTAJualBarang />
-        </LazySection>
-
-        <LazySection>
+        </Suspense>
+        <Suspense fallback={<SectionFallback />}>
           <InstagramFeed />
-        </LazySection>
+        </Suspense>
       </main>
       <WhatsAppButton />
       <Footer />
