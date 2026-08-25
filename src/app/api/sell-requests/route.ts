@@ -38,19 +38,18 @@ export async function POST(request: NextRequest) {
     const photosJson = JSON.stringify(photos || []);
 
     // Use raw SQL to insert
-    await prisma.$executeRaw`
-      INSERT INTO sell_requests (
+    await prisma.$executeRawUnsafe(
+      `INSERT INTO sell_requests (
         id, category, subcategory, brand, model, photos,
         condition, functional_condition, damage_description,
         asking_price, want_offer, whatsapp, location, user_id,
         status, created_at, updated_at
-      ) VALUES (
-        ${id}, ${category}, ${subcategory || null}, ${brand}, ${model}, ${photosJson}::jsonb,
-        ${condition}, ${functionalCondition || "Semua Berfungsi"}, ${damageDescription || null},
-        ${askingPrice ? BigInt(askingPrice) : null}, ${wantOffer || false}, ${whatsapp}, ${location}, ${userId || null},
-        'PENDING', ${now}::timestamp, ${now}::timestamp
-      )
-    `;
+      ) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, $10, $11, $12, $13, $14, 'PENDING', $15::timestamp, $16::timestamp)`,
+      id, category, subcategory || null, brand, model, photosJson,
+      condition, functionalCondition || "Semua Berfungsi", damageDescription || null,
+      askingPrice ? askingPrice.toString() : null, wantOffer || false, whatsapp, location, userId || null,
+      now, now
+    );
 
     console.log("✅ Sell request created:", id);
 
