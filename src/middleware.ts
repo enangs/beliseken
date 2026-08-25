@@ -1,4 +1,5 @@
-// Next.js Middleware - Protects all /api/admin/* routes
+// Next.js Middleware - Protects /api/admin/* routes only
+// Admin pages use client-side auth check
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 
@@ -8,7 +9,7 @@ const ADMIN_COOKIE = 'beliseken_admin_token';
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Only protect /api/admin/* routes (except login)
+  // Only protect /api/admin/* routes (except auth endpoints)
   if (pathname.startsWith('/api/admin/') && !pathname.includes('/api/admin/auth/')) {
     const token = request.cookies.get(ADMIN_COOKIE)?.value;
 
@@ -27,7 +28,6 @@ export function middleware(request: NextRequest) {
           { status: 403 }
         );
       }
-      // Token valid, continue
       return NextResponse.next();
     } catch {
       return NextResponse.json(
@@ -37,32 +37,11 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // Protect admin pages (not API)
-  if (pathname.startsWith('/admin') && !pathname.includes('/admin/login')) {
-    const token = request.cookies.get(ADMIN_COOKIE)?.value;
-    
-    if (!token) {
-      // Redirect to login
-      return NextResponse.redirect(new URL('/admin/login', request.url));
-    }
-
-    try {
-      const decoded = jwt.verify(token, JWT_SECRET) as any;
-      if (!decoded || (decoded.role !== 'SUPER_ADMIN' && decoded.role !== 'ADMIN')) {
-        return NextResponse.redirect(new URL('/admin/login', request.url));
-      }
-      return NextResponse.next();
-    } catch {
-      return NextResponse.redirect(new URL('/admin/login', request.url));
-    }
-  }
-
   return NextResponse.next();
 }
 
 export const config = {
   matcher: [
     '/api/admin/:path*',
-    '/admin/:path*',
   ],
 };
