@@ -6,7 +6,6 @@ import {
   ArrowLeft,
   Package,
   Search,
-  Filter,
   Eye,
   MessageCircle,
   CheckCircle,
@@ -16,7 +15,6 @@ import {
   MapPin,
   Tag,
   Loader2,
-  ChevronDown,
   ExternalLink,
 } from "lucide-react";
 
@@ -28,18 +26,18 @@ interface SellRequest {
   model: string;
   photos: string[];
   condition: string;
-  functionalCondition: string;
-  damageDescription?: string;
-  askingPrice?: number;
-  wantOffer: boolean;
-  offeredPrice?: number;
+  functional_condition: string;
+  damage_description?: string;
+  asking_price?: number;
+  want_offer: boolean;
+  offered_price?: number;
   whatsapp: string;
   location: string;
-  userId?: string;
+  user_id?: string;
   status: string;
-  adminNotes?: string;
-  createdAt: string;
-  updatedAt: string;
+  admin_notes?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
@@ -124,9 +122,9 @@ export default function AdminSellRequestsPage() {
     const adminWhatsapp = "6285101256123";
     const message = encodeURIComponent(
       `Halo, kami dari BeliSeken tertarik dengan ${req.brand} ${req.model} Anda. ` +
-      (req.wantOffer
+      (req.want_offer
         ? "Kami ingin memberikan penawaran harga."
-        : `Apakah masih tersedia dengan harga Rp ${req.askingPrice?.toLocaleString("id-ID")}?`)
+        : `Apakah masih tersedia dengan harga Rp ${req.asking_price?.toLocaleString("id-ID")}?`)
     );
     return `https://wa.me/${req.whatsapp.replace(/^0/, "62")}?text=${message}`;
   };
@@ -272,11 +270,11 @@ export default function AdminSellRequestsPage() {
                           <span className="text-sm">{req.condition}</span>
                         </td>
                         <td className="px-4 py-3">
-                          {req.wantOffer ? (
+                          {req.want_offer ? (
                             <span className="text-sm text-brand font-medium">Minta Penawaran</span>
                           ) : (
                             <span className="text-sm font-semibold">
-                              Rp {req.askingPrice?.toLocaleString("id-ID")}
+                              Rp {req.asking_price?.toLocaleString("id-ID")}
                             </span>
                           )}
                         </td>
@@ -397,13 +395,13 @@ export default function AdminSellRequestsPage() {
                   </div>
                   <div>
                     <span className="text-brand-muted">Kondisi Fungsional:</span>
-                    <span className="ml-2 font-semibold">{selectedRequest.functionalCondition}</span>
+                    <span className="ml-2 font-semibold">{selectedRequest.functional_condition}</span>
                   </div>
                 </div>
-                {selectedRequest.damageDescription && (
+                {selectedRequest.damage_description && (
                   <div className="mt-3">
                     <span className="text-brand-muted text-sm">Deskripsi Kerusakan:</span>
-                    <p className="text-sm mt-1">{selectedRequest.damageDescription}</p>
+                    <p className="text-sm mt-1">{selectedRequest.damage_description}</p>
                   </div>
                 )}
               </div>
@@ -415,16 +413,16 @@ export default function AdminSellRequestsPage() {
                   <div>
                     <span className="text-brand-muted">Harga Minta:</span>
                     <span className="ml-2 font-semibold">
-                      {selectedRequest.wantOffer
+                      {selectedRequest.want_offer
                         ? "Minta Penawaran"
-                        : `Rp ${selectedRequest.askingPrice?.toLocaleString("id-ID")}`}
+                        : `Rp ${selectedRequest.asking_price?.toLocaleString("id-ID")}`}
                     </span>
                   </div>
-                  {selectedRequest.offeredPrice && (
+                  {selectedRequest.offered_price && (
                     <div>
                       <span className="text-brand-muted">Harga Tawar:</span>
                       <span className="ml-2 font-semibold text-brand">
-                        Rp {selectedRequest.offeredPrice.toLocaleString("id-ID")}
+                        Rp {selectedRequest.offered_price.toLocaleString("id-ID")}
                       </span>
                     </div>
                   )}
@@ -478,10 +476,10 @@ export default function AdminSellRequestsPage() {
                 <h3 className="font-bold text-brand-navy mb-3">📝 Catatan Admin</h3>
                 <textarea
                   placeholder="Tambahkan catatan..."
-                  value={selectedRequest.adminNotes || ""}
+                  value={selectedRequest.admin_notes || ""}
                   onChange={(e) =>
                     setSelectedRequest((prev) =>
-                      prev ? { ...prev, adminNotes: e.target.value } : null
+                      prev ? { ...prev, admin_notes: e.target.value } : null
                     )
                   }
                   rows={3}
@@ -495,7 +493,7 @@ export default function AdminSellRequestsPage() {
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                           id: selectedRequest.id,
-                          adminNotes: selectedRequest.adminNotes,
+                          adminNotes: selectedRequest.admin_notes,
                         }),
                       });
                     }
@@ -508,8 +506,8 @@ export default function AdminSellRequestsPage() {
 
               {/* Timestamps */}
               <div className="text-xs text-brand-muted border-t border-brand-border pt-4">
-                <p>Dibuat: {new Date(selectedRequest.createdAt).toLocaleString("id-ID")}</p>
-                <p>Update: {new Date(selectedRequest.updatedAt).toLocaleString("id-ID")}</p>
+                <p>Dibuat: {new Date(selectedRequest.created_at).toLocaleString("id-ID")}</p>
+                <p>Update: {new Date(selectedRequest.updated_at).toLocaleString("id-ID")}</p>
                 <p className="mt-1">ID: {selectedRequest.id}</p>
               </div>
             </div>

@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { getPrisma } from "@/lib/prisma";
 
 // POST /api/sell-requests - Create new sell request
 export async function POST(request: NextRequest) {
+  const prisma = getPrisma();
   try {
     const body = await request.json();
     const {
@@ -23,6 +22,8 @@ export async function POST(request: NextRequest) {
       userId,
     } = body;
 
+    console.log("📦 POST /api/sell-requests:", { category, brand, model, whatsapp });
+
     // Validate required fields
     if (!category || !brand || !model || !condition || !whatsapp || !location) {
       return NextResponse.json(
@@ -31,25 +32,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create sell request
-    const sellRequest = await prisma.sellRequest.create({
-      data: {
-        category,
-        subcategory: subcategory || null,
-        brand,
-        model,
-        photos: photos || [],
-        condition,
-        functionalCondition: functionalCondition || "Semua Berfungsi",
-        damageDescription: damageDescription || null,
-        askingPrice: askingPrice ? BigInt(askingPrice) : null,
-        wantOffer: wantOffer || false,
-        whatsapp,
-        location,
-        userId: userId || null,
-        status: "PENDING",
-      },
-    });
+    // Generate ID
+    const id = `sr-${Date.now()}-${Math.random().toString(36).substr(2, 8)}`;
+    const now = new Date().toISOString();
+    const photosJson = JSON.stringify(photos || []);
+
+    // Use raw SQL to insert
+    await prisma.$executeRaw`
+      INSERT INTO sell_requests (
+        id, category, subcategory, brand, model, photos,
+        condition, functional_condition, damage_description,
+        asking_price, want_offer, whatsapp, location, user_id,
+        status, created_at, updated_at
+      ) VALUES (
+        ${id}, ${category}, ${subcategory || null}, ${brand}, ${model}, ${photosJson}::jsonb,
+        ${condition}, ${functionalCondition || "Semua Berfungsi"}, ${damageDescription || null},
+        ${askingPrice ? BigInt(askingPrice) : null}, ${wantOffer || false}, ${whatsapp}, ${location}, ${userId || null},
+        'PENDING', ${now}::timestamp, ${now}::timestamp
+      )
+    `;
+
+    console.log("✅ Sell request created:", id);
 
     // Generate WhatsApp message for admin notification
     const adminMessage = encodeURIComponent(
@@ -60,22 +63,22 @@ export async function POST(request: NextRequest) {
       `💰 Harga: ${wantOffer ? "Minta Penawaran" : `Rp ${askingPrice?.toLocaleString("id-ID")}`}\n` +
       `📱 WA: ${whatsapp}\n` +
       `📍 Lokasi: ${location}\n\n` +
-      `ID: ${sellRequest.id}`
+      `ID: ${id}`
     );
 
-    // Admin WhatsApp number (from storeInfo)
-    const adminWhatsapp = "6285101256123"; // 0851-0125-6123
+    // Admin WhatsApp number
+    const adminWhatsapp = "6285101256123";
 
     return NextResponse.json({
       success: true,
       data: {
-        id: sellRequest.id,
+        id,
         whatsappLink: `https://wa.me/${adminWhatsapp}?text=${adminMessage}`,
       },
-      message: "Permintaan jual barang berhasil dikirim! Tim kami akan menghubungi Anda dalam 1 jam via WhatsApp.",
+      message: "Permintaan jual barang berhasil dikirim!",
     });
   } catch (error: any) {
-    console.error("Error creating sell request:", error?.message, error?.code, error?.meta);
+    console.error("❌ Error creating sell request:", error?.message, error?.code, error?.meta);
     return NextResponse.json(
       { success: false, error: `Gagal menyimpan: ${error?.message || "Unknown error"}` },
       { status: 500 }
@@ -83,44 +86,47 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET /api/sell-requests - List all sell requests (admin only)
+// GET /api/sell-requests - List all sell requests
 export async function GET(request: NextRequest) {
+  const prisma = getPrisma();
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const search = searchParams.get("search");
 
-    const where: any = {};
+    let query = "SELECT * FROM sell_requests";
+    const conditions: string[] = [];
+    const params: any[] = [];
 
     if (status && status !== "ALL") {
-      where.status = status;
+      conditions.push(`status = $${params.length + 1}`);
+      params.push(status);
     }
 
     if (search) {
-      where.OR = [
-        { brand: { contains: search, mode: "insensitive" } },
-        { model: { contains: search, mode: "insensitive" } },
-        { whatsapp: { contains: search } },
-        { location: { contains: search, mode: "insensitive" } },
-      ];
+      conditions.push(`(brand ILIKE $${params.length + 1} OR model ILIKE $${params.length + 1} OR whatsapp LIKE $${params.length + 1} OR location ILIKE $${params.length + 1})`);
+      params.push(`%${search}%`);
     }
 
-    const sellRequests = await prisma.sellRequest.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-    });
+    if (conditions.length > 0) {
+      query += ` WHERE ${conditions.join(" AND ")}`;
+    }
 
-    // Parse askingPrice BigInt
-    const parsed = sellRequests.map((sr) => ({
+    query += " ORDER BY created_at DESC";
+
+    const sellRequests = await prisma.$queryRawUnsafe(query, ...params) as any[];
+
+    // Parse data
+    const parsed = sellRequests.map((sr: any) => ({
       ...sr,
-      photos: Array.isArray(sr.photos) ? sr.photos : [],
-      askingPrice: sr.askingPrice ? Number(sr.askingPrice) : null,
-      offeredPrice: sr.offeredPrice ? Number(sr.offeredPrice) : null,
+      photos: typeof sr.photos === "string" ? JSON.parse(sr.photos) : (sr.photos || []),
+      asking_price: sr.asking_price ? Number(sr.asking_price) : null,
+      offered_price: sr.offered_price ? Number(sr.offered_price) : null,
     }));
 
     return NextResponse.json({ success: true, data: parsed });
   } catch (error: any) {
-    console.error("Error fetching sell requests:", error);
+    console.error("Error fetching sell requests:", error?.message);
     return NextResponse.json(
       { success: false, error: "Gagal mengambil data" },
       { status: 500 }
@@ -128,8 +134,9 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// PUT /api/sell-requests - Update sell request status (admin)
+// PUT /api/sell-requests - Update sell request status
 export async function PUT(request: NextRequest) {
+  const prisma = getPrisma();
   try {
     const body = await request.json();
     const { id, status, adminNotes, offeredPrice } = body;
@@ -141,20 +148,32 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const updateData: any = {};
+    const now = new Date().toISOString();
+    const updates: string[] = ["updated_at = NOW()"];
+    const params: any[] = [];
 
-    if (status) updateData.status = status;
-    if (adminNotes !== undefined) updateData.adminNotes = adminNotes;
-    if (offeredPrice !== undefined) updateData.offeredPrice = BigInt(offeredPrice);
+    if (status) {
+      updates.push(`status = $${params.length + 1}`);
+      params.push(status);
+    }
+    if (adminNotes !== undefined) {
+      updates.push(`admin_notes = $${params.length + 1}`);
+      params.push(adminNotes);
+    }
+    if (offeredPrice !== undefined) {
+      updates.push(`offered_price = $${params.length + 1}`);
+      params.push(offeredPrice);
+    }
 
-    const updated = await prisma.sellRequest.update({
-      where: { id },
-      data: updateData,
-    });
+    params.push(id);
+    await prisma.$executeRawUnsafe(
+      `UPDATE sell_requests SET ${updates.join(", ")} WHERE id = $${params.length}`,
+      ...params
+    );
 
-    return NextResponse.json({ success: true, data: updated });
+    return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error("Error updating sell request:", error);
+    console.error("Error updating sell request:", error?.message);
     return NextResponse.json(
       { success: false, error: "Gagal update data" },
       { status: 500 }
