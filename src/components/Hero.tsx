@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getActiveBanners, getActivePromoCards, type Banner, type PromoCard } from "@/lib/banners";
@@ -9,10 +9,24 @@ export default function Hero() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [promoCards, setPromoCards] = useState<PromoCard[]>([]);
   const [currentBanner, setCurrentBanner] = useState(0);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
 
   useEffect(() => {
-    getActiveBanners().then(setBanners).catch(() => {});
-    getActivePromoCards().then(setPromoCards).catch(() => {});
+    // Parallel fetch — both at once for speed
+    Promise.all([getActiveBanners(), getActivePromoCards()])
+      .then(([b, p]) => {
+        setBanners(b);
+        setPromoCards(p);
+        // Preload first banner image for LCP
+        if (b[0]?.imageBase64) {
+          const img = new Image();
+          img.src = b[0].imageBase64;
+          img.onload = () => setImagesLoaded(true);
+        } else {
+          setImagesLoaded(true);
+        }
+      })
+      .catch(() => setImagesLoaded(true));
   }, []);
 
   // Auto-rotate banner
@@ -34,7 +48,7 @@ export default function Hero() {
   };
 
   // Show skeleton while loading — fixed height prevents CLS
-  if (banners.length === 0) {
+  if (!imagesLoaded && banners.length === 0) {
     return (
       <section className="bg-brand-gray pt-4 pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -48,6 +62,44 @@ export default function Hero() {
             </div>
           </div>
           <div className="mt-6 bg-gray-200 rounded-2xl h-16 animate-pulse" />
+        </div>
+      </section>
+    );
+  }
+
+  // If no banners loaded yet, show default
+  if (banners.length === 0) {
+    return (
+      <section className="bg-brand-gray pt-4 pb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2 relative">
+              <div className="relative bg-gradient-to-r from-brand to-brand-dark rounded-2xl overflow-hidden aspect-[16/7]">
+                <div className="relative z-10 p-8 md:p-12 flex flex-col justify-center h-full">
+                  <p className="text-white/70 text-sm font-semibold mb-2 uppercase tracking-wider">Berkualitas & Terjamin</p>
+                  <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-2">Elektronik Bekas</h2>
+                  <p className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-amber-300 mb-4">Hemat Hingga 70%</p>
+                  <p className="text-white/80 mb-6 max-w-md">Garansi 30 hari, pengiriman aman ke seluruh Indonesia</p>
+                  <Link href="/products" className="inline-flex items-center gap-2 px-6 py-3 bg-white text-brand font-bold rounded-xl hover:bg-gray-100 transition-colors w-fit">Lihat Katalog →</Link>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col gap-4">
+              <Link href="/category/laptop-notebook" className="flex-1 relative rounded-2xl overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 hover:shadow-xl transition-shadow">
+                <div className="relative z-10 p-6"><p className="text-white/80 text-sm font-semibold mb-1">Laptop & Notebook</p><p className="text-2xl font-extrabold text-white mb-2">Mulai 3.5 Juta</p><p className="text-white/60 text-xs">MacBook, ThinkPad, ASUS ROG</p></div>
+              </Link>
+              <Link href="/category/smartphone-tablet" className="flex-1 relative rounded-2xl overflow-hidden bg-gradient-to-br from-emerald-500 to-emerald-600 hover:shadow-xl transition-shadow">
+                <div className="relative z-10 p-6"><p className="text-white/80 text-sm font-semibold mb-1">Smartphone & Tablet</p><p className="text-2xl font-extrabold text-white mb-2">Mulai 1.2 Juta</p><p className="text-white/60 text-xs">iPhone, Samsung, iPad</p></div>
+              </Link>
+            </div>
+          </div>
+          <div className="mt-6 bg-white rounded-2xl shadow-sm border border-brand-border">
+            <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-brand-border">
+              {[{ icon: "🔍", label: "Grade Premium", sublabel: "Diuji & grading ketat" }, { icon: "🛡️", label: "Garansi 30 Hari", sublabel: "Retur jika tidak sesuai" }, { icon: "🚚", label: "Pengiriman Aman", sublabel: "Packing bubble wrap" }, { icon: "💬", label: "Konsultasi Gratis", sublabel: "Chat via WhatsApp" }].map((item, i) => (
+                <div key={i} className="flex items-center gap-3 p-4 hover:bg-brand/5 transition-colors"><span className="text-2xl">{item.icon}</span><div><p className="text-sm font-bold text-brand-navy">{item.label}</p><p className="text-xs text-gray-500">{item.sublabel}</p></div></div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
     );
@@ -74,6 +126,7 @@ export default function Hero() {
                     width={1200}
                     height={525}
                     fetchPriority="high"
+                    decoding="async"
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
@@ -159,6 +212,7 @@ export default function Hero() {
                         width={400}
                         height={300}
                         loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover"
                       />
                       <div className="absolute inset-0 bg-gradient-to-br from-black/50 to-black/70" />

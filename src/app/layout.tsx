@@ -83,11 +83,12 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="BeliSeken" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-        {/* Preload critical resources for LCP */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" />
+        {/* Preload critical LCP resources */}
         <link rel="preload" href="/hero.webp" as="image" fetchPriority="high" />
-        {/* Preconnect to Cloudinary for faster image loads */}
-        {/* Facebook Pixel - Lazy Loaded */}
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+        {/* Facebook Pixel - Lazy Loaded after page load */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -114,33 +115,30 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Organization",
-              "name": "BeliSeken.com",
-              "url": "https://beliseken.com",
-              "logo": "https://beliseken.com/logo.png",
-              "sameAs": [
+              name: "BeliSeken.com",
+              url: "https://beliseken.com",
+              logo: "https://beliseken.com/logo.png",
+              sameAs: [
                 "https://www.instagram.com/beliseken1/",
                 "https://www.facebook.com/profile.php?id=61593794008221"
               ],
-              "contactPoint": {
+              contactPoint: {
                 "@type": "ContactPoint",
-                "telephone": "+6285101256123",
-                "contactType": "customer service",
-                "availableLanguage": ["Indonesian", "English"]
+                telephone: "+6285101256123",
+                contactType: "customer service",
+                availableLanguage: ["Indonesian", "English"]
               },
-              "address": {
+              address: {
                 "@type": "PostalAddress",
-                "streetAddress": "Griyaasri 2 Blok H6 No 30, Tambun Selatan",
-                "addressLocality": "Bekasi",
-                "addressRegion": "Jawa Barat",
-                "postalCode": "17510",
-                "addressCountry": "ID"
+                streetAddress: "Griyaasri 2 Blok H6 No 30, Tambun Selatan",
+                addressLocality: "Bekasi",
+                addressRegion: "Jawa Barat",
+                postalCode: "17510",
+                addressCountry: "ID"
               }
             })
           }}
         />
-
-        <link rel="preconnect" href="https://res.cloudinary.com" />
-        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
       </head>
       <body className="min-h-full flex flex-col font-sans pb-20 lg:pb-0">
         <Providers>{children}</Providers>

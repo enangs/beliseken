@@ -8,7 +8,7 @@ function optimizeImageUrl(url: string | null): string {
   if (!url || !url.includes('cloudinary.com')) return url || '';
   const parts = url.split('/upload/');
   if (parts.length !== 2) return url;
-  return `${parts[0]}/upload/q_auto,f_auto,w_1200/${parts[1]}`;
+  return `${parts[0]}/upload/q_auto,f_auto,w_800/${parts[1]}`;
 }
 
 // GET all banners
