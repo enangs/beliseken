@@ -46,10 +46,38 @@ export default function KategoriPopuler() {
           </Link>
         </div>
 
-        {/* Category Grid - Clean SVG Icons */}
-        <div className="grid grid-cols-3 sm:grid-cols-5 gap-6">
+        {/* Category Grid - Clean SVG Icons + Jual Barang */}
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-6">
+          {/* Jual Barang - Special Item */}
+          <Link
+            href="/sell"
+            className="group flex flex-col items-center gap-3"
+          >
+            <div className="relative">
+              <span className="absolute -top-2 -right-3 bg-brand text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10">
+                Hot
+              </span>
+              <div className="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/icons/jualbarang.svg"
+                  alt="Jual Barang"
+                  className="w-14 h-14 sm:w-16 sm:h-16 object-contain opacity-80 group-hover:opacity-100 transition-opacity"
+                />
+              </div>
+            </div>
+            <div className="text-center">
+              <p className="text-xs sm:text-sm font-semibold text-brand group-hover:text-brand-dark transition-colors leading-tight">
+                Jual Barang
+              </p>
+              <p className="text-[10px] sm:text-xs text-brand-muted mt-0.5">
+                Jual barang bekasmu
+              </p>
+            </div>
+          </Link>
+
+          {/* Categories from Database */}
           {categories.length === 0 ? (
-            // Skeleton placeholder
             <>
               {[1, 2, 3, 4, 5].map((i) => (
                 <div key={i} className="flex flex-col items-center gap-3">
@@ -69,31 +97,21 @@ export default function KategoriPopuler() {
                   href={`/category/${category.slug}`}
                   className="group flex flex-col items-center gap-3"
                 >
-                  {/* Icon Container - Clean & Transparent */}
                   <div className="relative">
-                    {/* Badge */}
                     {badge && (
-                      <span
-                        className={`absolute -top-2 -right-3 ${badge.color} text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10`}
-                      >
+                      <span className={`absolute -top-2 -right-3 ${badge.color} text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10`}>
                         {badge.label}
                       </span>
                     )}
-
-                    {/* SVG Icon - No background, just transparent */}
                     <div className="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                      <Image
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
                         src={icon}
                         alt={category.name}
-                        width={64}
-                        height={64}
                         className="w-14 h-14 sm:w-16 sm:h-16 object-contain opacity-80 group-hover:opacity-100 transition-opacity"
-                        style={{ filter: "brightness(0) saturate(100%)" }}
                       />
                     </div>
                   </div>
-
-                  {/* Label */}
                   <div className="text-center">
                     <p className="text-xs sm:text-sm font-semibold text-brand-navy group-hover:text-brand transition-colors leading-tight">
                       {category.name}
