@@ -37,17 +37,18 @@ export async function POST(request: NextRequest) {
     const now = new Date().toISOString();
     const photosJson = JSON.stringify(photos || []);
 
-    // Use raw SQL to insert
+    // Use raw SQL to insert - cast bigint columns properly
+    const askingPriceStr = askingPrice ? askingPrice.toString() : null;
     await prisma.$executeRawUnsafe(
       `INSERT INTO sell_requests (
         id, category, subcategory, brand, model, photos,
         condition, functional_condition, damage_description,
         asking_price, want_offer, whatsapp, location, user_id,
         status, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, $10, $11, $12, $13, $14, 'PENDING', $15::timestamp, $16::timestamp)`,
+      ) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, $10::bigint, $11, $12, $13, $14, 'PENDING', $15::timestamp, $16::timestamp)`,
       id, category, subcategory || null, brand, model, photosJson,
       condition, functionalCondition || "Semua Berfungsi", damageDescription || null,
-      askingPrice ? askingPrice.toString() : null, wantOffer || false, whatsapp, location, userId || null,
+      askingPriceStr, wantOffer || false, whatsapp, location, userId || null,
       now, now
     );
 
