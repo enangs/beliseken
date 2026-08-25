@@ -113,7 +113,7 @@ export default function BlogForm({ initialData, onSubmit, submitLabel }: BlogFor
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Cover Image */}
       <div className="bg-white rounded-xl border border-brand-border p-5">
-        <h2 className="font-bold text-brand-navy mb-4">📷 Gambar Sampul</h2>
+        <h2 className="font-bold text-brand-navy mb-4">Gambar Sampul</h2>
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="w-full sm:w-64 h-36 bg-gray-100 rounded-xl border-2 border-dashed border-brand-border flex items-center justify-center overflow-hidden flex-shrink-0">
             {imagePreview ? (
@@ -140,7 +140,7 @@ export default function BlogForm({ initialData, onSubmit, submitLabel }: BlogFor
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
             <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading}
               className="px-4 py-2 bg-brand/10 hover:bg-brand/20 text-brand font-semibold text-sm rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2">
-              {uploading ? <Loader2 size={14} className="animate-spin" /> : "📁"} Pilih dari Komputer
+              {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />} Pilih dari Komputer
             </button>
             <p className="text-xs text-brand-muted mt-2">Format: JPG, PNG, WebP. Maks 5MB. Tersimpan di Cloudinary.</p>
             {errors.photo && <p className="text-xs text-red-500 mt-1">{errors.photo}</p>}

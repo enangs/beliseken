@@ -408,7 +408,7 @@ export default function AdminSellRequestsPage() {
 
               {/* Pricing */}
               <div className="bg-brand-gray rounded-xl p-4">
-                <h3 className="font-bold text-brand-navy mb-3">💰 Harga</h3>
+                <h3 className="font-bold text-brand-navy mb-3">Harga</h3>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
                     <span className="text-brand-muted">Harga Minta:</span>
@@ -431,7 +431,7 @@ export default function AdminSellRequestsPage() {
 
               {/* Contact */}
               <div className="bg-brand-gray rounded-xl p-4">
-                <h3 className="font-bold text-brand-navy mb-3">📱 Kontak</h3>
+                <h3 className="font-bold text-brand-navy mb-3">Kontak</h3>
                 <div className="space-y-2 text-sm">
                   <p className="flex items-center gap-2">
                     <Phone size={14} className="text-brand-muted" />
@@ -457,7 +457,7 @@ export default function AdminSellRequestsPage() {
               {/* Photos */}
               {selectedRequest.photos && selectedRequest.photos.length > 0 && (
                 <div>
-                  <h3 className="font-bold text-brand-navy mb-3">📸 Foto</h3>
+                  <h3 className="font-bold text-brand-navy mb-3">Foto</h3>
                   <div className="grid grid-cols-3 gap-3">
                     {selectedRequest.photos.map((photo, idx) => (
                       <img
@@ -473,7 +473,7 @@ export default function AdminSellRequestsPage() {
 
               {/* Admin Notes */}
               <div>
-                <h3 className="font-bold text-brand-navy mb-3">📝 Catatan Admin</h3>
+                <h3 className="font-bold text-brand-navy mb-3">Catatan Admin</h3>
                 <textarea
                   placeholder="Tambahkan catatan..."
                   value={selectedRequest.admin_notes || ""}

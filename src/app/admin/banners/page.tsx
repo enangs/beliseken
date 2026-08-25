@@ -132,11 +132,11 @@ export default function BannersPage() {
       <div className="flex gap-2 mb-6">
         <button onClick={() => { setTab("banners"); setShowForm(false); setEditingBanner(null); setEditingPromo(null); }}
           className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === "banners" ? "bg-brand text-white" : "bg-white text-brand-navy border border-brand-border hover:bg-brand/5"}`}>
-          🖼️ Banner Hero ({banners.length})
+          Banner Hero ({banners.length})
         </button>
         <button onClick={() => { setTab("promo"); setShowForm(false); setEditingBanner(null); setEditingPromo(null); }}
           className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === "promo" ? "bg-brand text-white" : "bg-white text-brand-navy border border-brand-border hover:bg-brand/5"}`}>
-          🏷️ Kartu Promo ({promoCards.length})
+          Kartu Promo ({promoCards.length})
         </button>
       </div>
 

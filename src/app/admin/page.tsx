@@ -99,7 +99,7 @@ export default function AdminDashboardPage() {
           href="/admin/products/new"
           className="bg-brand hover:bg-brand-dark text-white rounded-xl p-5 flex items-center gap-3 transition-colors"
         >
-          <span className="text-2xl">➕</span>
+          <span className="text-2xl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
           <div>
             <p className="font-semibold">Tambah Produk Baru</p>
             <p className="text-white/70 text-xs">Upload foto & isi detail</p>
@@ -109,7 +109,7 @@ export default function AdminDashboardPage() {
           href="/admin/products"
           className="bg-brand-navy hover:bg-brand-navy/90 text-white rounded-xl p-5 flex items-center gap-3 transition-colors"
         >
-          <span className="text-2xl">📦</span>
+          <span className="text-2xl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span>
           <div>
             <p className="font-semibold">Kelola Produk</p>
             <p className="text-white/70 text-xs">Edit, hapus, atau lihat produk</p>
@@ -119,7 +119,7 @@ export default function AdminDashboardPage() {
           href="/admin/orders"
           className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl p-5 flex items-center gap-3 transition-colors"
         >
-          <span className="text-2xl">📋</span>
+          <span className="text-2xl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></span>
           <div>
             <p className="font-semibold">Kelola Pesanan</p>
             <p className="text-white/70 text-xs">Lihat & update status pesanan</p>
@@ -129,7 +129,7 @@ export default function AdminDashboardPage() {
           href="/admin/customers"
           className="bg-purple-500 hover:bg-purple-600 text-white rounded-xl p-5 flex items-center gap-3 transition-colors"
         >
-          <span className="text-2xl">👥</span>
+          <span className="text-2xl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
           <div>
             <p className="font-semibold">Pelanggan</p>
             <p className="text-white/70 text-xs">Data pelanggan & alamat</p>
@@ -139,7 +139,7 @@ export default function AdminDashboardPage() {
           href="/admin/banners"
           className="bg-amber-500 hover:bg-amber-600 text-white rounded-xl p-5 flex items-center gap-3 transition-colors"
         >
-          <span className="text-2xl">🖼️</span>
+          <span className="text-2xl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>
           <div>
             <p className="font-semibold">Banner & Promo</p>
             <p className="text-white/70 text-xs">Kelola hero & kartu promo</p>
@@ -150,7 +150,7 @@ export default function AdminDashboardPage() {
           target="_blank"
           className="bg-white border border-brand-border hover:border-brand hover:shadow-md rounded-xl p-5 flex items-center gap-3 transition-all"
         >
-          <span className="text-2xl">👁️</span>
+          <span className="text-2xl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
           <div>
             <p className="font-semibold text-brand-navy">Lihat Website</p>
             <p className="text-brand-muted text-xs">Preview toko dari sisi pelanggan</p>

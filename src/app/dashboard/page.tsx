@@ -77,12 +77,12 @@ export default function DashboardPage() {
                 {user.name.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1">
-                <h1 className="text-2xl font-bold text-brand-navy">{user.name} 👋</h1>
+                <h1 className="text-2xl font-bold text-brand-navy">{user.name}</h1>
                 <p className="text-brand-muted">{user.email}</p>
                 <p className="text-sm text-brand-muted mt-1">
-                  {user.phone && `📱 ${user.phone}`}
+                  {user.phone && `${user.phone}`}
                   {user.phone && user.city && " · "}
-                  {user.city && `📍 ${user.city}`}
+                  {user.city && `${user.city}`}
                 </p>
               </div>
               <div className="flex gap-2">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Package, ChevronDown, ChevronUp, Truck, CheckCircle, XCircle, Clock, CreditCard, User, ExternalLink, Loader2, AlertCircle, RefreshCw } from "lucide-react";
+import { Package, ChevronDown, ChevronUp, Truck, CheckCircle, XCircle, Clock, CreditCard, User, ExternalLink, Loader2, AlertCircle, RefreshCw, Save } from "lucide-react";
 import { fetchOrders, updateOrderStatus, updateTrackingNumber } from "@/lib/orders-api";
 import { formatPrice } from "@/lib/utils";
 import type { Order } from "@/lib/orders";
@@ -287,12 +287,12 @@ export default function AdminOrdersPage() {
                           <p className="text-brand-muted text-xs">{order.address?.city || ''}, {order.address?.province || ''} {order.address?.postcode || ''}</p>
                         </div>
 
-                        <h4 className="text-sm font-semibold text-brand-navy mb-2 mt-3">💳 Pembayaran:</h4>
+                        <h4 className="text-sm font-semibold text-brand-navy mb-2 mt-3">Pembayaran:</h4>
                         <div className="bg-white rounded-lg p-3 border border-brand-border text-sm">
                           <p className="text-brand-muted">
                             {order.paymentMethod === "bank_transfer" ? "🏦 Transfer Bank" :
-                             order.paymentMethod === "ewallet" ? "📱 E-Wallet" :
-                             order.paymentMethod === "qris" ? "📱 QRIS" :
+                             order.paymentMethod === "ewallet" ? "E-Wallet" :
+                             order.paymentMethod === "qris" ? "QRIS" :
                              order.paymentMethod === "cod" ? "💵 COD (Bayar di Tempat)" :
                              order.paymentMethod || '-'}
                           </p>
@@ -301,7 +301,7 @@ export default function AdminOrdersPage() {
                         {/* Tracking Number Section */}
                         {(order.status === "shipping" || order.trackingNumber) && (
                           <div className="mt-3">
-                            <h4 className="text-sm font-semibold text-brand-navy mb-2">🚚 No. Resi & Kurir:</h4>
+                            <h4 className="text-sm font-semibold text-brand-navy mb-2">No. Resi & Kurir:</h4>
                             {isEditingTracking ? (
                               <div className="bg-white rounded-lg p-3 border border-brand-border space-y-2">
                                 <div>
@@ -333,7 +333,7 @@ export default function AdminOrdersPage() {
                                     disabled={isUpdating}
                                     className="px-3 py-1.5 bg-brand text-white text-xs font-semibold rounded-lg hover:bg-brand-dark disabled:opacity-50 flex items-center gap-1"
                                   >
-                                    {isUpdating ? <Loader2 size={12} className="animate-spin" /> : '💾'} Simpan
+                                    {isUpdating ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />} Simpan
                                   </button>
                                   <button
                                     onClick={() => setEditingTracking(null)}
@@ -355,7 +355,7 @@ export default function AdminOrdersPage() {
                                       onClick={() => startEditTracking(order)}
                                       className="px-3 py-1.5 bg-brand-gray text-brand-navy text-xs font-semibold rounded-lg hover:bg-brand-border"
                                     >
-                                      ✏️ Edit
+                                      Edit
                                     </button>
                                   </div>
                                 ) : (
@@ -363,7 +363,7 @@ export default function AdminOrdersPage() {
                                     onClick={() => startEditTracking(order)}
                                     className="w-full py-2 border-2 border-dashed border-brand-border rounded-lg text-xs text-brand-muted hover:border-brand hover:text-brand transition-colors"
                                   >
-                                    ➕ Tambah No. Resi
+                                    Tambah No. Resi
                                   </button>
                                 )}
                               </div>

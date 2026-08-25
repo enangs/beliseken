@@ -79,7 +79,7 @@ export default function WhatsAppButton() {
               rel="noopener noreferrer"
               className="block w-full py-3 bg-[#25D366] hover:bg-[#20bd5a] text-white font-semibold rounded-xl text-center text-sm transition-colors"
             >
-              💬 Mulai Chat
+              Mulai Chat
             </a>
           </div>
         </div>

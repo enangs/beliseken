@@ -213,7 +213,7 @@ export default function SellPage() {
               <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckCircle size={40} className="text-emerald-500" />
               </div>
-              <h2 className="text-2xl font-bold text-brand-navy mb-3">Berhasil Dikirim! 🎉</h2>
+              <h2 className="text-2xl font-bold text-brand-navy mb-3">Berhasil Dikirim!</h2>
               <p className="text-brand-muted mb-6">
                 Data barang Anda sudah kami terima. Tim kami akan menghubungi Anda dalam <strong>1 jam</strong> via WhatsApp.
               </p>
@@ -459,7 +459,7 @@ export default function SellPage() {
 
                 {/* Photo Tips */}
                 <div className="bg-brand-gray rounded-xl p-4">
-                  <p className="text-sm font-semibold text-brand-navy mb-2">💡 Tips Foto:</p>
+                  <p className="text-sm font-semibold text-brand-navy mb-2">Tips Foto:</p>
                   <ul className="text-xs text-brand-muted space-y-1">
                     <li>• Foto dari depan, sisi, belakang, dan detail kondisi barang</li>
                     <li>• Pastikan foto jelas dan tidak buram</li>

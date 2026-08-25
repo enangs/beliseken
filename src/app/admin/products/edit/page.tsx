@@ -100,7 +100,7 @@ function EditProductContent() {
   if (notFound) {
     return (
       <div className="text-center py-20">
-        <p className="text-4xl mb-4">🔍</p>
+        <div className="text-4xl mb-4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-12 h-12 mx-auto text-brand-muted"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
         <p className="text-brand-navy font-semibold text-lg">Produk tidak ditemukan</p>
         <button onClick={() => router.push("/admin/products")} className="mt-4 text-brand hover:text-brand-dark font-medium text-sm">
           ← Kembali ke daftar produk

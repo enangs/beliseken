@@ -240,7 +240,7 @@ export default function ProductForm({
       {/* Photo Upload - Multiple */}
       <div className="bg-white rounded-xl border border-brand-border p-5">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-bold text-brand-navy">📷 Foto Produk ({photos.length}/{MAX_PHOTOS})</h2>
+          <h2 className="font-bold text-brand-navy">Foto Produk ({photos.length}/{MAX_PHOTOS})</h2>
           <span className="text-xs text-brand-muted">Foto pertama = foto utama</span>
         </div>
 
@@ -325,7 +325,7 @@ export default function ProductForm({
                 : "bg-brand/10 hover:bg-brand/20 text-brand"
             }`}
           >
-            {uploading ? <Loader2 size={14} className="animate-spin" /> : "📁"}
+            {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
             Pilih Foto ({MAX_PHOTOS - photos.length} slot tersisa)
           </button>
           {errors.photo && <p className="text-xs text-red-500">{errors.photo}</p>}
@@ -371,7 +371,7 @@ export default function ProductForm({
 
       {/* Pricing */}
       <div className="bg-white rounded-xl border border-brand-border p-5">
-        <h2 className="font-bold text-brand-navy mb-4">💰 Harga</h2>
+        <h2 className="font-bold text-brand-navy mb-4">Harga</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-semibold text-brand-navy mb-1">Harga Asli (Rp) *</label>
@@ -432,7 +432,7 @@ export default function ProductForm({
 
       {/* Rating & Badge */}
       <div className="bg-white rounded-xl border border-brand-border p-5">
-        <h2 className="font-bold text-brand-navy mb-4">⭐ Rating & Badge</h2>
+        <h2 className="font-bold text-brand-navy mb-4">Rating & Badge</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-semibold text-brand-navy mb-1">Rating</label>
@@ -460,7 +460,7 @@ export default function ProductForm({
 
       {/* Description & Specs */}
       <div className="bg-white rounded-xl border border-brand-border p-5">
-        <h2 className="font-bold text-brand-navy mb-4">📋 Deskripsi & Spesifikasi</h2>
+        <h2 className="font-bold text-brand-navy mb-4">Deskripsi & Spesifikasi</h2>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-semibold text-brand-navy mb-1">Deskripsi Produk</label>

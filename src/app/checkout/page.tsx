@@ -22,9 +22,9 @@ const steps = [
 ];
 
 const paymentMethods = [
-  { id: "bank_transfer", label: "Transfer Bank (BCA/Mandiri/BNI)", icon: "🏦", description: "Transfer manual ke rekening toko" },
-  { id: "ewallet", label: "E-Wallet (GoPay/OVO/DANA)", icon: "📱", description: "Bayar via aplikasi e-wallet" },
-  { id: "cod", label: "Bayar di Tempat (COD)", icon: "💵", description: "Bayar saat barang diterima" },
+  { id: "bank_transfer", label: "Transfer Bank (BCA/Mandiri/BNI)", description: "Transfer manual ke rekening toko" },
+  { id: "ewallet", label: "E-Wallet (GoPay/OVO/DANA)", description: "Bayar via aplikasi e-wallet" },
+  { id: "cod", label: "Bayar di Tempat (COD)", description: "Bayar saat barang diterima" },
 ];
 
 export default function CheckoutPage() {
@@ -142,7 +142,7 @@ export default function CheckoutPage() {
         <Header />
         <main className="flex-1 pt-20 min-h-screen bg-brand-gray">
           <div className="max-w-4xl mx-auto px-4 py-20 text-center">
-            <div className="text-6xl mb-4">🛒</div>
+            <div className="text-6xl mb-4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-16 h-16 mx-auto text-brand-muted"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div>
             <h1 className="text-2xl font-bold text-brand-navy mb-2">Keranjang Kosong</h1>
             <p className="text-brand-muted mb-6">Tambahkan produk ke keranjang terlebih dahulu.</p>
             <Link href="/products" className="px-6 py-3 bg-brand text-white font-semibold rounded-xl hover:bg-brand-dark transition-colors">
@@ -411,7 +411,7 @@ export default function CheckoutPage() {
                         paymentMethod === pm.id ? "border-brand bg-brand/5" : "border-brand-border hover:border-brand/50"
                       }`}>
                         <input type="radio" name="payment" checked={paymentMethod === pm.id} onChange={() => setPaymentMethod(pm.id)} className="accent-brand" />
-                        <span className="text-2xl">{pm.icon}</span>
+                        <span className="text-2xl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-brand"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>
                         <div className="flex-1">
                           <p className="font-semibold text-brand-navy text-sm">{pm.label}</p>
                           <p className="text-xs text-brand-muted">{pm.description}</p>
@@ -432,7 +432,7 @@ export default function CheckoutPage() {
                         </>
                       ) : (
                         <>
-                          💬 Bayar & Pesan via WhatsApp
+                          Bayar & Pesan via WhatsApp
                         </>
                       )}
                     </button>

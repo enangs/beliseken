@@ -152,7 +152,7 @@ function VerifyEmailContent() {
       <div className="min-h-screen bg-brand-gray flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
           <CheckCircle size={64} className="mx-auto text-green-500 mb-4" />
-          <h1 className="text-xl font-bold text-brand-navy mb-2">Email Terverifikasi! 🎉</h1>
+          <h1 className="text-xl font-bold text-brand-navy mb-2">Email Terverifikasi!</h1>
           <p className="text-brand-muted mb-6">Anda akan diarahkan ke halaman login...</p>
         </div>
       </div>
