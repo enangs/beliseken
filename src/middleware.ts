@@ -1,47 +1,32 @@
-// Next.js Middleware - Protects /api/admin/* routes only
-// Admin pages use client-side auth check
+// Simple middleware - only protect admin API routes (except auth)
 import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'beliseken-admin-secret-key-2026-production';
-const ADMIN_COOKIE = 'beliseken_admin_token';
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Only protect /api/admin/* routes (except auth endpoints)
-  if (pathname.startsWith('/api/admin/') && !pathname.includes('/api/admin/auth/')) {
-    const token = request.cookies.get(ADMIN_COOKIE)?.value;
+  // Skip auth for login/logout endpoints
+  if (pathname.includes('/api/admin/auth/')) {
+    return NextResponse.next();
+  }
+
+  // Protect other admin API routes
+  if (pathname.startsWith('/api/admin/')) {
+    const token = request.cookies.get('beliseken_admin_token')?.value;
 
     if (!token) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized. Silakan login sebagai admin.' },
+        { success: false, error: 'Silakan login sebagai admin' },
         { status: 401 }
       );
     }
 
-    try {
-      const decoded = jwt.verify(token, JWT_SECRET) as any;
-      if (!decoded || (decoded.role !== 'SUPER_ADMIN' && decoded.role !== 'ADMIN')) {
-        return NextResponse.json(
-          { success: false, error: 'Akses ditolak. Hanya admin yang diizinkan.' },
-          { status: 403 }
-        );
-      }
-      return NextResponse.next();
-    } catch {
-      return NextResponse.json(
-        { success: false, error: 'Sesi admin berakhir. Silakan login kembali.' },
-        { status: 401 }
-      );
-    }
+    // Simple token check - just verify it exists (JWT verify done in API routes)
+    return NextResponse.next();
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    '/api/admin/:path*',
-  ],
+  matcher: ['/api/admin/:path*'],
 };
