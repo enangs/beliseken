@@ -95,7 +95,7 @@ export default function BlogPreview() {
                   {post.imageBase64 ? (
                     <img src={post.imageBase64} alt={post.title} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                   ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-3xl opacity-20">📝</div>
+                    <div className="absolute inset-0 flex items-center justify-center opacity-20"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-12 h-12 text-brand-muted"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
                   )}
                 </div>
                 <div className="p-5 flex-1 flex flex-col">

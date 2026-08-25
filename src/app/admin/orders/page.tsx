@@ -279,7 +279,7 @@ export default function AdminOrdersPage() {
 
                       {/* Address & Payment */}
                       <div>
-                        <h4 className="text-sm font-semibold text-brand-navy mb-2">📍 Alamat Pengiriman:</h4>
+                        <h4 className="text-sm font-semibold text-brand-navy mb-2">Alamat Pengiriman:</h4>
                         <div className="bg-white rounded-lg p-3 border border-brand-border text-sm">
                           <p className="font-semibold">{order.address?.name || '-'}</p>
                           <p className="text-brand-muted text-xs">{order.address?.phone || '-'} • {order.address?.email || '-'}</p>

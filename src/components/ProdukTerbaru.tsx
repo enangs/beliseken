@@ -22,7 +22,7 @@ export default function ProdukTerbaru() {
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-2xl">🆕</span>
+              <span className="text-2xl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7 text-brand"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></span>
               <h2 className="text-3xl md:text-4xl font-bold text-brand-navy">
                 Baru Ditambahkan
               </h2>

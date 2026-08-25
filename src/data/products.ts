@@ -62,11 +62,11 @@ export interface BlogPost {
 // ── Categories ──
 
 export const categories: Category[] = [
-  { id: "1", name: "Laptop & Notebook", slug: "laptop-notebook", icon: "💻", itemCount: 10, color: "#3b82f6" },
-  { id: "2", name: "Smartphone & Tablet", slug: "smartphone-tablet", icon: "📱", itemCount: 10, color: "#10b981" },
-  { id: "3", name: "Monitor & TV", slug: "monitor-tv", icon: "🖥️", itemCount: 10, color: "#8b5cf6" },
-  { id: "4", name: "Networking & IT", slug: "networking-it", icon: "🌐", itemCount: 10, color: "#f59e0b" },
-  { id: "5", name: "Peripheral & Aksesoris", slug: "peripheral-aksesoris", icon: "⌨️", itemCount: 10, color: "#ef4444" },
+  { id: "1", name: "Laptop & Notebook", slug: "laptop-notebook", icon: "/icons/laptop.svg", itemCount: 10, color: "#3b82f6" },
+  { id: "2", name: "Smartphone & Tablet", slug: "smartphone-tablet", icon: "/icons/device-mobile.svg", itemCount: 10, color: "#10b981" },
+  { id: "3", name: "Monitor & TV", slug: "monitor-tv", icon: "/icons/monitor.svg", itemCount: 10, color: "#8b5cf6" },
+  { id: "4", name: "Networking & IT", slug: "networking-it", icon: "/icons/network.svg", itemCount: 10, color: "#f59e0b" },
+  { id: "5", name: "Peripheral & Aksesoris", slug: "peripheral-aksesoris", icon: "/icons/circuitry.svg", itemCount: 10, color: "#ef4444" },
 ];
 
 // ── All Products (50 total) ──

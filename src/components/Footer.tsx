@@ -94,7 +94,7 @@ export default function Footer() {
             © 2026 BeliSeken.com. All rights reserved.
           </p>
           <div className="flex items-center gap-4 text-white/40 text-sm">
-            <span>📍 Griyaasri 2 Blok H6 No 30, Tambun Selatan, Bekasi</span>
+            <span>Griyaasri 2 Blok H6 No 30, Tambun Selatan, Bekasi</span>
           </div>
         </div>
       </div>

@@ -150,7 +150,7 @@ export default function BlogForm({ initialData, onSubmit, submitLabel }: BlogFor
 
       {/* Basic Info */}
       <div className="bg-white rounded-xl border border-brand-border p-5">
-        <h2 className="font-bold text-brand-navy mb-4">📝 Informasi Artikel</h2>
+        <h2 className="font-bold text-brand-navy mb-4">Informasi Artikel</h2>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-semibold text-brand-navy mb-1">Judul Artikel *</label>

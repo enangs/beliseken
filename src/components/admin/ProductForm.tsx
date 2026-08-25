@@ -337,7 +337,7 @@ export default function ProductForm({
 
       {/* Basic Info */}
       <div className="bg-white rounded-xl border border-brand-border p-5">
-        <h2 className="font-bold text-brand-navy mb-4">📝 Informasi Dasar</h2>
+        <h2 className="font-bold text-brand-navy mb-4">Informasi Dasar</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-semibold text-brand-navy mb-1">SKU *</label>

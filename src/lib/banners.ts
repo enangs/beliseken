@@ -65,7 +65,7 @@ const defaultBanners: Banner[] = [
 const defaultPromoCards: PromoCard[] = [
   {
     id: "1",
-    title: "💻 Laptop & Notebook",
+    title: "Laptop & Notebook",
     subtitle: "Mulai 3.5 Juta",
     price: "Mulai 3.5 Juta",
     description: "MacBook, ThinkPad, ASUS ROG & lainnya",
@@ -75,7 +75,7 @@ const defaultPromoCards: PromoCard[] = [
   },
   {
     id: "2",
-    title: "📱 Smartphone & Tablet",
+    title: "Smartphone & Tablet",
     subtitle: "Mulai 1.2 Juta",
     price: "Mulai 1.2 Juta",
     description: "iPhone, Samsung, iPad & lainnya",
@@ -85,7 +85,7 @@ const defaultPromoCards: PromoCard[] = [
   },
   {
     id: "3",
-    title: "🌐 Networking & IT",
+    title: "Networking & IT",
     subtitle: "Mulai Rp150rb",
     price: "Mulai Rp150rb",
     description: "MikroTik, TP-Link, Ubiquiti & lainnya",

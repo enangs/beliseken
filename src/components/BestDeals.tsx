@@ -46,7 +46,7 @@ export default function BestDeals() {
     { id: "semua", label: "Semua" },
     { id: "hot-deal", label: "Hot Deal" },
     { id: "best-seller", label: "Best Seller" },
-    { id: "baru", label: "🆕 Baru Ditambahkan" },
+    { id: "baru", label: "Baru Ditambahkan" },
   ];
 
   const filteredProducts =
@@ -134,7 +134,7 @@ export default function BestDeals() {
         <div className="mt-10 bg-gradient-to-r from-brand to-brand-dark rounded-2xl p-6 md:p-8 animate-gradient">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3 text-white">
-              <span className="text-3xl">⏰</span>
+              <span className="text-3xl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 text-white"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
               <div>
                 <p className="font-bold text-lg">Flash Sale berakhir dalam:</p>
                 <p className="text-white/80 text-sm">

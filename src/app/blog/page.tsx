@@ -91,7 +91,7 @@ export default function BlogPage() {
 
               {posts.length === 0 && (
                 <div className="text-center py-20">
-                  <div className="text-5xl mb-4">📝</div>
+                  <div className="text-5xl mb-4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-16 h-16 mx-auto text-brand-muted"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
                   <h3 className="text-xl font-bold text-brand-navy mb-2">Belum Ada Artikel</h3>
                   <p className="text-brand-muted">Artikel akan segera hadir.</p>
                 </div>
