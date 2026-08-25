@@ -376,7 +376,7 @@ export default function AdminOrdersPage() {
                     {/* Status History */}
                     {order.statusHistory && order.statusHistory.length > 0 && (
                       <div className="mt-4">
-                        <h4 className="text-sm font-semibold text-brand-navy mb-2">📋 Riwayat Status:</h4>
+                        <h4 className="text-sm font-semibold text-brand-navy mb-2">Riwayat Status:</h4>
                         <div className="space-y-1">
                           {order.statusHistory.map((h, i) => (
                             <div key={i} className="flex items-center gap-2 text-xs">

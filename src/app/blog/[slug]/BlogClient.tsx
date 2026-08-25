@@ -50,7 +50,7 @@ export default function BlogClient({ slug }: { slug: string }) {
         <Header />
         <main className="flex-1 pt-20 min-h-screen flex items-center justify-center">
           <div className="text-center">
-            <div className="text-6xl mb-4">📄</div>
+            <div className="text-6xl mb-4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-16 h-16 mx-auto text-brand-muted"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></div>
             <h1 className="text-2xl font-bold text-brand-navy mb-2">Artikel Tidak Ditemukan</h1>
             <p className="text-brand-muted mb-6">Artikel yang Anda cari tidak tersedia.</p>
             <Link href="/blog" className="px-6 py-3 bg-brand text-white font-semibold rounded-lg hover:bg-brand-dark transition-colors">
@@ -101,7 +101,7 @@ export default function BlogClient({ slug }: { slug: string }) {
             <img src={post.imageBase64} alt={post.title} className="w-full rounded-2xl aspect-[21/9] object-cover mb-8" />
           ) : (
             <div className="bg-gradient-to-br from-brand/5 to-brand-dark/5 rounded-2xl aspect-[21/9] mb-8 flex items-center justify-center">
-              <span className="text-6xl opacity-30">📖</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-16 h-16 mx-auto text-brand-muted opacity-30"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
             </div>
           )}
 

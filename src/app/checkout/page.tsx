@@ -334,7 +334,7 @@ export default function CheckoutPage() {
                         className="w-4 h-4 accent-brand rounded"
                       />
                       <label htmlFor="saveAddress" className="text-sm text-brand-navy">
-                        💾 Simpan alamat ini untuk pembelian berikutnya
+                        Simpan alamat ini untuk pembelian berikutnya
                       </label>
                     </div>
                   )}

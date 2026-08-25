@@ -114,7 +114,7 @@ export default function CustomersPage() {
           <div className="lg:col-span-2">
             {filtered.length === 0 ? (
               <div className="bg-white rounded-xl border border-brand-border p-12 text-center">
-                <div className="text-4xl mb-3">👥</div>
+                <div className="text-4xl mb-3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-12 h-12 mx-auto text-brand-muted"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
                 <p className="text-brand-muted">
                   {search ? "Tidak ada pelanggan yang cocok" : "Belum ada pelanggan terdaftar"}
                 </p>
@@ -265,7 +265,7 @@ export default function CustomersPage() {
               </div>
             ) : (
               <div className="bg-white rounded-xl border border-brand-border p-8 text-center sticky top-24">
-                <div className="text-4xl mb-3">👈</div>
+                <div className="text-4xl mb-3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-12 h-12 mx-auto text-brand-muted"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></div>
                 <p className="text-sm text-brand-muted">
                   Klik pelanggan untuk melihat detail
                 </p>
