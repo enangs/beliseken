@@ -73,9 +73,9 @@ export async function POST(request: NextRequest) {
       message: "Permintaan jual barang berhasil dikirim! Tim kami akan menghubungi Anda dalam 1 jam via WhatsApp.",
     });
   } catch (error: any) {
-    console.error("Error creating sell request:", error);
+    console.error("Error creating sell request:", error?.message, error?.code, error?.meta);
     return NextResponse.json(
-      { success: false, error: "Gagal menyimpan data. Silakan coba lagi." },
+      { success: false, error: `Gagal menyimpan: ${error?.message || "Unknown error"}` },
       { status: 500 }
     );
   }
