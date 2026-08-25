@@ -63,7 +63,7 @@ export default function Footer() {
                 <li key={cat.href}>
                   <Link href={cat.href} className="flex items-center gap-2 text-white/60 hover:text-white text-sm transition-colors">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={cat.icon} alt="" className="w-5 h-5 opacity-60" aria-hidden="true" />
+                    <img src={cat.icon} alt="" className="w-5 h-5 brightness-0 invert opacity-80" aria-hidden="true" />
                     {cat.label}
                   </Link>
                 </li>
