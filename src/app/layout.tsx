@@ -85,6 +85,56 @@ export default function RootLayout({
         {/* Preload critical resources for LCP */}
         <link rel="preload" href="/hero.webp" as="image" fetchPriority="high" />
         {/* Preconnect to Cloudinary for faster image loads */}
+        {/* Facebook Pixel */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              !function(f,b,e,v,n,t,s)
+              {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+              if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+              n.queue=[];t=b.createElement(e);t.async=!0;
+              t.src=v;s=b.getElementsByTagName(e)[0];
+              s.parentNode.insertBefore(t,s)}(window, document,'script',
+              'https://connect.facebook.net/en_US/fbevents.js');
+              fbq('init', '1234567890');
+              fbq('track', 'PageView');
+            `,
+          }}
+        />
+
+        {/* Social Media Schema Markup */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "BeliSeken.com",
+              "url": "https://beliseken.com",
+              "logo": "https://beliseken.com/logo.png",
+              "sameAs": [
+                "https://www.instagram.com/beliseken1/",
+                "https://www.facebook.com/profile.php?id=61593794008221"
+              ],
+              "contactPoint": {
+                "@type": "ContactPoint",
+                "telephone": "+6285101256123",
+                "contactType": "customer service",
+                "availableLanguage": ["Indonesian", "English"]
+              },
+              "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "Griyaasri 2 Blok H6 No 30, Tambun Selatan",
+                "addressLocality": "Bekasi",
+                "addressRegion": "Jawa Barat",
+                "postalCode": "17510",
+                "addressCountry": "ID"
+              }
+            })
+          }}
+        />
+
         <link rel="preconnect" href="https://res.cloudinary.com" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
       </head>

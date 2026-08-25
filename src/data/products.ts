@@ -1497,8 +1497,8 @@ export const storeInfo = {
   operatingHours: "Senin - Sabtu, 09:00 - 18:00 WIB",
   website: "https://beliseken.com",
   social: {
-    instagram: "https://instagram.com/beliseken.com",
-    facebook: "https://facebook.com/beliseken.com",
+    instagram: "https://www.instagram.com/beliseken1/",
+    facebook: "https://www.facebook.com/profile.php?id=61593794008221",
     tiktok: "https://tiktok.com/@beliseken.com",
     youtube: "https://youtube.com/@beliseken.com",
   },
