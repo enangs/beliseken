@@ -44,8 +44,8 @@ export default function BestDeals() {
 
   const tabs = [
     { id: "semua", label: "Semua" },
-    { id: "hot-deal", label: "🔥 Hot Deal" },
-    { id: "best-seller", label: "⭐ Best Seller" },
+    { id: "hot-deal", label: "Hot Deal" },
+    { id: "best-seller", label: "Best Seller" },
     { id: "baru", label: "🆕 Baru Ditambahkan" },
   ];
 
