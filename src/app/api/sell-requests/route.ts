@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
         subcategory: subcategory || null,
         brand,
         model,
-        photos: JSON.stringify(photos || []),
+        photos: photos || [],
         condition,
         functionalCondition: functionalCondition || "Semua Berfungsi",
         damageDescription: damageDescription || null,
@@ -108,10 +108,10 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: "desc" },
     });
 
-    // Parse photos JSON and askingPrice BigInt
+    // Parse askingPrice BigInt
     const parsed = sellRequests.map((sr) => ({
       ...sr,
-      photos: JSON.parse(sr.photos || "[]"),
+      photos: Array.isArray(sr.photos) ? sr.photos : [],
       askingPrice: sr.askingPrice ? Number(sr.askingPrice) : null,
       offeredPrice: sr.offeredPrice ? Number(sr.offeredPrice) : null,
     }));
