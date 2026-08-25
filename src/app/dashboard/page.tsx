@@ -7,7 +7,7 @@ import { Package, ShoppingCart, Heart, CreditCard, Star, Settings, LogOut, User 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getCurrentUser, logoutUser, type User as UserType } from "@/lib/auth-api";
-import { getUserOrders } from "@/lib/orders";
+import { fetchOrders } from "@/lib/orders-api";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/utils";
 
@@ -27,13 +27,19 @@ export default function DashboardPage() {
       return;
     }
 
-    // Calculate real stats
-    const orders = getUserOrders();
-    const total = orders.length;
-    const processing = orders.filter((o) => ["paid", "processing", "shipping"].includes(o.status)).length;
-    const completed = orders.filter((o) => ["completed", "delivered"].includes(o.status)).length;
-    const totalSpent = orders.reduce((sum, o) => sum + o.total, 0);
-    setOrderStats({ total, processing, completed, totalSpent });
+    // Fetch order stats from API (only this user's orders)
+    (async () => {
+      try {
+        const orders = await fetchOrders({ userId: u.id, email: u.email });
+        const total = orders.length;
+        const processing = orders.filter((o: any) => ["paid", "processing", "shipping"].includes(o.status)).length;
+        const completed = orders.filter((o: any) => ["completed", "delivered"].includes(o.status)).length;
+        const totalSpent = orders.reduce((sum: number, o: any) => sum + o.total, 0);
+        setOrderStats({ total, processing, completed, totalSpent });
+      } catch (err) {
+        console.error('Failed to load order stats:', err);
+      }
+    })();
   }, [router]);
 
   const handleLogout = () => {

@@ -19,13 +19,13 @@ export async function GET(request: NextRequest) {
 
     if (isAdmin) {
       // Admin sees all orders
-    } else if (email) {
-      whereClause = `WHERE o."addressSnapshot" ILIKE $${paramIdx}`;
-      params.push(`%${email}%`);
-      paramIdx++;
     } else if (userId) {
       whereClause = `WHERE o."userId" = $${paramIdx}`;
       params.push(userId);
+      paramIdx++;
+    } else if (email) {
+      whereClause = `WHERE o."addressSnapshot"::text ILIKE $${paramIdx}`;
+      params.push(`%${email}%`);
       paramIdx++;
     }
 
