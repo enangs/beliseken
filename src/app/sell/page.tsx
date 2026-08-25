@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Camera, CheckCircle, Upload, ArrowRight, ArrowLeft } from "lucide-react";
+import { Camera, CheckCircle, Upload, ArrowRight, ArrowLeft, Loader2, MessageCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { storeInfo } from "@/data/products";
+import { getCurrentUser } from "@/lib/auth-api";
 
 const steps = ["Info Dasar", "Foto Produk", "Kondisi Barang", "Harga & Kontak"];
 
@@ -14,7 +14,6 @@ const categories = [
   "Monitor & TV",
   "Networking & IT",
   "Peripheral & Aksesoris",
-  "Power Supply",
   "Lainnya",
 ];
 
@@ -22,6 +21,9 @@ const conditions = ["Seperti Baru", "Bagus (Grade A)", "Biasa (Grade B)", "Rusak
 
 export default function SellPage() {
   const [currentStep, setCurrentStep] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [whatsappLink, setWhatsappLink] = useState("");
   const [formData, setFormData] = useState({
     category: "",
     subcategory: "",
@@ -45,9 +47,128 @@ export default function SellPage() {
     if (currentStep > 0) setCurrentStep(currentStep - 1);
   };
 
-  const handleSubmit = () => {
-    alert("Barang Anda berhasil dikirim! Tim kami akan menghubungi Anda dalam 1 jam via WhatsApp.");
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      const user = getCurrentUser();
+      const response = await fetch("/api/sell-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          askingPrice: formData.askingPrice ? parseInt(formData.askingPrice) : null,
+          userId: user?.id || null,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setIsSuccess(true);
+        setWhatsappLink(result.data.whatsappLink);
+      } else {
+        alert(result.error || "Gagal mengirim data. Silakan coba lagi.");
+      }
+    } catch (error) {
+      alert("Terjadi kesalahan. Silakan coba lagi.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  // Success page
+  if (isSuccess) {
+    return (
+      <>
+        <Header />
+        <main className="flex-1 pt-20">
+          <div className="bg-gradient-to-r from-brand to-brand-dark py-12">
+            <div className="max-w-3xl mx-auto px-4 text-center">
+              <h1 className="text-3xl md:text-4xl font-extrabold text-white mb-3">Jual Barang Bekasmu</h1>
+              <p className="text-white/80 text-lg">Isi data barangmu, kami akan kasih penawaran terbaik!</p>
+            </div>
+          </div>
+
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+            <div className="bg-white rounded-2xl border border-brand-border p-8 text-center">
+              <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle size={40} className="text-emerald-500" />
+              </div>
+              <h2 className="text-2xl font-bold text-brand-navy mb-3">Berhasil Dikirim! 🎉</h2>
+              <p className="text-brand-muted mb-6">
+                Data barang Anda sudah kami terima. Tim kami akan menghubungi Anda dalam <strong>1 jam</strong> via WhatsApp.
+              </p>
+
+              {/* WhatsApp Button */}
+              <a
+                href={whatsappLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition-colors text-lg mb-4"
+              >
+                <MessageCircle size={24} />
+                Hubungi Kami via WhatsApp
+              </a>
+
+              <p className="text-sm text-brand-muted mt-4">
+                Atau chat langsung ke <strong>0851-0125-6123</strong>
+              </p>
+
+              {/* Summary */}
+              <div className="mt-8 text-left bg-brand-gray rounded-xl p-6">
+                <h3 className="font-bold text-brand-navy mb-3">Ringkasan:</h3>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-brand-muted">Barang:</span>
+                    <span className="ml-2 font-semibold">{formData.brand} {formData.model}</span>
+                  </div>
+                  <div>
+                    <span className="text-brand-muted">Kategori:</span>
+                    <span className="ml-2 font-semibold">{formData.category}</span>
+                  </div>
+                  <div>
+                    <span className="text-brand-muted">Kondisi:</span>
+                    <span className="ml-2 font-semibold">{formData.condition}</span>
+                  </div>
+                  <div>
+                    <span className="text-brand-muted">Harga:</span>
+                    <span className="ml-2 font-semibold">
+                      {formData.wantOffer ? "Minta Penawaran" : `Rp ${parseInt(formData.askingPrice || "0").toLocaleString("id-ID")}`}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  setIsSuccess(false);
+                  setCurrentStep(0);
+                  setFormData({
+                    category: "",
+                    subcategory: "",
+                    brand: "",
+                    model: "",
+                    photos: [],
+                    condition: "",
+                    functionalCondition: "Semua Berfungsi",
+                    damageDescription: "",
+                    askingPrice: "",
+                    wantOffer: false,
+                    whatsapp: "",
+                    location: "",
+                  });
+                }}
+                className="mt-6 text-brand font-semibold hover:underline"
+              >
+                Jual Barang Lainnya →
+              </button>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>
@@ -304,10 +425,20 @@ export default function SellPage() {
             ) : (
               <button
                 onClick={handleSubmit}
-                className="flex items-center gap-2 px-8 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition-colors"
+                disabled={isSubmitting}
+                className="flex items-center gap-2 px-8 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition-colors disabled:opacity-50"
               >
-                <CheckCircle size={16} />
-                Kirim Barang
+                {isSubmitting ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Mengirim...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle size={16} />
+                    Kirim Barang
+                  </>
+                )}
               </button>
             )}
           </div>

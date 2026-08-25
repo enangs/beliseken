@@ -687,3 +687,50 @@ model AuditLog {
   @@index([createdAt])
   @@map("audit_logs")
 }
+
+// ══════════════════════════════════════════════════════════════
+// MODULE 9: SELL REQUESTS (Jual Barang)
+// ══════════════════════════════════════════════════════════════
+
+model SellRequest {
+  id                  String   @id @default(cuid())
+
+  // Basic Info
+  category            String
+  subcategory         String?
+  brand               String
+  model               String
+
+  // Photos (array of Cloudinary URLs)
+  photos              String   @default("[]") // JSON array
+
+  // Condition
+  condition           String
+  functionalCondition String   @default("Semua Berfungsi")
+  damageDescription   String?
+
+  // Pricing
+  askingPrice         BigInt?
+  wantOffer           Boolean  @default(false)
+  offeredPrice        BigInt?
+
+  // Contact
+  whatsapp            String
+  location            String
+  userId              String?
+
+  // Status
+  status              String   @default("PENDING") // PENDING, CONTACTED, NEGOTIATION, ACCEPTED, REJECTED, COMPLETED
+
+  // Admin notes
+  adminNotes          String?
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([whatsapp])
+  @@index([userId])
+  @@map("sell_requests")
+}
