@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Lock, Mail, Eye, EyeOff, Shield } from "lucide-react";
-import { loginAdmin } from "@/lib/auth";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -19,16 +18,28 @@ export default function AdminLoginPage() {
     setError("");
     setLoading(true);
 
-    // Simulate network delay
-    await new Promise((r) => setTimeout(r, 500));
+    try {
+      // Call server-side JWT auth API
+      const res = await fetch("/api/admin/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+        credentials: "include", // Important: include cookies
+      });
 
-    const user = loginAdmin(email, password);
-    if (user) {
-      router.push("/admin");
-    } else {
-      setError("Email atau password salah!");
+      const data = await res.json();
+
+      if (data.success) {
+        // JWT cookie is set by server, redirect to admin
+        router.push("/admin");
+      } else {
+        setError(data.error || "Email atau password salah!");
+      }
+    } catch (err) {
+      setError("Terjadi kesalahan. Silakan coba lagi.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
