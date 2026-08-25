@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
+import FloatingSellButton from "@/components/FloatingSellButton";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -142,6 +143,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col font-sans pb-20 lg:pb-0">
         <Providers>{children}</Providers>
+        <FloatingSellButton />
       </body>
     </html>
   );
