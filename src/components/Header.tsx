@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -46,7 +46,16 @@ export default function Header() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [user, setUser] = useState<UserType | null>(null);
   const [categories, setCategories] = useState<CategoryResponse[]>([]);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [mobileSearchQuery, setMobileSearchQuery] = useState("");
+  const mobileSearchInputRef = useRef<HTMLInputElement>(null);
   const { totalItems } = useCart();
+
+  useEffect(() => {
+    if (isMobileSearchOpen && mobileSearchInputRef.current) {
+      mobileSearchInputRef.current.focus();
+    }
+  }, [isMobileSearchOpen]);
 
   useEffect(() => {
     setUser(getCurrentUser());
@@ -145,8 +154,8 @@ export default function Header() {
               )}
             </div>
 
-            {/* Search Bar */}
-            <div className="flex-1 max-w-2xl">
+            {/* Search Bar - Desktop */}
+            <div className="flex-1 max-w-2xl hidden lg:block">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -169,6 +178,15 @@ export default function Header() {
                 <button type="submit" className="px-5 py-3 bg-brand hover:bg-brand-dark text-white font-semibold text-sm rounded-xl mr-1 transition-colors">Cari</button>
               </form>
             </div>
+
+            {/* Search Icon - Mobile */}
+            <button
+              onClick={() => setIsMobileSearchOpen(true)}
+              className="lg:hidden flex items-center justify-center w-10 h-10 rounded-xl hover:bg-brand/5 transition-colors"
+              aria-label="Buka pencarian"
+            >
+              <Search size={20} className="text-brand-navy" />
+            </button>
 
             {/* Right Side */}
             <div className="flex items-center gap-2">
@@ -212,6 +230,72 @@ export default function Header() {
           </div>
         </div>
       </header>
+
+      {/* Mobile Search Overlay */}
+      {isMobileSearchOpen && (
+        <div className="fixed inset-0 z-[100] bg-white lg:hidden">
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-brand-border">
+            <button
+              onClick={() => {
+                setIsMobileSearchOpen(false);
+                setMobileSearchQuery("");
+              }}
+              className="flex-shrink-0 p-2 -ml-2 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label="Tutup pencarian"
+            >
+              <X size={20} className="text-brand-navy" />
+            </button>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (mobileSearchQuery.trim()) {
+                  setIsMobileSearchOpen(false);
+                  router.push(`/search?q=${encodeURIComponent(mobileSearchQuery.trim())}`);
+                }
+              }}
+              className="flex-1 flex items-center bg-gray-100 rounded-xl"
+            >
+              <Search size={18} className="ml-4 text-brand-muted flex-shrink-0" />
+              <input
+                ref={mobileSearchInputRef}
+                type="text"
+                value={mobileSearchQuery}
+                onChange={(e) => setMobileSearchQuery(e.target.value)}
+                placeholder="Cari laptop, HP, monitor..."
+                className="w-full px-4 py-3 text-sm outline-none bg-transparent text-brand-navy placeholder:text-brand-muted/60"
+              />
+              {mobileSearchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setMobileSearchQuery("")}
+                  className="p-2 mr-2 hover:bg-gray-200 rounded-lg transition-colors"
+                >
+                  <X size={16} className="text-brand-muted" />
+                </button>
+              )}
+              <button type="submit" className="px-5 py-3 bg-brand hover:bg-brand-dark text-white font-semibold text-sm rounded-xl mr-1 transition-colors">Cari</button>
+            </form>
+          </div>
+          {/* Quick suggestions */}
+          <div className="p-4">
+            <p className="text-xs font-semibold text-brand-muted uppercase tracking-wide mb-3">Pencarian Populer</p>
+            <div className="flex flex-wrap gap-2">
+              {["Laptop", "iPhone", "Samsung", "iPad", "Monitor", "Router"].map((term) => (
+                <button
+                  key={term}
+                  onClick={() => {
+                    setIsMobileSearchOpen(false);
+                    router.push(`/search?q=${encodeURIComponent(term)}`);
+                  }}
+                  className="px-4 py-2 bg-gray-100 hover:bg-brand/10 text-sm font-medium text-brand-navy rounded-full transition-colors"
+                >
+                  {term}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
