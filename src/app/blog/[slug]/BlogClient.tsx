@@ -123,9 +123,16 @@ export default function BlogClient({ slug }: { slug: string }) {
             <p className="text-lg text-brand-muted leading-relaxed mb-6">{post.excerpt}</p>
 
             {post.content ? (
-              post.content.split("\n").filter(Boolean).map((para, i) => (
-                <p key={i} className="text-brand-muted leading-relaxed mb-4">{para}</p>
-              ))
+              post.content.includes("<") ? (
+                <div
+                  className="blog-content text-brand-muted leading-relaxed [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-brand-navy [&_h2]:mt-8 [&_h2]:mb-4 [&_h3]:text-xl [&_h3]:font-bold [&_h3]:text-brand-navy [&_h3]:mt-6 [&_h3]:mb-3 [&_p]:mb-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4 [&_li]:mb-2 [&_strong]:text-brand-navy [&_strong]:font-semibold"
+                  dangerouslySetInnerHTML={{ __html: post.content }}
+                />
+              ) : (
+                post.content.split("\n").filter(Boolean).map((para, i) => (
+                  <p key={i} className="text-brand-muted leading-relaxed mb-4">{para}</p>
+                ))
+              )
             ) : (
               <>
                 <h2 className="text-2xl font-bold text-brand-navy mt-8 mb-4">Kenapa Beli Elektronik Bekas?</h2>
