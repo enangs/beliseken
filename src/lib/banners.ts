@@ -131,24 +131,39 @@ export async function addBanner(banner: Omit<Banner, "id">): Promise<Banner> {
   const newBanner: Banner = { ...banner, id: String(Date.now()) };
   banners.push(newBanner);
   await saveBanners(banners);
-  return newBanner;
+  // Re-fetch to get actual DB IDs
+  const fresh = await getBanners();
+  return fresh[fresh.length - 1] || newBanner;
 }
 
 export async function updateBanner(id: string, updates: Partial<Banner>): Promise<Banner | null> {
-  const banners = await getBanners();
-  const idx = banners.findIndex((b) => b.id === id);
-  if (idx === -1) return null;
-  banners[idx] = { ...banners[idx], ...updates };
-  await saveBanners(banners);
-  return banners[idx];
+  try {
+    const res = await fetch('/api/banners', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, updates }),
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Gagal update banner');
+    return { id, ...updates } as Banner;
+  } catch (e) {
+    console.error('Update banner failed:', e);
+    throw e;
+  }
 }
 
 export async function deleteBanner(id: string): Promise<boolean> {
-  const banners = await getBanners();
-  const filtered = banners.filter((b) => b.id !== id);
-  if (filtered.length === banners.length) return false;
-  await saveBanners(filtered);
-  return true;
+  try {
+    const res = await fetch(`/api/banners?id=${id}`, {
+      method: 'DELETE',
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Gagal menghapus banner');
+    return true;
+  } catch (e) {
+    console.error('Delete banner failed:', e);
+    throw e;
+  }
 }
 
 // ── Promo Cards (PROMO_CARD type) ──
@@ -185,22 +200,37 @@ export async function addPromoCard(card: Omit<PromoCard, "id">): Promise<PromoCa
   const newCard: PromoCard = { ...card, id: String(Date.now()) };
   cards.push(newCard);
   await savePromoCards(cards);
-  return newCard;
+  // Re-fetch to get actual DB IDs
+  const fresh = await getPromoCards();
+  return fresh[fresh.length - 1] || newCard;
 }
 
 export async function updatePromoCard(id: string, updates: Partial<PromoCard>): Promise<PromoCard | null> {
-  const cards = await getPromoCards();
-  const idx = cards.findIndex((c) => c.id === id);
-  if (idx === -1) return null;
-  cards[idx] = { ...cards[idx], ...updates };
-  await savePromoCards(cards);
-  return cards[idx];
+  try {
+    const res = await fetch('/api/banners', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, updates }),
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Gagal update promo');
+    return { id, ...updates } as PromoCard;
+  } catch (e) {
+    console.error('Update promo failed:', e);
+    throw e;
+  }
 }
 
 export async function deletePromoCard(id: string): Promise<boolean> {
-  const cards = await getPromoCards();
-  const filtered = cards.filter((c) => c.id !== id);
-  if (filtered.length === cards.length) return false;
-  await savePromoCards(filtered);
-  return true;
+  try {
+    const res = await fetch(`/api/banners?id=${id}`, {
+      method: 'DELETE',
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Gagal menghapus promo');
+    return true;
+  } catch (e) {
+    console.error('Delete promo failed:', e);
+    throw e;
+  }
 }

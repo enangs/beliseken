@@ -73,7 +73,69 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST save banners — only replaces banners of the given type
+// PUT update a single banner by ID
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { id, updates } = body;
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Banner ID required' }, { status: 400 });
+    }
+
+    const existing = await prisma.banner.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ success: false, error: 'Banner not found' }, { status: 404 });
+    }
+
+    const updated = await prisma.banner.update({
+      where: { id },
+      data: {
+        ...(updates.title !== undefined && { title: updates.title }),
+        ...(updates.subtitle !== undefined && { subtitle: updates.subtitle }),
+        ...(updates.highlight !== undefined && { description: updates.highlight }),
+        ...(updates.description !== undefined && { description: updates.description }),
+        ...(updates.imageBase64 !== undefined && { imageUrl: updates.imageBase64 || null }),
+        ...(updates.bg !== undefined && { gradient: updates.bg }),
+        ...(updates.cta !== undefined && { ctaText: updates.cta }),
+        ...(updates.href !== undefined && { ctaLink: updates.href }),
+        ...(updates.active !== undefined && { isActive: updates.active }),
+        ...(updates.sortOrder !== undefined && { sortOrder: updates.sortOrder }),
+        ...(updates.type !== undefined && { type: updates.type }),
+      },
+    });
+
+    return NextResponse.json({ success: true, data: { id: updated.id } });
+  } catch (error) {
+    console.error('Update banner error:', error);
+    return NextResponse.json({ success: false, error: 'Failed to update banner' }, { status: 500 });
+  }
+}
+
+// DELETE a single banner by ID
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Banner ID required' }, { status: 400 });
+    }
+
+    const existing = await prisma.banner.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ success: false, error: 'Banner not found' }, { status: 404 });
+    }
+
+    await prisma.banner.delete({ where: { id } });
+    return NextResponse.json({ success: true, message: 'Banner deleted' });
+  } catch (error) {
+    console.error('Delete banner error:', error);
+    return NextResponse.json({ success: false, error: 'Failed to delete banner' }, { status: 500 });
+  }
+}
+
+// POST save banners — only replaces banners of the given type (bulk operation)
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
