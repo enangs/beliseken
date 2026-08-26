@@ -72,7 +72,14 @@ const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
             </>
           )}
 
-          {product.badge && (
+          {product.stock === 0 && (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
+              <span className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-sm tracking-wide" role="status">
+                TERJUAL
+              </span>
+            </div>
+          )}
+          {product.badge && product.stock > 0 && (
             <span
               className={`absolute top-3 left-3 px-2.5 py-1 text-[11px] font-bold rounded-md z-10 ${badgeColors[product.badge] || "bg-gray-500 text-white"}`}
               aria-label={`Badge: ${product.badge}`}
@@ -128,8 +135,12 @@ const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
         )}
 
         {product.stock === 0 ? (
-          <div className="w-full py-2.5 bg-red-100 text-red-600 text-sm font-bold rounded-lg text-center" role="status">
-            SOLD OUT
+          <div className="w-full py-2.5 bg-red-100 text-red-600 text-sm font-bold rounded-lg text-center flex items-center justify-center gap-2" role="status">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+            </svg>
+            TERJUAL
           </div>
         ) : (
           <button

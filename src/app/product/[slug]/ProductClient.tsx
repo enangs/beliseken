@@ -293,7 +293,7 @@ export default function ProductClient({ slug }: { slug: string }) {
                       <line x1="15" y1="9" x2="9" y2="15" />
                       <line x1="9" y1="9" x2="15" y2="15" />
                     </svg>
-                    SOLD OUT - Stok Habis
+                    TERJUAL
                   </div>
                 ) : (
                   <button

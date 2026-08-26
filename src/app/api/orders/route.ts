@@ -167,11 +167,57 @@ export async function POST(request: NextRequest) {
       JSON.stringify(address)
     );
 
-    // Create order items with raw SQL
+    // Create order items and mark units as SOLD
     for (let idx = 0; idx < items.length; idx++) {
       const item = items[idx];
       const itemId = `oi-${Date.now()}-${idx}`;
       const productImage = item.productImage?.startsWith('data:') ? null : (item.productImage || null);
+      
+      // Find available units for this product and mark as SOLD
+      const productSlug = item.productSlug;
+      if (productSlug) {
+        // Get product ID from slug
+        const productRows = await prisma.$queryRawUnsafe(
+          `SELECT id FROM products WHERE slug = $1`, productSlug
+        ) as any[];
+        
+        if (productRows.length > 0) {
+          const productId = productRows[0].id;
+          const quantity = item.quantity || 1;
+          
+          // Get available units (FIFO - oldest first)
+          const availableUnits = await prisma.$queryRawUnsafe(
+            `SELECT id, "unitSku" FROM product_units 
+             WHERE "productId" = $1 AND status = 'AVAILABLE' 
+             ORDER BY "createdAt" ASC 
+             LIMIT $2`,
+            productId, quantity
+          ) as any[];
+          
+          // Mark units as SOLD
+          for (const unit of availableUnits) {
+            await prisma.$executeRawUnsafe(
+              `UPDATE product_units SET status = 'SOLD', "updatedAt" = NOW() WHERE id = $1`,
+              unit.id
+            );
+            
+            // Log inventory change
+            await prisma.$executeRawUnsafe(
+              `INSERT INTO inventory_logs ("id", "productId", "unitId", "changeType", "quantityChange", "reason", "referenceId", "createdAt")
+               VALUES ($1, $2, $3, 'SOLD', -1, 'Order created', $4, NOW())`,
+              `ilog-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+              productId,
+              unit.id,
+              orderId
+            );
+          }
+          
+          // Use real unit SKU if available
+          if (availableUnits.length > 0) {
+            item.unitSku = availableUnits[0].unitSku;
+          }
+        }
+      }
       
       await prisma.$executeRawUnsafe(`
         INSERT INTO order_items ("id", "orderId", "productName", "productSlug", "productImage", "unitSku", "price", "quantity", "subtotal")
@@ -180,9 +226,9 @@ export async function POST(request: NextRequest) {
         itemId,
         orderId,
         item.productName || 'Unknown Product',
-        item.productSlug || '',
+        productSlug || '',
         productImage,
-        `GEN-${orderNumber}-${idx + 1}`,
+        item.unitSku || `GEN-${orderNumber}-${idx + 1}`,
         item.price || 0,
         item.quantity || 1,
         (item.price || 0) * (item.quantity || 1)

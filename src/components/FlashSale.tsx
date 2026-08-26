@@ -152,7 +152,7 @@ export default function FlashSale() {
               <Link
                 key={product.id}
                 href={`/product/${product.slug}`}
-                className="flex-none w-[180px] sm:w-[200px] bg-white rounded-xl border border-brand-border overflow-hidden hover:shadow-lg transition-all duration-300 snap-start group"
+                className={`flex-none w-[180px] sm:w-[200px] bg-white rounded-xl border border-brand-border overflow-hidden hover:shadow-lg transition-all duration-300 snap-start group ${product.stock === 0 ? 'opacity-60' : ''}`}
               >
                 {/* Image */}
                 <div className="relative aspect-square bg-brand-gray flex items-center justify-center overflow-hidden">
@@ -172,10 +172,20 @@ export default function FlashSale() {
                     </div>
                   )}
 
+                  {/* Sold Out Overlay */}
+                  {product.stock === 0 && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <span className="bg-red-600 text-white px-3 py-1 rounded font-bold text-xs">
+                        TERJUAL
+                      </span>
+                    </div>
+                  )}
                   {/* Discount Badge */}
-                  <div className="absolute top-2 left-2 bg-brand text-white text-xs font-bold px-2 py-1 rounded-lg">
-                    -{product.discount}%
-                  </div>
+                  {product.stock > 0 && (
+                    <div className="absolute top-2 left-2 bg-brand text-white text-xs font-bold px-2 py-1 rounded-lg">
+                      -{product.discount}%
+                    </div>
+                  )}
                 </div>
 
                 {/* Info */}
