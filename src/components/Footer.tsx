@@ -36,8 +36,10 @@ export default function Footer() {
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="inline-block mb-4">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="BeliSeken" className="h-10" />
+              <picture>
+                <source srcSet="/logo-footer.webp" type="image/webp" />
+                <img src="/logo-footer-opt.png" alt="BeliSeken.com - Jual Beli Elektronik Bekas" className="h-12 w-auto" loading="lazy" decoding="async" width="200" height="60" />
+              </picture>
             </Link>
             <p className="text-white/60 text-sm mb-4">
               Jual beli elektronik bekas premium di Bekasi. Garansi 30 hari, pengiriman aman.
