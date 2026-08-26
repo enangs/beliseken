@@ -84,7 +84,11 @@ export async function GET(
       imageBase64: allImageUrls[0] || null,
       images: allImageUrls,
       allImages: allImageUrls,
+      stock: product._count.units,
       availableUnits: product._count.units,
+      supplier: "",
+      status: product._count.units === 0 ? "SOLD_OUT" : "ACTIVE",
+      condition: product.units?.[0]?.conditionGrade?.name || "Grade A",
       totalReviews: product._count.reviews,
       units: product.units.map((unit: any) => ({
         id: unit.id,

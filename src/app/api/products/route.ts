@@ -172,7 +172,11 @@ export async function GET(request: NextRequest) {
       brand: product.brand,
       imageBase64: optimizeImageUrl(product.images?.[0]?.url || null),
       allImages: [],
+      stock: product._count.units,
       availableUnits: product._count.units,
+      supplier: "",
+      status: product._count.units === 0 ? "SOLD_OUT" : "ACTIVE",
+      condition: "Grade A",
     }));
 
     const response = NextResponse.json({
