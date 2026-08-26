@@ -105,7 +105,7 @@ const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
           </h3>
         </Link>
 
-        <div className="flex items-center gap-1 mb-3" aria-label={`Rating ${product.avgRating} dari 5, ${product.reviewCount} ulasan`}>
+        <div className="flex items-center gap-1 mb-2" aria-label={`Rating ${product.avgRating} dari 5, ${product.reviewCount} ulasan`}>
           <div className="flex items-center gap-0.5" aria-hidden="true">
             {[...Array(5)].map((_, i) => (
               <Star
@@ -123,6 +123,13 @@ const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
             ({product.reviewCount})
           </span>
         </div>
+
+        {product.soldCount > 0 && (
+          <p className="text-xs text-brand-muted mb-2 flex items-center gap-1">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500" aria-hidden="true" />
+            {product.soldCount} terjual
+          </p>
+        )}
 
         <div className="flex items-baseline gap-2 mb-3">
           <span className="text-lg font-bold text-brand">

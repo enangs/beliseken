@@ -126,10 +126,10 @@ export default function ProductClient({ slug }: { slug: string }) {
             <div>
               {/* Main Image */}
               <div className="bg-brand-gray rounded-2xl aspect-square flex items-center justify-center relative overflow-hidden">
-                {product.allImages && product.allImages.length > 0 ? (
+                {(product.allImages && product.allImages.length > 0) || product.imageBase64 ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={product.allImages[selectedImage] || product.allImages[0]}
+                    src={product.allImages && product.allImages.length > 0 ? (product.allImages[selectedImage] || product.allImages[0]) : product.imageBase64!}
                     alt={product.name}
                     className="w-full h-full object-contain"
                   />
@@ -358,7 +358,12 @@ export default function ProductClient({ slug }: { slug: string }) {
               {allProducts.filter((p) => p.id !== product.id).slice(0, 4).map((p) => (
                 <Link key={p.id} href={`/product/${p.slug}`} className="group bg-white rounded-xl border border-brand-border overflow-hidden hover:shadow-lg transition-all">
                   <div className="aspect-[4/3] bg-brand-gray flex items-center justify-center overflow-hidden">
-                    
+                    {p.imageBase64 ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={p.imageBase64} alt={p.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" />
+                    ) : (
+                      <span className="text-3xl opacity-20"></span>
+                    )}
                   </div>
                   <div className="p-4">
                     <h3 className="font-semibold text-brand-navy text-sm group-hover:text-brand transition-colors line-clamp-2">{p.name}</h3>

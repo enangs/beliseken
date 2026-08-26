@@ -76,9 +76,14 @@ export async function GET(
       url: optimizeImageUrl(img.url),
     }));
 
+    // Build image URL arrays for frontend
+    const allImageUrls = optimizedImages.map((img: any) => img.url).filter(Boolean);
+
     const transformedProduct = {
       ...product,
-      images: optimizedImages,
+      imageBase64: allImageUrls[0] || null,
+      images: allImageUrls,
+      allImages: allImageUrls,
       availableUnits: product._count.units,
       totalReviews: product._count.reviews,
       units: product.units.map((unit: any) => ({
