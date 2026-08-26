@@ -98,11 +98,17 @@ const defaultPromoCards: PromoCard[] = [
   },
 ];
 
+// Cache-busting helper for admin fetches
+function cacheBust(url: string): string {
+  const sep = url.includes('?') ? '&' : '?';
+  return `${url}${sep}_t=${Date.now()}`;
+}
+
 // ── Banners (HERO type) ──
 
 export async function getBanners(): Promise<Banner[]> {
   try {
-    const res = await fetch('/api/banners?type=HERO', { cache: 'no-store' });
+    const res = await fetch(cacheBust('/api/banners?type=HERO'), { cache: 'no-store' });
     if (res.ok) {
       const data = await res.json();
       if (data.success) return data.data || [];
@@ -170,7 +176,7 @@ export async function deleteBanner(id: string): Promise<boolean> {
 
 export async function getPromoCards(): Promise<PromoCard[]> {
   try {
-    const res = await fetch('/api/banners?type=PROMO_CARD', { cache: 'no-store' });
+    const res = await fetch(cacheBust('/api/banners?type=PROMO_CARD'), { cache: 'no-store' });
     if (res.ok) {
       const data = await res.json();
       if (data.success) return data.data || [];

@@ -65,7 +65,8 @@ export async function GET(request: NextRequest) {
     }));
 
     const response = NextResponse.json({ success: true, data: transformed });
-    response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=1800');
+    // Use no-store for admin-fresh data; public pages can stale-while-revalidate
+    response.headers.set('Cache-Control', 'private, no-cache, no-store, must-revalidate');
     return response;
   } catch (error) {
     console.error('Banners API error:', error);
