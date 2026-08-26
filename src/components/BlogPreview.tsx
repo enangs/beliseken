@@ -2,14 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getBlogPosts } from "@/data/products";
+import { BookOpen } from "lucide-react";
+import { fetchBlogPosts } from "@/lib/blog-api";
 import type { BlogPost } from "@/data/products";
 
 export default function BlogPreview() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
 
   useEffect(() => {
-    setPosts(getBlogPosts());
+    fetchBlogPosts().then(setPosts).catch(() => {});
   }, []);
 
   const featuredPost = posts.find((p) => p.featured);
@@ -24,7 +25,7 @@ export default function BlogPreview() {
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-2xl">📚</span>
+              <BookOpen size={24} className="text-brand" />
               <h2 className="text-3xl md:text-4xl font-bold text-brand-navy">
                 Tips & Artikel
               </h2>
@@ -54,7 +55,7 @@ export default function BlogPreview() {
                   {featuredPost.imageBase64 ? (
                     <img src={featuredPost.imageBase64} alt={featuredPost.title} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                   ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-5xl opacity-20">📖</div>
+                    <div className="absolute inset-0 flex items-center justify-center"><BookOpen size={48} className="text-brand/20" /></div>
                   )}
                   <span className="absolute top-4 left-4 px-3 py-1.5 bg-brand text-white text-xs font-bold rounded-lg">
                     Featured
