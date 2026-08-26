@@ -71,7 +71,33 @@ export default function Hero() {
     );
   }
 
-  const banner = banners[currentBanner];
+  // Separate hero banners from promo cards
+  const heroBanners = banners.filter((b) => (b as any).type !== "PROMO_CARD");
+  const showHeroBanner = heroBanners.length > 0;
+  const banner = showHeroBanner ? heroBanners[currentBanner % heroBanners.length] : banners[currentBanner];
+
+  // Default hero content when no hero banners exist
+  const defaultHero = {
+    title: "Beli Elektronik Bekas",
+    subtitle: "Premium & Terjangkau",
+    highlight: "Hemat Hingga 70%",
+    description: "Laptop, HP, monitor, router berkualitas dengan garansi 30 hari. Semua produk diuji dan grading ketat.",
+    cta: "Lihat Semua Produk",
+    href: "/products",
+    bg: "from-brand-navy to-brand-dark",
+  };
+
+  const heroData = showHeroBanner ? {
+    title: banner.title,
+    subtitle: banner.subtitle,
+    highlight: banner.highlight,
+    description: banner.description,
+    cta: banner.cta,
+    href: banner.href,
+    bg: banner.bg,
+    imageBase64: banner.imageBase64,
+    icon: (banner as any).icon,
+  } : defaultHero;
 
   return (
     <section className="bg-brand-gray pt-4 pb-8">
@@ -79,31 +105,31 @@ export default function Hero() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Main Banner */}
           <div className="lg:col-span-2 relative">
-            <div className={`relative bg-gradient-to-r ${banner.bg} rounded-2xl overflow-hidden aspect-[16/7] transition-all duration-500`}>
-              {banner.imageBase64 && (
+            <div className={`relative bg-gradient-to-r ${heroData.bg} rounded-2xl overflow-hidden aspect-[16/7] transition-all duration-500`}>
+              {heroData.imageBase64 && (
                 <div className="absolute inset-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={banner.imageBase64} alt={banner.title} width={1200} height={525} fetchPriority="high" decoding="async" className="w-full h-full object-cover" />
+                  <img src={heroData.imageBase64} alt={heroData.title} width={1200} height={525} fetchPriority="high" decoding="async" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
                 </div>
               )}
               <div className="relative z-10 p-8 md:p-12 flex flex-col justify-center h-full">
-                <p className="text-white/70 text-sm font-semibold mb-2 uppercase tracking-wider">{banner.subtitle}</p>
-                <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-2"><BannerIcon name={(banner as any).icon} />{banner.title}</h2>
-                <p className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-amber-300 mb-4">{banner.highlight}</p>
-                <p className="text-white/80 mb-6 max-w-md">{banner.description}</p>
-                <Link href={banner.href} className="inline-flex items-center gap-2 px-6 py-3 bg-white text-brand font-bold rounded-xl hover:bg-gray-100 transition-colors w-fit">{banner.cta} →</Link>
+                <p className="text-white/70 text-sm font-semibold mb-2 uppercase tracking-wider">{heroData.subtitle}</p>
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-2"><BannerIcon name={heroData.icon} />{heroData.title}</h2>
+                <p className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-amber-300 mb-4">{heroData.highlight}</p>
+                <p className="text-white/80 mb-6 max-w-md">{heroData.description}</p>
+                <Link href={heroData.href} className="inline-flex items-center gap-2 px-6 py-3 bg-white text-brand font-bold rounded-xl hover:bg-gray-100 transition-colors w-fit">{heroData.cta} →</Link>
               </div>
-              {banners.length > 1 && (
+              {showHeroBanner && heroBanners.length > 1 && (
                 <>
                   <button onClick={prevBanner} aria-label="Banner sebelumnya" className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white backdrop-blur-sm transition-colors"><ChevronLeft size={20} aria-hidden="true" /></button>
                   <button onClick={nextBanner} aria-label="Banner berikutnya" className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white backdrop-blur-sm transition-colors"><ChevronRight size={20} aria-hidden="true" /></button>
                 </>
               )}
-              {banners.length > 1 && (
+              {showHeroBanner && heroBanners.length > 1 && (
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                  {banners.map((_, i) => (
-                    <button key={i} onClick={() => setCurrentBanner(i)} aria-label={`Banner ${i + 1}`} className={`w-2 h-2 rounded-full transition-all ${i === currentBanner ? "bg-white w-6" : "bg-white/40"}`} />
+                  {heroBanners.map((_, i) => (
+                    <button key={i} onClick={() => setCurrentBanner(i)} aria-label={`Banner ${i + 1}`} className={`w-2 h-2 rounded-full transition-all ${i === (currentBanner % heroBanners.length) ? "bg-white w-6" : "bg-white/40"}`} />
                   ))}
                 </div>
               )}
