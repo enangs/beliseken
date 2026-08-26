@@ -90,17 +90,21 @@ export default function BannersPage() {
 
   const handleDeleteBanner = async (id: string) => {
     if (confirm("Yakin ingin menghapus banner ini?")) {
-      await deleteBanner(id);
-      await reloadAll();
-      if (editingBanner?.id === id) { setEditingBanner(null); setShowForm(false); }
+      try {
+        await deleteBanner(id);
+        await reloadAll();
+        if (editingBanner?.id === id) { setEditingBanner(null); setShowForm(false); }
+      } catch (e: any) { alert("Gagal menghapus: " + e.message); }
     }
   };
 
   const handleDeletePromo = async (id: string) => {
     if (confirm("Yakin ingin menghapus kartu promo ini?")) {
-      await deletePromoCard(id);
-      await reloadAll();
-      if (editingPromo?.id === id) { setEditingPromo(null); setShowForm(false); }
+      try {
+        await deletePromoCard(id);
+        await reloadAll();
+        if (editingPromo?.id === id) { setEditingPromo(null); setShowForm(false); }
+      } catch (e: any) { alert("Gagal menghapus: " + e.message); }
     }
   };
 
@@ -215,12 +219,24 @@ export default function BannersPage() {
 
         {showForm && tab === "banners" && editingBanner && (
           <BannerForm banner={editingBanner}
-            onSave={async (updates) => { await updateBanner(editingBanner.id, updates); await reloadAll(); setEditingBanner({ ...editingBanner, ...updates }); }}
+            onSave={async (updates) => {
+              try {
+                await updateBanner(editingBanner.id, updates);
+                await reloadAll();
+                setEditingBanner({ ...editingBanner, ...updates });
+              } catch (e: any) { alert("Gagal menyimpan: " + e.message); }
+            }}
             onClose={() => { setShowForm(false); setEditingBanner(null); }} />
         )}
         {showForm && tab === "promo" && editingPromo && (
           <PromoForm promo={editingPromo}
-            onSave={async (updates) => { await updatePromoCard(editingPromo.id, updates); await reloadAll(); setEditingPromo({ ...editingPromo, ...updates }); }}
+            onSave={async (updates) => {
+              try {
+                await updatePromoCard(editingPromo.id, updates);
+                await reloadAll();
+                setEditingPromo({ ...editingPromo, ...updates });
+              } catch (e: any) { alert("Gagal menyimpan: " + e.message); }
+            }}
             onClose={() => { setShowForm(false); setEditingPromo(null); }} />
         )}
       </div>

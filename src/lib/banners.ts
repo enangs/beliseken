@@ -9,6 +9,7 @@ export interface Banner {
   bg: string; // gradient class
   imageBase64?: string; // gambar banner
   active: boolean;
+  type?: string; // HERO, PROMO_CARD
   icon?: string; // lucide-react icon name
 }
 
@@ -111,13 +112,13 @@ export async function getBanners(): Promise<Banner[]> {
 }
 
 export async function saveBanners(banners: Banner[]) {
-  try {
-    await fetch('/api/banners', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ banners }),
-    });
-  } catch {}
+  const res = await fetch('/api/banners', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ banners }),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.error || 'Gagal menyimpan banner');
 }
 
 export async function getActiveBanners(): Promise<Banner[]> {
@@ -168,14 +169,14 @@ export async function getPromoCards(): Promise<PromoCard[]> {
 }
 
 export async function savePromoCards(cards: PromoCard[]) {
-  try {
-    const promoData = cards.map(c => ({ ...c, type: 'PROMO_CARD' }));
-    await fetch('/api/banners', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ banners: promoData }),
-    });
-  } catch {}
+  const promoData = cards.map(c => ({ ...c, type: 'PROMO_CARD' }));
+  const res = await fetch('/api/banners', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ banners: promoData }),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.error || 'Gagal menyimpan promo');
 }
 
 export async function getActivePromoCards(): Promise<PromoCard[]> {
