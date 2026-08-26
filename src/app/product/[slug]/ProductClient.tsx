@@ -142,7 +142,20 @@ export default function ProductClient({ slug }: { slug: string }) {
                     </svg>
                   </div>
                 )}
-                {product.badge && (
+                {/* Sold Out Stamp Overlay */}
+                {product.stock === 0 && (
+                  <div className="absolute inset-0 z-20 flex items-center justify-center" role="status" aria-label="Produk sudah terjual">
+                    <div className="absolute inset-0 bg-black/20" />
+                    <div className="relative">
+                      <div className="border-4 border-red-600 rounded-lg px-8 py-3 bg-white/90 transform -rotate-12 shadow-2xl">
+                        <span className="text-red-600 font-extrabold text-3xl tracking-widest uppercase">
+                          TERJUAL
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {product.badge && product.stock > 0 && (
                   <span className={`absolute top-4 left-4 px-3 py-1.5 text-sm font-bold rounded-lg ${
                     product.badge === "HOT DEAL" ? "bg-brand text-white" :
                     product.badge === "BEST SELLER" ? "bg-amber-500 text-white" :

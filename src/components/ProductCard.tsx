@@ -73,10 +73,17 @@ const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
           )}
 
           {product.stock === 0 && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
-              <span className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-sm tracking-wide" role="status">
-                TERJUAL
-              </span>
+            <div className="absolute inset-0 z-20 flex items-center justify-center" role="status" aria-label="Produk sudah terjual">
+              {/* Stamp overlay */}
+              <div className="relative">
+                <div className="border-4 border-red-600 rounded-lg px-6 py-2 bg-white/90 transform -rotate-12 shadow-lg">
+                  <span className="text-red-600 font-extrabold text-xl tracking-widest uppercase">
+                    TERJUAL
+                  </span>
+                </div>
+              </div>
+              {/* Semi-transparent overlay */}
+              <div className="absolute inset-0 bg-black/20" />
             </div>
           )}
           {product.badge && product.stock > 0 && (

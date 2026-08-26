@@ -172,12 +172,15 @@ export default function FlashSale() {
                     </div>
                   )}
 
-                  {/* Sold Out Overlay */}
+                  {/* Sold Out Stamp */}
                   {product.stock === 0 && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                      <span className="bg-red-600 text-white px-3 py-1 rounded font-bold text-xs">
-                        TERJUAL
-                      </span>
+                    <div className="absolute inset-0 z-20 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-black/20" />
+                      <div className="border-2 border-red-600 rounded px-3 py-1 bg-white/90 transform -rotate-12">
+                        <span className="text-red-600 font-bold text-xs tracking-wider uppercase">
+                          TERJUAL
+                        </span>
+                      </div>
                     </div>
                   )}
                   {/* Discount Badge */}
