@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
           type: b.type || 'HERO',
           title: b.title,
           subtitle: b.subtitle || '',
-          description: b.description || '',
+          description: b.highlight || b.description || '',
           imageUrl: b.imageBase64 || null,
           gradient: b.bg || 'from-brand to-brand-dark',
           ctaText: b.cta || 'Lihat Sekarang',
