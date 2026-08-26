@@ -105,10 +105,10 @@ export async function getBanners(): Promise<Banner[]> {
     const res = await fetch('/api/banners?type=HERO', { cache: 'no-store' });
     if (res.ok) {
       const data = await res.json();
-      if (data.success && data.data?.length > 0) return data.data;
+      if (data.success) return data.data || [];
     }
   } catch {}
-  return defaultBanners;
+  return [];
 }
 
 export async function saveBanners(banners: Banner[]) {
@@ -158,10 +158,10 @@ export async function getPromoCards(): Promise<PromoCard[]> {
     const res = await fetch('/api/banners?type=PROMO_CARD', { cache: 'no-store' });
     if (res.ok) {
       const data = await res.json();
-      if (data.success && data.data?.length > 0) return data.data;
+      if (data.success) return data.data || [];
     }
   } catch {}
-  return defaultPromoCards;
+  return [];
 }
 
 export async function savePromoCards(cards: PromoCard[]) {

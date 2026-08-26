@@ -52,20 +52,74 @@ export default function Hero() {
     setCurrentBanner((prev) => (prev - 1 + banners.length) % banners.length);
   };
 
+  // If no hero banners, show default hero + promo cards
   if (banners.length === 0) {
+    const defaultHero = {
+      title: "Beli Elektronik Bekas",
+      subtitle: "Premium & Terjangkau",
+      highlight: "Hemat Hingga 70%",
+      description: "Laptop, HP, monitor, router berkualitas dengan garansi 30 hari. Semua produk diuji dan grading ketat.",
+      cta: "Lihat Semua Produk",
+      href: "/products",
+      bg: "from-brand-navy to-brand-dark",
+    };
     return (
       <section className="bg-brand-gray pt-4 pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div className="lg:col-span-2 relative">
-              <div className="w-full aspect-[16/7] bg-gray-200 rounded-2xl animate-pulse" />
+              <div className={`relative bg-gradient-to-r ${defaultHero.bg} rounded-2xl overflow-hidden aspect-[16/7]`}>
+                <div className="relative z-10 p-8 md:p-12 flex flex-col justify-center h-full">
+                  <p className="text-white/70 text-sm font-semibold mb-2 uppercase tracking-wider">{defaultHero.subtitle}</p>
+                  <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-2">{defaultHero.title}</h2>
+                  <p className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-amber-300 mb-4">{defaultHero.highlight}</p>
+                  <p className="text-white/80 mb-6 max-w-md">{defaultHero.description}</p>
+                  <Link href={defaultHero.href} className="inline-flex items-center gap-2 px-6 py-3 bg-white text-brand font-bold rounded-xl hover:bg-gray-100 transition-colors w-fit">{defaultHero.cta} →</Link>
+                </div>
+              </div>
             </div>
             <div className="flex flex-col gap-4">
-              <div className="flex-1 bg-gray-200 rounded-2xl animate-pulse min-h-[150px]" />
-              <div className="flex-1 bg-gray-200 rounded-2xl animate-pulse min-h-[150px]" />
+              {promoCards.length > 0 ? (
+                promoCards.map((promo) => (
+                  <Link key={promo.id} href={promo.href} className="flex-1 relative rounded-2xl overflow-hidden hover:shadow-xl transition-shadow group">
+                    {promo.imageBase64 ? (
+                      <div className="absolute inset-0">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={promo.imageBase64} alt={promo.title} width={400} height={300} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-black/50 to-black/70" />
+                      </div>
+                    ) : (
+                      <div className={`absolute inset-0 bg-gradient-to-br ${promo.bg}`} />
+                    )}
+                    <div className="relative z-10 p-6">
+                      <p className="text-white/80 text-sm font-semibold mb-1"><BannerIcon name={(promo as any).icon} />{promo.title}</p>
+                      <p className="text-2xl font-extrabold text-white mb-2">{promo.price}</p>
+                      <p className="text-white/60 text-xs">{promo.description}</p>
+                    </div>
+                  </Link>
+                ))
+              ) : (
+                <>
+                  <div className="flex-1 bg-gray-200 rounded-2xl animate-pulse min-h-[150px]" />
+                  <div className="flex-1 bg-gray-200 rounded-2xl animate-pulse min-h-[150px]" />
+                </>
+              )}
             </div>
           </div>
-          <div className="mt-6 bg-gray-200 rounded-2xl h-16 animate-pulse" />
+          <div className="mt-6 bg-white rounded-2xl shadow-sm border border-brand-border">
+            <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-brand-border">
+              {[{ icon: "/icons/gradepermium.svg", label: "Grade Premium", sublabel: "Diuji & grading ketat" }, { icon: "/icons/waranty.svg", label: "Garansi 30 Hari", sublabel: "Retur jika tidak sesuai" }, { icon: "/icons/delivery.svg", label: "Pengiriman Aman", sublabel: "Packing bubble wrap" }, { icon: "/icons/konsul.svg", label: "Konsultasi Gratis", sublabel: "Chat via WhatsApp" }].map((item, i) => (
+                <div key={i} className="flex items-center gap-3 p-4 hover:bg-brand/5 transition-colors">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={item.icon} alt="" className="w-8 h-8 flex-shrink-0" aria-hidden="true" />
+                  <div>
+                    <p className="text-sm font-bold text-brand-navy">{item.label}</p>
+                    <p className="text-xs text-gray-500">{item.sublabel}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
     );
