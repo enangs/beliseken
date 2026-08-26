@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Upload, X, Save, ArrowLeft, Star, Loader2 } from "lucide-react";
 import type { BlogPost } from "@/data/products";
 import { uploadToCloudinary } from "@/lib/cloudinary";
+import RichTextEditor from "./RichTextEditor";
 
 interface BlogFormProps {
   initialData?: BlogPost;
@@ -181,7 +182,16 @@ export default function BlogForm({ initialData, onSubmit, submitLabel }: BlogFor
           </div>
           <div>
             <label className="block text-sm font-semibold text-brand-navy mb-1">Konten Artikel</label>
-            <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={10} placeholder="Tulis konten artikel di sini... (mendukung paragraf biasa)" className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand resize-y min-h-[200px]" />
+            <RichTextEditor
+              value={content}
+              onChange={setContent}
+              placeholder="Tulis konten artikel di sini... Gunakan toolbar untuk format teks, heading, list, link, gambar."
+              minHeight={300}
+            />
+            <p className="text-xs text-brand-muted mt-2">
+              💡 Gunakan toolbar untuk format: <strong>Bold</strong>, <em>Italic</em>, Heading, List, Link, Gambar. 
+              Paste dari Word/Google Docs juga didukung.
+            </p>
           </div>
           <div>
             <label className="flex items-center gap-2 cursor-pointer">

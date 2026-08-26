@@ -649,6 +649,7 @@ model BlogPost {
   isPublished Boolean  @default(false)
   isFeatured  Boolean  @default(false)
   viewCount   Int      @default(0)
+  readTime    String   @default("5 menit")
 
   authorId    String?
   authorName  String   @default("Admin")
