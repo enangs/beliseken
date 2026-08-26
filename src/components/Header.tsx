@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -36,6 +36,45 @@ const storeInfo = {
   operatingHours: 'Senin - Sabtu, 09:00 - 18:00 WIB',
 };
 
+interface Suggestion {
+  name: string;
+  slug: string;
+  price: number;
+  brand: string;
+  category: string;
+  image: string | null;
+}
+
+function useDebounce(value: string, delay: number) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
+}
+
+function formatPrice(price: number) {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(price);
+}
+
+function highlightMatch(text: string, query: string) {
+  if (!query) return text;
+  const idx = text.toLowerCase().indexOf(query.toLowerCase());
+  if (idx === -1) return text;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <span className="font-bold text-brand">{text.slice(idx, idx + query.length)}</span>
+      {text.slice(idx + query.length)}
+    </>
+  );
+}
+
 export default function Header() {
   const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -49,6 +88,18 @@ export default function Header() {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [mobileSearchQuery, setMobileSearchQuery] = useState("");
   const mobileSearchInputRef = useRef<HTMLInputElement>(null);
+  const desktopSearchRef = useRef<HTMLDivElement>(null);
+
+  // Autocomplete state
+  const [desktopSuggestions, setDesktopSuggestions] = useState<Suggestion[]>([]);
+  const [mobileSuggestions, setMobileSuggestions] = useState<Suggestion[]>([]);
+  const [isDesktopSuggestLoading, setIsDesktopSuggestLoading] = useState(false);
+  const [isMobileSuggestLoading, setIsMobileSuggestLoading] = useState(false);
+  const [desktopSelectedIdx, setDesktopSelectedIdx] = useState(-1);
+
+  const debouncedDesktopQuery = useDebounce(searchQuery, 300);
+  const debouncedMobileQuery = useDebounce(mobileSearchQuery, 300);
+
   const { totalItems } = useCart();
 
   useEffect(() => {
@@ -69,12 +120,76 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Close desktop suggestions on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (desktopSearchRef.current && !desktopSearchRef.current.contains(e.target as Node)) {
+        setIsSearchFocused(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Fetch desktop suggestions
+  useEffect(() => {
+    if (debouncedDesktopQuery.length < 2) {
+      setDesktopSuggestions([]);
+      return;
+    }
+    setIsDesktopSuggestLoading(true);
+    fetch(`/api/search/suggest?q=${encodeURIComponent(debouncedDesktopQuery)}`)
+      .then((r) => r.json())
+      .then((res) => {
+        setDesktopSuggestions(res.data || []);
+        setDesktopSelectedIdx(-1);
+      })
+      .catch(() => setDesktopSuggestions([]))
+      .finally(() => setIsDesktopSuggestLoading(false));
+  }, [debouncedDesktopQuery]);
+
+  // Fetch mobile suggestions
+  useEffect(() => {
+    if (debouncedMobileQuery.length < 2) {
+      setMobileSuggestions([]);
+      return;
+    }
+    setIsMobileSuggestLoading(true);
+    fetch(`/api/search/suggest?q=${encodeURIComponent(debouncedMobileQuery)}`)
+      .then((r) => r.json())
+      .then((res) => setMobileSuggestions(res.data || []))
+      .catch(() => setMobileSuggestions([]))
+      .finally(() => setIsMobileSuggestLoading(false));
+  }, [debouncedMobileQuery]);
+
+  const handleDesktopKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (!desktopSuggestions.length) return;
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setDesktopSelectedIdx((prev) =>
+          prev < desktopSuggestions.length - 1 ? prev + 1 : 0
+        );
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setDesktopSelectedIdx((prev) =>
+          prev > 0 ? prev - 1 : desktopSuggestions.length - 1
+        );
+      } else if (e.key === "Escape") {
+        setIsSearchFocused(false);
+      }
+    },
+    [desktopSuggestions.length]
+  );
+
   const handleLogout = () => {
     logoutUser();
     setUser(null);
     setIsProfileOpen(false);
     router.push("/");
   };
+
+  const showDesktopDropdown = isSearchFocused && (desktopSuggestions.length > 0 || isDesktopSuggestLoading);
 
   return (
     <>
@@ -154,13 +269,18 @@ export default function Header() {
               )}
             </div>
 
-            {/* Search Bar - Desktop */}
-            <div className="flex-1 max-w-2xl hidden lg:block">
+            {/* Search Bar - Desktop with autocomplete */}
+            <div className="flex-1 max-w-2xl hidden lg:block relative" ref={desktopSearchRef}>
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  if (searchQuery.trim()) {
-                    router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+                  const q =
+                    desktopSelectedIdx >= 0
+                      ? desktopSuggestions[desktopSelectedIdx]?.name
+                      : searchQuery;
+                  if (q?.trim()) {
+                    setIsSearchFocused(false);
+                    router.push(`/search?q=${encodeURIComponent(q.trim())}`);
                   }
                 }}
                 className={`flex items-center bg-gray-100 rounded-xl transition-all duration-200 ${isSearchFocused ? "ring-2 ring-brand/30 bg-white shadow-lg" : ""}`}
@@ -170,13 +290,88 @@ export default function Header() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleDesktopKeyDown}
                   placeholder="Cari laptop, HP, monitor, router..."
                   className="w-full px-4 py-3 text-sm outline-none bg-transparent text-brand-navy placeholder:text-brand-muted/60"
                   onFocus={() => setIsSearchFocused(true)}
-                  onBlur={() => setIsSearchFocused(false)}
+                  autoComplete="off"
                 />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setDesktopSuggestions([]);
+                    }}
+                    className="p-1.5 mr-1 hover:bg-gray-200 rounded-lg transition-colors"
+                  >
+                    <X size={14} className="text-brand-muted" />
+                  </button>
+                )}
                 <button type="submit" className="px-5 py-3 bg-brand hover:bg-brand-dark text-white font-semibold text-sm rounded-xl mr-1 transition-colors">Cari</button>
               </form>
+
+              {/* Desktop Suggestions Dropdown */}
+              {showDesktopDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-2xl border border-brand-border overflow-hidden z-50">
+                  {isDesktopSuggestLoading && desktopSuggestions.length === 0 && (
+                    <div className="px-4 py-3 text-sm text-brand-muted">Mencari...</div>
+                  )}
+                  {desktopSuggestions.map((s, idx) => (
+                    <button
+                      key={s.slug}
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setIsSearchFocused(false);
+                        router.push(`/product/${s.slug}`);
+                      }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 transition-colors text-left ${
+                        idx === desktopSelectedIdx ? "bg-brand/5" : "hover:bg-gray-50"
+                      }`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      {s.image ? (
+                        <img
+                          src={s.image}
+                          alt=""
+                          className="w-10 h-10 rounded-lg object-cover flex-shrink-0 bg-gray-100"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+                          <Search size={14} className="text-brand-muted" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-brand-navy truncate">
+                          {highlightMatch(s.name, searchQuery)}
+                        </p>
+                        <div className="flex items-center gap-2 text-xs text-brand-muted">
+                          {s.brand && <span>{s.brand}</span>}
+                          {s.brand && s.category && <span>·</span>}
+                          {s.category && <span>{s.category}</span>}
+                        </div>
+                      </div>
+                      <span className="text-sm font-semibold text-brand flex-shrink-0">
+                        {formatPrice(s.price)}
+                      </span>
+                    </button>
+                  ))}
+                  {desktopSuggestions.length > 0 && (
+                    <button
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setIsSearchFocused(false);
+                        router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+                      }}
+                      className="w-full px-4 py-3 text-sm font-semibold text-brand hover:bg-brand/5 transition-colors border-t border-brand-border text-left"
+                    >
+                      Lihat semua hasil untuk &quot;{searchQuery}&quot; →
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Search Icon - Mobile */}
@@ -233,8 +428,8 @@ export default function Header() {
 
       {/* Mobile Search Overlay */}
       {isMobileSearchOpen && (
-        <div className="fixed inset-0 z-[100] bg-white lg:hidden">
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-brand-border">
+        <div className="fixed inset-0 z-[100] bg-white lg:hidden flex flex-col">
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-brand-border flex-shrink-0">
             <button
               onClick={() => {
                 setIsMobileSearchOpen(false);
@@ -263,11 +458,15 @@ export default function Header() {
                 onChange={(e) => setMobileSearchQuery(e.target.value)}
                 placeholder="Cari laptop, HP, monitor..."
                 className="w-full px-4 py-3 text-sm outline-none bg-transparent text-brand-navy placeholder:text-brand-muted/60"
+                autoComplete="off"
               />
               {mobileSearchQuery && (
                 <button
                   type="button"
-                  onClick={() => setMobileSearchQuery("")}
+                  onClick={() => {
+                    setMobileSearchQuery("");
+                    mobileSearchInputRef.current?.focus();
+                  }}
                   className="p-2 mr-2 hover:bg-gray-200 rounded-lg transition-colors"
                 >
                   <X size={16} className="text-brand-muted" />
@@ -276,23 +475,84 @@ export default function Header() {
               <button type="submit" className="px-5 py-3 bg-brand hover:bg-brand-dark text-white font-semibold text-sm rounded-xl mr-1 transition-colors">Cari</button>
             </form>
           </div>
-          {/* Quick suggestions */}
-          <div className="p-4">
-            <p className="text-xs font-semibold text-brand-muted uppercase tracking-wide mb-3">Pencarian Populer</p>
-            <div className="flex flex-wrap gap-2">
-              {["Laptop", "iPhone", "Samsung", "iPad", "Monitor", "Router"].map((term) => (
+
+          <div className="flex-1 overflow-y-auto">
+            {/* Mobile Suggestions */}
+            {mobileSearchQuery.length >= 2 && mobileSuggestions.length > 0 && (
+              <div>
+                {mobileSuggestions.map((s) => (
+                  <button
+                    key={s.slug}
+                    onClick={() => {
+                      setIsMobileSearchOpen(false);
+                      router.push(`/product/${s.slug}`);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    {s.image ? (
+                      <img
+                        src={s.image}
+                        alt=""
+                        className="w-12 h-12 rounded-lg object-cover flex-shrink-0 bg-gray-100"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+                        <Search size={16} className="text-brand-muted" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-brand-navy truncate">
+                        {highlightMatch(s.name, mobileSearchQuery)}
+                      </p>
+                      <div className="flex items-center gap-2 text-xs text-brand-muted mt-0.5">
+                        {s.brand && <span>{s.brand}</span>}
+                        {s.brand && s.category && <span>·</span>}
+                        {s.category && <span>{s.category}</span>}
+                      </div>
+                    </div>
+                    <span className="text-sm font-semibold text-brand flex-shrink-0">
+                      {formatPrice(s.price)}
+                    </span>
+                  </button>
+                ))}
                 <button
-                  key={term}
                   onClick={() => {
                     setIsMobileSearchOpen(false);
-                    router.push(`/search?q=${encodeURIComponent(term)}`);
+                    router.push(`/search?q=${encodeURIComponent(mobileSearchQuery)}`);
                   }}
-                  className="px-4 py-2 bg-gray-100 hover:bg-brand/10 text-sm font-medium text-brand-navy rounded-full transition-colors"
+                  className="w-full px-4 py-3 text-sm font-semibold text-brand hover:bg-brand/5 transition-colors border-t border-brand-border text-left"
                 >
-                  {term}
+                  Lihat semua hasil →
                 </button>
-              ))}
-            </div>
+              </div>
+            )}
+
+            {/* Mobile loading */}
+            {mobileSearchQuery.length >= 2 && isMobileSuggestLoading && mobileSuggestions.length === 0 && (
+              <div className="px-4 py-6 text-center text-sm text-brand-muted">Mencari...</div>
+            )}
+
+            {/* Popular searches — show when no query */}
+            {mobileSearchQuery.length < 2 && (
+              <div className="p-4">
+                <p className="text-xs font-semibold text-brand-muted uppercase tracking-wide mb-3">Pencarian Populer</p>
+                <div className="flex flex-wrap gap-2">
+                  {["Laptop", "iPhone", "Samsung", "iPad", "Monitor", "Router"].map((term) => (
+                    <button
+                      key={term}
+                      onClick={() => {
+                        setIsMobileSearchOpen(false);
+                        router.push(`/search?q=${encodeURIComponent(term)}`);
+                      }}
+                      className="px-4 py-2 bg-gray-100 hover:bg-brand/10 text-sm font-medium text-brand-navy rounded-full transition-colors"
+                    >
+                      {term}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
