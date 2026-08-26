@@ -1,9 +1,6 @@
-import { initialBlogPosts } from "@/data/products";
 import BlogClient from "./BlogClient";
 
-export function generateStaticParams() {
-  return initialBlogPosts.map((p) => ({ slug: p.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export default async function BlogPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

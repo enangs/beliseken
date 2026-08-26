@@ -2,10 +2,25 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { BookOpen, Shield, Monitor, Smartphone, Wrench, ShoppingBag, FileText, HelpCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { fetchBlogPosts } from "@/lib/blog-api";
 import type { BlogPost } from "@/data/products";
+
+const blogCategoryIcons: Record<string, any> = {
+  "Tips & Panduan": BookOpen,
+  "Tips & Trik": Wrench,
+  "Networking": Monitor,
+  "Review": Smartphone,
+  "Informasi": Shield,
+  "Panduan": FileText,
+  "Jual Barang": ShoppingBag,
+};
+
+function getCategoryIcon(category: string) {
+  return blogCategoryIcons[category] || HelpCircle;
+}
 
 export default function BlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -47,46 +62,60 @@ export default function BlogPage() {
           ) : (
             <>
               {/* Featured */}
-              {posts.filter(p => p.featured).map((post) => (
-                <Link key={post.id} href={`/blog/${post.slug}`} className="group block bg-white rounded-2xl border border-brand-border overflow-hidden mb-10 hover:shadow-xl transition-all">
-                  <div className="aspect-[21/9] bg-gradient-to-br from-brand/10 to-brand-dark/10 relative overflow-hidden">
-                    {post.imageBase64 ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={post.imageBase64} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                    ) : null}
-                    <span className="absolute top-4 left-4 px-3 py-1.5 bg-brand text-white text-xs font-bold rounded-lg z-10">Featured</span>
-                  </div>
-                  <div className="p-8">
-                    <div className="flex items-center gap-3 mb-3">
-                      <span className="text-xs font-semibold text-brand bg-brand/10 px-2.5 py-1 rounded-md">{post.category}</span>
-                      <span className="text-xs text-brand-muted">{post.date} · {post.readTime}</span>
-                    </div>
-                    <h2 className="text-2xl font-bold text-brand-navy group-hover:text-brand transition-colors mb-3">{post.title}</h2>
-                    <p className="text-brand-muted leading-relaxed">{post.excerpt}</p>
-                  </div>
-                </Link>
-              ))}
-
-              {/* All Posts */}
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {posts.filter(p => !p.featured).map((post) => (
-                  <Link key={post.id} href={`/blog/${post.slug}`} className="group bg-white rounded-2xl border border-brand-border overflow-hidden hover:shadow-lg transition-all">
-                    <div className="aspect-[16/9] bg-gradient-to-br from-brand/5 to-brand-dark/5 relative overflow-hidden">
+              {posts.filter(p => p.featured).map((post) => {
+                const CategoryIcon = getCategoryIcon(post.category);
+                return (
+                  <Link key={post.id} href={`/blog/${post.slug}`} className="group block bg-white rounded-2xl border border-brand-border overflow-hidden mb-10 hover:shadow-xl transition-all">
+                    <div className="aspect-[21/9] bg-gradient-to-br from-brand/10 to-brand-dark/10 relative overflow-hidden">
                       {post.imageBase64 ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={post.imageBase64} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                      ) : null}
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <CategoryIcon size={48} className="text-brand/20" />
+                        </div>
+                      )}
+                      <span className="absolute top-4 left-4 px-3 py-1.5 bg-brand text-white text-xs font-bold rounded-lg z-10">Featured</span>
                     </div>
-                    <div className="p-5">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xs font-semibold text-brand bg-brand/10 px-2 py-0.5 rounded-md">{post.category}</span>
-                        <span className="text-xs text-brand-muted">{post.date}</span>
+                    <div className="p-8">
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="flex items-center gap-1.5 text-xs font-semibold text-brand bg-brand/10 px-2.5 py-1 rounded-md"><CategoryIcon size={12} />{post.category}</span>
+                        <span className="text-xs text-brand-muted">{post.date} · {post.readTime}</span>
                       </div>
-                      <h3 className="font-bold text-brand-navy group-hover:text-brand transition-colors line-clamp-2">{post.title}</h3>
-                      <p className="text-sm text-brand-muted mt-2 line-clamp-2">{post.excerpt}</p>
+                      <h2 className="text-2xl font-bold text-brand-navy group-hover:text-brand transition-colors mb-3">{post.title}</h2>
+                      <p className="text-brand-muted leading-relaxed">{post.excerpt}</p>
                     </div>
                   </Link>
-                ))}
+                );
+              })}
+
+              {/* All Posts */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {posts.filter(p => !p.featured).map((post) => {
+                  const CategoryIcon = getCategoryIcon(post.category);
+                  return (
+                    <Link key={post.id} href={`/blog/${post.slug}`} className="group bg-white rounded-2xl border border-brand-border overflow-hidden hover:shadow-lg transition-all">
+                      <div className="aspect-[16/9] bg-gradient-to-br from-brand/5 to-brand-dark/5 relative overflow-hidden">
+                        {post.imageBase64 ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={post.imageBase64} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <CategoryIcon size={36} className="text-brand/15" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-5">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="flex items-center gap-1 text-xs font-semibold text-brand bg-brand/10 px-2 py-0.5 rounded-md"><CategoryIcon size={10} />{post.category}</span>
+                          <span className="text-xs text-brand-muted">{post.date}</span>
+                        </div>
+                        <h3 className="font-bold text-brand-navy group-hover:text-brand transition-colors line-clamp-2">{post.title}</h3>
+                        <p className="text-sm text-brand-muted mt-2 line-clamp-2">{post.excerpt}</p>
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
 
               {posts.length === 0 && (
