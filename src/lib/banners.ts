@@ -9,6 +9,7 @@ export interface Banner {
   bg: string; // gradient class
   imageBase64?: string; // gambar banner
   active: boolean;
+  icon?: string; // lucide-react icon name
 }
 
 export interface PromoCard {
@@ -21,6 +22,7 @@ export interface PromoCard {
   bg: string; // gradient class
   imageBase64?: string;
   active: boolean;
+  icon?: string; // lucide-react icon name
 }
 
 const BANNERS_KEY = "beliseken_banners";

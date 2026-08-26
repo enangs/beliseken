@@ -1,29 +1,27 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Smartphone, Laptop, Globe, Wifi, Monitor, Tablet, Gamepad2, Headphones, Camera, Watch, Cpu } from "lucide-react";
 import { getActiveBanners, getActivePromoCards, type Banner, type PromoCard } from "@/lib/banners";
 
-// Strip emojis and map titles to lucide-react icons
-function stripEmojis(text: string): string {
-  return text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim();
-}
+const iconMap: Record<string, React.ReactNode> = {
+  laptop: <Laptop size={18} />,
+  smartphone: <Smartphone size={18} />,
+  tablet: <Tablet size={18} />,
+  wifi: <Wifi size={18} />,
+  monitor: <Monitor size={18} />,
+  'gamepad-2': <Gamepad2 size={18} />,
+  headphones: <Headphones size={18} />,
+  camera: <Camera size={18} />,
+  watch: <Watch size={18} />,
+  cpu: <Cpu size={18} />,
+  globe: <Globe size={18} />,
+};
 
-function getCategoryIcon(title: string): React.ReactNode {
-  const t = title.toLowerCase();
-  if (t.includes('laptop') || t.includes('notebook') || t.includes('macbook') || t.includes('thinkpad')) return <Laptop size={18} />;
-  if (t.includes('smartphone') || t.includes('phone') || t.includes('iphone') || t.includes('samsung')) return <Smartphone size={18} />;
-  if (t.includes('tablet') || t.includes('ipad')) return <Tablet size={18} />;
-  if (t.includes('network') || t.includes('wifi') || t.includes('router') || t.includes('tp-link') || t.includes('mikrotik')) return <Wifi size={18} />;
-  if (t.includes('monitor') || t.includes('display') || t.includes('led')) return <Monitor size={18} />;
-  if (t.includes('gaming') || t.includes('game')) return <Gamepad2 size={18} />;
-  if (t.includes('audio') || t.includes('speaker') || t.includes('headphone')) return <Headphones size={18} />;
-  if (t.includes('kamera') || t.includes('camera') || t.includes('cctv')) return <Camera size={18} />;
-  if (t.includes('jam') || t.includes('watch')) return <Watch size={18} />;
-  if (t.includes('komponen') || t.includes('component') || t.includes('pc')) return <Cpu size={18} />;
-  if (t.includes('elektronik') || t.includes('bekas') || t.includes('flash sale')) return <Globe size={18} />;
-  return <Globe size={18} />;
+function BannerIcon({ name }: { name?: string }) {
+  if (!name || !iconMap[name]) return null;
+  return <span className="text-amber-300 mr-2 inline-flex items-center">{iconMap[name]}</span>;
 }
 
 export default function Hero() {
@@ -90,11 +88,8 @@ export default function Hero() {
                 </div>
               )}
               <div className="relative z-10 p-8 md:p-12 flex flex-col justify-center h-full">
-                <p className="text-white/70 text-sm font-semibold mb-2 uppercase tracking-wider">{stripEmojis(banner.subtitle)}</p>
-                <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-2 flex items-center gap-3">
-                  <span className="text-amber-300">{getCategoryIcon(banner.title)}</span>
-                  {stripEmojis(banner.title)}
-                </h2>
+                <p className="text-white/70 text-sm font-semibold mb-2 uppercase tracking-wider">{banner.subtitle}</p>
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-2"><BannerIcon name={(banner as any).icon} />{banner.title}</h2>
                 <p className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-amber-300 mb-4">{banner.highlight}</p>
                 <p className="text-white/80 mb-6 max-w-md">{banner.description}</p>
                 <Link href={banner.href} className="inline-flex items-center gap-2 px-6 py-3 bg-white text-brand font-bold rounded-xl hover:bg-gray-100 transition-colors w-fit">{banner.cta} →</Link>
@@ -132,10 +127,7 @@ export default function Hero() {
                   <div className="absolute top-2 right-2 w-16 h-16 bg-white/10 rounded-full" />
                   <div className="absolute bottom-2 right-4 w-12 h-12 bg-white/5 rounded-full" />
                   <div className="relative z-10 p-6">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-white/90">{getCategoryIcon(promo.title)}</span>
-                      <p className="text-white/80 text-sm font-semibold">{stripEmojis(promo.title)}</p>
-                    </div>
+                    <p className="text-white/80 text-sm font-semibold mb-1"><BannerIcon name={(promo as any).icon} />{promo.title}</p>
                     <p className="text-2xl font-extrabold text-white mb-2">{promo.price}</p>
                     <p className="text-white/60 text-xs">{promo.description}</p>
                   </div>

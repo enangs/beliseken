@@ -11,6 +11,30 @@ function optimizeImageUrl(url: string | null): string {
   return `${parts[0]}/upload/q_auto,f_auto,w_800/${parts[1]}`;
 }
 
+// Strip emoji characters from text
+function stripEmojis(text: string): string {
+  if (!text) return '';
+  // eslint-disable-next-line no-control-regex
+  return text.replace(/[\u2600-\u27BF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2300-\u23FF]|[\u2B50\u2B55]|[\u3030\u303D]|[\u3297\u3299]/g, '').replace(/\uFE0F/g, '').replace(/\u200D/g, '').trim();
+}
+
+// Map title keywords to icon names for frontend rendering
+function mapTitleToIcon(title: string): string {
+  const t = title.toLowerCase();
+  if (t.includes('laptop') || t.includes('notebook') || t.includes('macbook') || t.includes('thinkpad')) return 'laptop';
+  if (t.includes('smartphone') || t.includes('phone') || t.includes('iphone') || t.includes('samsung')) return 'smartphone';
+  if (t.includes('tablet') || t.includes('ipad')) return 'tablet';
+  if (t.includes('network') || t.includes('wifi') || t.includes('router') || t.includes('tp-link') || t.includes('mikrotik')) return 'wifi';
+  if (t.includes('monitor') || t.includes('display') || t.includes('led')) return 'monitor';
+  if (t.includes('gaming') || t.includes('game')) return 'gamepad-2';
+  if (t.includes('audio') || t.includes('speaker') || t.includes('headphone')) return 'headphones';
+  if (t.includes('kamera') || t.includes('camera') || t.includes('cctv')) return 'camera';
+  if (t.includes('jam') || t.includes('watch')) return 'watch';
+  if (t.includes('komponen') || t.includes('component') || t.includes('pc')) return 'cpu';
+  if (t.includes('elektronik') || t.includes('bekas') || t.includes('flash sale')) return 'globe';
+  return 'globe';
+}
+
 // GET all banners
 export async function GET() {
   try {
@@ -20,9 +44,9 @@ export async function GET() {
 
     const transformed = banners.map((b: any) => ({
       id: b.id,
-      title: b.title,
-      subtitle: b.subtitle || '',
-      highlight: b.description || '',
+      title: stripEmojis(b.title),
+      subtitle: stripEmojis(b.subtitle || ''),
+      highlight: stripEmojis(b.description || ''),
       description: b.description || '',
       cta: b.ctaText || 'Lihat Sekarang',
       href: b.ctaLink || '/products',
@@ -30,6 +54,7 @@ export async function GET() {
       imageBase64: optimizeImageUrl(b.imageUrl),
       active: b.isActive,
       type: b.type,
+      icon: mapTitleToIcon(b.title),
     }));
 
     const response = NextResponse.json({ success: true, data: transformed });
