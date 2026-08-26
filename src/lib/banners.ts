@@ -98,11 +98,11 @@ const defaultPromoCards: PromoCard[] = [
   },
 ];
 
-// ── Banners ──
+// ── Banners (HERO type) ──
 
 export async function getBanners(): Promise<Banner[]> {
   try {
-    const res = await fetch('/api/banners', { cache: 'no-store' });
+    const res = await fetch('/api/banners?type=HERO', { cache: 'no-store' });
     if (res.ok) {
       const data = await res.json();
       if (data.success && data.data?.length > 0) return data.data;
@@ -115,7 +115,7 @@ export async function saveBanners(banners: Banner[]) {
   const res = await fetch('/api/banners', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ banners }),
+    body: JSON.stringify({ banners, type: 'HERO' }),
   });
   const data = await res.json();
   if (!data.success) throw new Error(data.error || 'Gagal menyimpan banner');
@@ -151,18 +151,14 @@ export async function deleteBanner(id: string): Promise<boolean> {
   return true;
 }
 
-// ── Promo Cards ──
+// ── Promo Cards (PROMO_CARD type) ──
 
 export async function getPromoCards(): Promise<PromoCard[]> {
-  // Promo cards use same banner API with type=PROMO
   try {
-    const res = await fetch('/api/banners', { cache: 'no-store' });
+    const res = await fetch('/api/banners?type=PROMO_CARD', { cache: 'no-store' });
     if (res.ok) {
       const data = await res.json();
-      if (data.success) {
-        const promos = data.data.filter((b: any) => b.type === 'PROMO_CARD');
-        if (promos.length > 0) return promos;
-      }
+      if (data.success && data.data?.length > 0) return data.data;
     }
   } catch {}
   return defaultPromoCards;
@@ -173,7 +169,7 @@ export async function savePromoCards(cards: PromoCard[]) {
   const res = await fetch('/api/banners', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ banners: promoData }),
+    body: JSON.stringify({ banners: promoData, type: 'PROMO_CARD' }),
   });
   const data = await res.json();
   if (!data.success) throw new Error(data.error || 'Gagal menyimpan promo');

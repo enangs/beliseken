@@ -35,10 +35,17 @@ function mapTitleToIcon(title: string): string {
   return 'globe';
 }
 
-// GET all banners
-export async function GET() {
+// GET all banners (optionally filter by type)
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const type = searchParams.get('type');
+
+    const where: any = {};
+    if (type) where.type = type;
+
     const banners = await prisma.banner.findMany({
+      where,
       orderBy: { sortOrder: 'asc' },
     });
 
@@ -66,25 +73,25 @@ export async function GET() {
   }
 }
 
-// POST save all banners (replace all)
+// POST save banners — only replaces banners of the given type
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { banners } = body;
+    const { banners, type = 'HERO' } = body;
 
     if (!banners || !Array.isArray(banners)) {
       return NextResponse.json({ success: false, error: 'Banners array required' }, { status: 400 });
     }
 
-    // Delete all existing banners
-    await prisma.banner.deleteMany();
+    // Only delete banners of this type, keep the other type intact
+    await prisma.banner.deleteMany({ where: { type } });
 
     // Insert new banners
     for (let i = 0; i < banners.length; i++) {
       const b = banners[i];
       await prisma.banner.create({
         data: {
-          type: b.type || 'HERO',
+          type: b.type || type,
           title: b.title,
           subtitle: b.subtitle || '',
           description: b.highlight || b.description || '',
