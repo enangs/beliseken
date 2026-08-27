@@ -66,7 +66,7 @@ export default function BestDeals() {
           <div className="h-9 w-64 bg-gray-200 rounded animate-pulse" />
           <div className="h-5 w-48 bg-gray-200 rounded animate-pulse mt-2" />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="bg-white rounded-xl border border-brand-border overflow-hidden">
               <div className="aspect-[4/3] bg-gray-200 animate-pulse" />
@@ -124,7 +124,7 @@ export default function BestDeals() {
         </div>
 
         {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
           {filteredProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}

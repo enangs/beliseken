@@ -52,7 +52,7 @@ const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
   return (
     <div className="group bg-white rounded-xl border border-brand-border overflow-hidden hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 w-full">
       <Link href={`/product/${product.slug}`}>
-        <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
+        <div className="relative aspect-square sm:aspect-[4/3] bg-gray-100 overflow-hidden">
           {product.imageBase64 ? (
             <img
               src={product.imageBase64}
@@ -88,7 +88,7 @@ const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
           )}
           {product.badge && product.stock > 0 && (
             <span
-              className={`absolute top-3 left-3 px-2.5 py-1 text-[11px] font-bold rounded-md z-10 ${badgeColors[product.badge] || "bg-gray-500 text-white"}`}
+              className={`absolute top-2 left-2 sm:top-3 sm:left-3 px-1.5 sm:px-2.5 py-0.5 sm:py-1 text-[9px] sm:text-[11px] font-bold rounded-md z-10 ${badgeColors[product.badge] || "bg-gray-500 text-white"}`}
               aria-label={`Badge: ${product.badge}`}
             >
               {product.badge}
@@ -97,20 +97,20 @@ const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
         </div>
       </Link>
 
-      <div className="p-4">
+      <div className="p-2.5 sm:p-4">
         <Link href={`/product/${product.slug}`}>
-          <p className="text-[10px] font-mono text-brand-muted mb-1">{product.sku}</p>
-          <h3 className="font-semibold text-brand-navy text-sm leading-snug line-clamp-2 mb-2 group-hover:text-brand transition-colors min-h-[40px]">
+          <p className="text-[9px] sm:text-[10px] font-mono text-brand-muted mb-0.5 sm:mb-1 truncate">{product.sku}</p>
+          <h3 className="font-semibold text-brand-navy text-xs sm:text-sm leading-snug line-clamp-2 mb-1.5 sm:mb-2 group-hover:text-brand transition-colors min-h-[32px] sm:min-h-[40px]">
             {product.name}
           </h3>
         </Link>
 
-        <div className="flex items-center gap-1 mb-2" aria-label={`Rating ${product.avgRating} dari 5, ${product.reviewCount} ulasan`}>
+        <div className="flex items-center gap-0.5 sm:gap-1 mb-1 sm:mb-2" aria-label={`Rating ${product.avgRating} dari 5, ${product.reviewCount} ulasan`}>
           <div className="flex items-center gap-0.5" aria-hidden="true">
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
-                size={13}
+                size={11}
                 className={
                   i < Math.floor(product.avgRating)
                     ? "fill-amber-400 text-amber-400"
@@ -119,37 +119,37 @@ const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
               />
             ))}
           </div>
-          <span className="text-xs text-brand-muted ml-1">
+          <span className="text-[10px] sm:text-xs text-brand-muted ml-0.5 sm:ml-1">
             ({product.reviewCount})
           </span>
         </div>
 
         {product.soldCount > 0 && (
-          <p className="text-xs text-brand-muted mb-2 flex items-center gap-1">
+          <p className="text-[10px] sm:text-xs text-brand-muted mb-1 sm:mb-2 flex items-center gap-1">
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500" aria-hidden="true" />
             {product.soldCount} terjual
           </p>
         )}
 
-        <div className="flex items-baseline gap-2 mb-3">
-          <span className="text-lg font-bold text-brand">
+        <div className="flex items-baseline gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+          <span className="text-sm sm:text-lg font-bold text-brand">
             {formatPrice(product.sellingPrice)}
           </span>
           {product.discount > 0 && (
-            <span className="text-sm text-brand-muted line-through">
+            <span className="text-[10px] sm:text-sm text-brand-muted line-through">
               {formatPrice(originalPrice)}
             </span>
           )}
         </div>
 
         {product.discount > 0 && (
-          <span className="text-xs font-bold text-brand mb-3 block">
+          <span className="text-[10px] sm:text-xs font-bold text-brand mb-2 sm:mb-3 block">
             -{product.discount}% OFF
           </span>
         )}
 
         {product.stock === 0 ? (
-          <div className="w-full py-2.5 bg-red-100 text-red-600 text-sm font-bold rounded-lg text-center flex items-center justify-center gap-2" role="status">
+          <div className="w-full py-2 sm:py-2.5 bg-red-100 text-red-600 text-xs sm:text-sm font-bold rounded-lg text-center flex items-center justify-center gap-1.5 sm:gap-2" role="status">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
               <circle cx="12" cy="12" r="10" />
               <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
@@ -159,7 +159,7 @@ const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
         ) : (
           <button
             onClick={handleAddToCart}
-            className={`w-full flex items-center justify-center gap-2 py-2.5 text-white text-sm font-semibold rounded-lg transition-colors duration-200 ${
+            className={`w-full flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 text-white text-xs sm:text-sm font-semibold rounded-lg transition-colors duration-200 ${
               added
                 ? "bg-emerald-500"
                 : "bg-brand-navy hover:bg-brand"
