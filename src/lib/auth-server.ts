@@ -9,13 +9,21 @@ import GoogleProvider from 'next-auth/providers/google';
 import bcrypt from 'bcryptjs';
 import { prisma } from './prisma';
 
+const googleClientId = process.env.GOOGLE_CLIENT_ID;
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+console.log('Auth init - GOOGLE_CLIENT_ID:', googleClientId ? 'present (' + googleClientId.length + ' chars)' : 'MISSING');
+console.log('Auth init - GOOGLE_CLIENT_SECRET:', googleClientSecret ? 'present (' + googleClientSecret.length + ' chars)' : 'MISSING');
+console.log('Auth init - NEXTAUTH_SECRET:', process.env.NEXTAUTH_SECRET ? 'present' : 'MISSING');
+
 export const { handlers, signIn, signOut } = NextAuth({
   providers: [
     // ─── Google OAuth ───────────────────────────────────────
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
+    ...(googleClientId && googleClientSecret
+      ? [GoogleProvider({
+          clientId: googleClientId,
+          clientSecret: googleClientSecret,
+        })]
+      : []),
 
     // ─── Email/Password + Phone/Password ─────────────────────
     CredentialsProvider({
