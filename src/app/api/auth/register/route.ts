@@ -11,18 +11,28 @@ export async function POST(request: NextRequest) {
 
     console.log('Register attempt:', { name, email });
 
-    if (!name || !email || !password) {
+    if (!name || !password) {
       return NextResponse.json(
-        { success: false, error: 'Name, email, and password are required' },
+        { success: false, error: 'Name and password are required' },
         { status: 400 }
       );
     }
 
+    if (!email && !phone) {
+      return NextResponse.json(
+        { success: false, error: 'Email atau No. HP wajib diisi' },
+        { status: 400 }
+      );
+    }
+
+    // Generate email from phone if not provided
+    const userEmail = email || `${phone.replace(/\D/g, '')}@beliseken.phone`;
+
     try {
-      // Check if user already exists
-      const existingRows = await prisma.$queryRaw`
-        SELECT id, email FROM users WHERE email = ${email} LIMIT 1
-      ` as any[];
+      // Check if user already exists (by email or phone)
+      const existingRows = email
+        ? await prisma.$queryRaw`SELECT id, email FROM users WHERE email = ${email} LIMIT 1` as any[]
+        : await prisma.$queryRaw`SELECT id, phone FROM users WHERE phone = ${phone} LIMIT 1` as any[];
 
       if (existingRows && existingRows.length > 0) {
         return NextResponse.json(
@@ -57,7 +67,7 @@ export async function POST(request: NextRequest) {
 
         await prisma.$executeRaw`
           INSERT INTO users (id, email, password, name, phone, city, "role", "isActive", "emailVerified", "createdAt", "updatedAt")
-          VALUES (${userId}, ${email}, ${hashedPassword}, ${name}, ${phone || null}, ${city || null}, 'CUSTOMER', true, false, ${now}::timestamp, ${now}::timestamp)
+          VALUES (${userId}, ${userEmail}, ${hashedPassword}, ${name}, ${phone || null}, ${city || null}, 'CUSTOMER', true, false, ${now}::timestamp, ${now}::timestamp)
         `;
 
         // Save verification code
@@ -95,7 +105,7 @@ export async function POST(request: NextRequest) {
         // No verification columns — create user directly (fully verified)
         await prisma.$executeRaw`
           INSERT INTO users (id, email, password, name, phone, city, "role", "isActive", "createdAt", "updatedAt")
-          VALUES (${userId}, ${email}, ${hashedPassword}, ${name}, ${phone || null}, ${city || null}, 'CUSTOMER', true, ${now}::timestamp, ${now}::timestamp)
+          VALUES (${userId}, ${userEmail}, ${hashedPassword}, ${name}, ${phone || null}, ${city || null}, 'CUSTOMER', true, ${now}::timestamp, ${now}::timestamp)
         `;
 
         console.log('✅ User registered (no verification):', userId, email);

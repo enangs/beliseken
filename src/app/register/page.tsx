@@ -20,11 +20,10 @@ export default function RegisterPage() {
     if (error) setError("");
   }, [error]);
 
-  // Memoized form validation
+  // Memoized form validation — email OR phone required
   const isFormValid = useMemo(() => {
     return (
       form.name.trim() &&
-      form.email.trim() &&
       form.password &&
       form.password.length >= 6 &&
       form.phone.trim() &&
@@ -61,7 +60,7 @@ export default function RegisterPage() {
   // Memoized form fields
   const formFields = useMemo(() => [
     { field: "name", label: "Nama Lengkap", type: "text", placeholder: "Nama Anda", required: true },
-    { field: "email", label: "Email", type: "email", placeholder: "email@contoh.com", required: true },
+    { field: "email", label: "Email (opsional)", type: "email", placeholder: "email@contoh.com", required: false },
     { field: "phone", label: "No. WhatsApp", type: "tel", placeholder: "08XXXXXXXXXX", required: true },
     { field: "city", label: "Kota/Kabupaten", type: "text", placeholder: "Kota Anda", required: true },
   ], []);
@@ -105,6 +104,9 @@ export default function RegisterPage() {
                   />
                 </div>
               ))}
+              {!form.email.trim() && !form.phone.trim() && (
+                <p className="text-xs text-brand-muted -mt-2">Isi email ATAU no. HP untuk login</p>
+              )}
 
               {/* Password field with show/hide toggle */}
               <div>
