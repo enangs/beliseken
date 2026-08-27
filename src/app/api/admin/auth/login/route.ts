@@ -21,54 +21,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Only allow admin email
-    if (email !== 'admin@beliseken.com') {
-      console.log('❌ Not admin email');
-      return NextResponse.json(
-        { success: false, error: 'Email atau password salah' },
-        { status: 401 }
-      );
-    }
-
-    // Check hardcoded password first (for initial setup)
-    if (password === '123456') {
-      console.log('✅ Hardcoded password match');
-      
-      const token = jwt.sign(
-        {
-          id: 'admin-1',
-          email: 'admin@beliseken.com',
-          name: 'Admin BeliSeken',
-          role: 'SUPER_ADMIN',
-        },
-        JWT_SECRET,
-        { expiresIn: '24h' }
-      );
-
-      const response = NextResponse.json({
-        success: true,
-        data: {
-          id: 'admin-1',
-          email: 'admin@beliseken.com',
-          name: 'Admin BeliSeken',
-          role: 'SUPER_ADMIN',
-        },
-      });
-
-      // Set cookie
-      response.cookies.set('beliseken_admin_token', token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'lax',
-        maxAge: 86400,
-        path: '/',
-      });
-
-      console.log('🍪 Cookie set, token length:', token.length);
-      return response;
-    }
-
-    // Try database auth
+    // Database auth
     try {
       const users = await prisma.$queryRaw`
         SELECT id, email, password, name, role, "isActive"
@@ -77,41 +30,67 @@ export async function POST(request: NextRequest) {
         LIMIT 1
       ` as any[];
 
-      if (users && users.length > 0) {
-        const user = users[0];
-        const isValid = await bcrypt.compare(password, user.password);
-        
-        if (isValid && (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN')) {
-          const token = jwt.sign(
-            { id: user.id, email: user.email, name: user.name, role: user.role },
-            JWT_SECRET,
-            { expiresIn: '24h' }
-          );
-
-          const response = NextResponse.json({
-            success: true,
-            data: { id: user.id, email: user.email, name: user.name, role: user.role },
-          });
-
-          response.cookies.set('beliseken_admin_token', token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'lax',
-            maxAge: 86400,
-            path: '/',
-          });
-
-          return response;
-        }
+      if (!users || users.length === 0) {
+        return NextResponse.json(
+          { success: false, error: 'Email atau password salah' },
+          { status: 401 }
+        );
       }
-    } catch (dbErr) {
-      console.log('⚠️ DB auth failed, using hardcoded only');
-    }
 
-    return NextResponse.json(
-      { success: false, error: 'Email atau password salah' },
-      { status: 401 }
-    );
+      const user = users[0];
+
+      if (!user.isActive) {
+        return NextResponse.json(
+          { success: false, error: 'Akun admin tidak aktif' },
+          { status: 403 }
+        );
+      }
+
+      const isValid = await bcrypt.compare(password, user.password);
+
+      if (!isValid) {
+        return NextResponse.json(
+          { success: false, error: 'Email atau password salah' },
+          { status: 401 }
+        );
+      }
+
+      if (user.role !== 'SUPER_ADMIN' && user.role !== 'ADMIN') {
+        return NextResponse.json(
+          { success: false, error: 'Anda tidak memiliki akses admin' },
+          { status: 403 }
+        );
+      }
+
+      const token = jwt.sign(
+        { id: user.id, email: user.email, name: user.name, role: user.role },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
+      const response = NextResponse.json({
+        success: true,
+        data: { id: user.id, email: user.email, name: user.name, role: user.role },
+      });
+
+      response.cookies.set('beliseken_admin_token', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'lax',
+        maxAge: 86400,
+        path: '/',
+      });
+
+      console.log('✅ Admin logged in via DB:', user.email);
+      return response;
+
+    } catch (dbErr: any) {
+      console.error('❌ DB auth error:', dbErr.message);
+      return NextResponse.json(
+        { success: false, error: 'Database error' },
+        { status: 500 }
+      );
+    }
 
   } catch (error: any) {
     console.error('❌ Login error:', error.message);

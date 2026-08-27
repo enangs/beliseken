@@ -266,11 +266,16 @@ async function main() {
   // ══════════════════════════════════════════════════════════════
   console.log('👤 Creating admin user...');
 
-  const hashedPassword = await bcrypt.hash('123456', 10);
+  const adminPassword = 'BeliS3k3n!2026';
+  const hashedPassword = await bcrypt.hash(adminPassword, 10);
   
   const adminUser = await prisma.user.upsert({
     where: { email: 'admin@beliseken.com' },
-    update: {},
+    update: {
+      password: hashedPassword,
+      role: 'SUPER_ADMIN',
+      isActive: true,
+    },
     create: {
       email: 'admin@beliseken.com',
       password: hashedPassword,
@@ -484,7 +489,7 @@ async function main() {
 
   console.log('\n✅ Seeding completed!');
   console.log('─────────────────────────────────────');
-  console.log('Admin: admin@beliseken.com / 123456');
+  console.log('Admin: admin@beliseken.com / BeliS3k3n!2026');
   console.log(`Categories: ${categories.length}`);
   console.log(`SubCategories: ${subCategories.length}`);
   console.log(`Brands: ${brands.length}`);
