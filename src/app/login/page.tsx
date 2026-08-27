@@ -4,7 +4,7 @@ import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2, Mail, Phone } from "lucide-react";
-import { signIn } from "next-auth/react";
+
 import Header from "@/components/Header";
 import { loginUser } from "@/lib/auth-api";
 
@@ -76,15 +76,9 @@ export default function LoginPage() {
     }
   }, [identifier, password, isFormValid, mode, router]);
 
-  const handleSocialLogin = useCallback(async (provider: "google" | "facebook") => {
+  const handleGoogleLogin = useCallback(() => {
     setError("");
-    setSocialLoading(provider);
-    try {
-      await signIn(provider, { callbackUrl: "/dashboard" });
-    } catch (err) {
-      setError(`Gagal login dengan ${provider === "google" ? "Google" : "Facebook"}.`);
-      setSocialLoading(null);
-    }
+    window.location.href = "/api/auth/google";
   }, []);
 
   return (
@@ -248,7 +242,7 @@ export default function LoginPage() {
             <div className="space-y-3">
               {/* Google */}
               <button
-                onClick={() => handleSocialLogin("google")}
+                onClick={handleGoogleLogin}
                 disabled={socialLoading !== null}
                 className="w-full flex items-center justify-center gap-3 py-3 bg-white border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-brand-navy font-semibold rounded-xl transition-all disabled:opacity-50"
               >
