@@ -6,110 +6,96 @@
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
-import FacebookProvider from 'next-auth/providers/facebook';
 import bcrypt from 'bcryptjs';
 import { prisma } from './prisma';
 
-export const authOptions = {
-  providers: [
-    // ─── Google OAuth ───────────────────────────────────────
-    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
-      ? [
-          GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            authorization: {
-              params: {
-                prompt: 'consent',
-                access_type: 'offline',
-                response_type: 'code',
-              },
-            },
-          }),
-        ]
-      : []),
+// Build providers array conditionally
+const providers: any[] = [];
 
-    // ─── Facebook OAuth ─────────────────────────────────────
-    ...(process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET
-      ? [
-          FacebookProvider({
-            clientId: process.env.FACEBOOK_CLIENT_ID,
-            clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
-          }),
-        ]
-      : []),
+// ─── Google OAuth (only if env vars are set) ──────────────
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  providers.push(
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    })
+  );
+}
 
-    // ─── Email/Password + Phone/Password ─────────────────────
-    CredentialsProvider({
-      name: 'credentials',
-      credentials: {
-        email: { label: 'Email atau No HP', type: 'text' },
-        password: { label: 'Password', type: 'password' },
-        loginType: { label: 'Login Type', type: 'text' },
-      },
-      async authorize(credentials: any) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error('Email/No HP dan password harus diisi');
-        }
+// ─── Email/Password + Phone/Password ─────────────────────
+providers.push(
+  CredentialsProvider({
+    name: 'credentials',
+    credentials: {
+      email: { label: 'Email atau No HP', type: 'text' },
+      password: { label: 'Password', type: 'password' },
+      loginType: { label: 'Login Type', type: 'text' },
+    },
+    async authorize(credentials: any) {
+      if (!credentials?.email || !credentials?.password) {
+        throw new Error('Email/No HP dan password harus diisi');
+      }
 
-        const loginType = credentials.loginType || 'email';
-        let user: any = null;
+      const loginType = credentials.loginType || 'email';
+      let user: any = null;
 
-        if (loginType === 'phone') {
-          // Find user by phone number
-          const phone = credentials.email.replace(/\D/g, '');
-          const phoneVariants = [
-            phone,
-            `+62${phone.startsWith('0') ? phone.slice(1) : phone}`,
-            `62${phone.startsWith('0') ? phone.slice(1) : phone}`,
-          ];
+      if (loginType === 'phone') {
+        // Find user by phone number
+        const phone = credentials.email.replace(/\D/g, '');
+        const phoneVariants = [
+          phone,
+          `+62${phone.startsWith('0') ? phone.slice(1) : phone}`,
+          `62${phone.startsWith('0') ? phone.slice(1) : phone}`,
+        ];
 
-          for (const variant of phoneVariants) {
-            user = await prisma.user.findFirst({
-              where: { phone: variant },
-            });
-            if (user) break;
+        for (const variant of phoneVariants) {
+          const users = await prisma.$queryRaw`
+            SELECT id, email, password, name, phone, city, "role", "isActive", "avatarUrl"
+            FROM users WHERE phone = ${variant} LIMIT 1
+          ` as any[];
+          if (users && users.length > 0) {
+            user = users[0];
+            break;
           }
-        } else {
-          // Find user by email
-          user = await prisma.user.findUnique({
-            where: { email: credentials.email.toLowerCase() },
-          });
         }
-
-        if (!user || !user.isActive) {
-          throw new Error('Akun tidak ditemukan atau tidak aktif');
-        }
-
-        // Social login users may not have a password
-        if (!user.password) {
-          throw new Error('Akun ini menggunakan login sosial. Silakan login dengan Google/Facebook.');
-        }
-
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        );
-
-        if (!isPasswordValid) {
-          throw new Error('Password salah');
-        }
-
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { lastLoginAt: new Date() },
+      } else {
+        // Find user by email
+        user = await prisma.user.findUnique({
+          where: { email: credentials.email.toLowerCase() },
         });
+      }
 
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          image: user.avatarUrl,
-        };
-      },
-    }),
-  ],
+      if (!user || !user.isActive) {
+        throw new Error('Akun tidak ditemukan atau tidak aktif');
+      }
+
+      if (!user.password) {
+        throw new Error('Akun ini menggunakan login sosial. Silakan login dengan Google.');
+      }
+
+      const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+      if (!isPasswordValid) {
+        throw new Error('Password salah');
+      }
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { lastLoginAt: new Date() },
+      });
+
+      return {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        image: user.avatarUrl,
+      };
+    },
+  })
+);
+
+export const authOptions = {
+  providers,
 
   session: {
     strategy: 'jwt' as const,
@@ -118,69 +104,62 @@ export const authOptions = {
   callbacks: {
     // ─── Handle OAuth sign-in ──────────────────────────────
     async signIn({ user, account }: any) {
-      if (account?.provider === 'google' || account?.provider === 'facebook') {
-        const email = user.email;
-        const name = user.name;
-        const image = user.image;
-        const providerId = account.providerAccountId;
+      // Only handle social logins
+      if (account?.provider !== 'google' && account?.provider !== 'facebook') {
+        return true;
+      }
 
-        if (!email) return false;
+      const email = user.email;
+      if (!email) return false;
 
+      try {
         // Check if user already exists
-        let existingUser = await prisma.user.findUnique({
+        const existingUser = await prisma.user.findUnique({
           where: { email },
         });
 
         if (existingUser) {
-          // Update provider info
+          // Update last login
           await prisma.user.update({
             where: { id: existingUser.id },
-            data: {
-              provider: account.provider,
-              providerId,
-              avatarUrl: image || existingUser.avatarUrl,
-              lastLoginAt: new Date(),
-            },
+            data: { lastLoginAt: new Date() },
           });
           user.id = existingUser.id;
           user.role = existingUser.role;
         } else {
-          // Create new user
+          // Create new user via raw SQL (safe even if columns don't exist)
           const userId = `${account.provider}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-          await prisma.user.create({
-            data: {
-              id: userId,
-              email,
-              name: name || email.split('@')[0],
-              avatarUrl: image,
-              provider: account.provider,
-              providerId,
-              emailVerified: true,
-              role: 'CUSTOMER',
-              isActive: true,
-            },
-          });
+          const now = new Date().toISOString();
+
+          try {
+            await prisma.$executeRaw`
+              INSERT INTO users (id, email, password, name, phone, city, "role", "isActive", "emailVerified", "avatarUrl", "createdAt", "updatedAt")
+              VALUES (${userId}, ${email}, null, ${user.name || email.split('@')[0]}, null, null, 'CUSTOMER', true, true, ${user.image || null}, ${now}::timestamp, ${now}::timestamp)
+            `;
+          } catch (insertErr: any) {
+            console.error('Failed to create social user:', insertErr.message);
+            // If insert fails (e.g. missing columns), try simpler insert
+            await prisma.$executeRaw`
+              INSERT INTO users (id, email, password, name, "role", "isActive", "createdAt", "updatedAt")
+              VALUES (${userId}, ${email}, null, ${user.name || email.split('@')[0]}, 'CUSTOMER', true, ${now}::timestamp, ${now}::timestamp)
+            `;
+          }
+
           user.id = userId;
           user.role = 'CUSTOMER';
         }
+      } catch (err: any) {
+        console.error('SignIn callback error:', err.message);
+        // Don't block login even if callback fails
       }
+
       return true;
     },
 
-    async jwt({ token, user, account }: any) {
+    async jwt({ token, user }: any) {
       if (user) {
         token.role = user.role;
         token.id = user.id;
-      }
-      // On subsequent requests, fetch role from DB if needed
-      if (token.id && !token.role) {
-        try {
-          const dbUser = await prisma.user.findUnique({
-            where: { id: token.id as string },
-            select: { role: true },
-          });
-          if (dbUser) token.role = dbUser.role;
-        } catch {}
       }
       return token;
     },
@@ -194,9 +173,10 @@ export const authOptions = {
     },
 
     async redirect({ url, baseUrl }: any) {
-      // After social login, redirect to dashboard
       if (url.startsWith('/')) return `${baseUrl}${url}`;
-      if (new URL(url).origin === baseUrl) return url;
+      try {
+        if (new URL(url).origin === baseUrl) return url;
+      } catch {}
       return `${baseUrl}/dashboard`;
     },
   },
