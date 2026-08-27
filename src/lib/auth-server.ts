@@ -16,6 +16,7 @@ console.log('Auth init - GOOGLE_CLIENT_SECRET:', googleClientSecret ? 'present (
 console.log('Auth init - NEXTAUTH_SECRET:', process.env.NEXTAUTH_SECRET ? 'present' : 'MISSING');
 
 export const { handlers, signIn, signOut } = NextAuth({
+  trustHost: true,
   providers: [
     // ─── Google OAuth ───────────────────────────────────────
     ...(googleClientId && googleClientSecret
