@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Pencil, Trash2, Search, Package, Truck, AlertTriangle } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Package, Truck, AlertTriangle, ToggleLeft, ToggleRight } from "lucide-react";
 import { getAdminProducts, deleteProduct, type ProductResponse } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
 
@@ -31,6 +31,18 @@ export default function AdminProductsPage() {
       loadProducts();
     } catch (e) { console.error(e); }
     setDeleteConfirm(null);
+  };
+
+  const handleToggleActive = async (id: string, currentActive: boolean) => {
+    try {
+      await fetch('/api/admin/products', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ id, isActive: !currentActive }),
+      });
+      loadProducts();
+    } catch (e) { console.error(e); }
   };
 
   const filtered = products
@@ -219,15 +231,17 @@ export default function AdminProductsPage() {
                     </div>
                   </td>
                   <td className="px-4 py-4">
-                    <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
-                      product.stock === 0
-                        ? "bg-red-50 text-red-600"
-                        : product.stock <= 2
-                        ? "bg-amber-50 text-amber-600"
-                        : "bg-emerald-50 text-emerald-600"
-                    }`}>
-                      {product.stock === 0 ? "SOLD OUT" : product.stock <= 2 ? "Stok Menipis" : "Aktif"}
-                    </span>
+                    <button
+                      onClick={() => handleToggleActive(product.id, product.stock > 0)}
+                      className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-semibold transition-colors hover:bg-gray-100"
+                      title={product.stock > 0 ? 'Nonaktifkan' : 'Aktifkan'}
+                    >
+                      {product.stock > 0 ? (
+                        <><ToggleRight size={22} className="text-emerald-500" /><span className="text-emerald-600">Aktif</span></>
+                      ) : (
+                        <><ToggleLeft size={22} className="text-red-400" /><span className="text-red-500">Nonaktif</span></>
+                      )}
+                    </button>
                   </td>
                   <td className="px-4 py-4">
                     <div className="flex items-center justify-end gap-2">

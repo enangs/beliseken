@@ -158,6 +158,52 @@ export const PUT = withAdminAuth(async (request: NextRequest) => {
   }
 });
 
+// PATCH toggle isActive + auto-create unit - PROTECTED
+export const PATCH = withAdminAuth(async (request: NextRequest) => {
+  try {
+    const body = await request.json();
+    const { id, isActive } = body;
+    if (!id) return NextResponse.json({ success: false, error: 'Product ID required' }, { status: 400 });
+
+    const product = await prisma.product.update({ where: { id }, data: { isActive } });
+
+    // If deactivating, mark all AVAILABLE units as SOLD
+    if (!isActive) {
+      await prisma.productUnit.updateMany({ where: { productId: id, status: 'AVAILABLE' }, data: { status: 'SOLD' } });
+    }
+
+    // If activating and no AVAILABLE unit exists, create one automatically
+    if (isActive) {
+      const availableUnits = await prisma.productUnit.count({ where: { productId: id, status: 'AVAILABLE' } });
+      if (availableUnits === 0) {
+        // Get a default condition grade
+        const grade = await prisma.conditionGrade.findFirst({ orderBy: { sortOrder: 'asc' } });
+        if (grade) {
+          await prisma.productUnit.create({
+            data: {
+              productId: id,
+              unitSku: product.sku + '-001',
+              conditionScore: 85,
+              conditionNotes: 'Kondisi normal',
+              batteryHealth: 80,
+              purchasePrice: product.basePrice || 0,
+              sellingPrice: product.sellingPrice || 0,
+              status: 'AVAILABLE',
+              conditionGradeId: grade.id,
+            },
+          });
+          console.log('✅ Auto-created unit for product:', product.name);
+        }
+      }
+    }
+
+    return NextResponse.json({ success: true, data: product });
+  } catch (error) {
+    console.error('Toggle product error:', error);
+    return NextResponse.json({ success: false, error: 'Gagal toggle produk' }, { status: 500 });
+  }
+});
+
 // DELETE product - PROTECTED
 export const DELETE = withAdminAuth(async (request: NextRequest) => {
   try {
