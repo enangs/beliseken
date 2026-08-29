@@ -107,19 +107,36 @@ export async function fetchOrders(options?: {
 
   // Try API (non-blocking)
   try {
-    const params = new URLSearchParams();
-    if (options?.userId) params.set('userId', options.userId);
-    if (options?.email) params.set('email', options.email);
-    if (options?.admin) params.set('admin', 'true');
-    if (options?.status) params.set('status', options.status);
+    let url = '';
+    let response: Response;
 
-    const response = await fetch(`${API_BASE}/orders?${params.toString()}`, {
-      signal: AbortSignal.timeout(5000),
-    });
+    if (options?.admin) {
+      // Admin uses separate API endpoint with admin auth cookie
+      const params = new URLSearchParams();
+      if (options?.status) params.set('status', options.status);
+      params.set('limit', '50');
+      url = `${API_BASE}/admin/orders?${params.toString()}`;
+      response = await fetch(url, {
+        credentials: 'include', // Send admin cookie
+        signal: AbortSignal.timeout(10000),
+      });
+    } else {
+      const params = new URLSearchParams();
+      if (options?.userId) params.set('userId', options.userId);
+      if (options?.email) params.set('email', options.email);
+      if (options?.status) params.set('status', options.status);
+      url = `${API_BASE}/orders?${params.toString()}`;
+      response = await fetch(url, {
+        signal: AbortSignal.timeout(5000),
+      });
+    }
+
     const data = await response.json();
 
     if (data.success && Array.isArray(data.data)) {
       apiOrders = data.data;
+    } else if (!data.success) {
+      console.warn('Admin API error:', data.error);
     }
   } catch (error) {
     console.warn('API fetch failed, using localStorage only:', error);
