@@ -113,7 +113,7 @@ export async function fetchOrders(options?: {
     if (options?.admin) {
       // Admin uses separate API endpoint with admin auth cookie
       const params = new URLSearchParams();
-      if (options?.status) params.set('status', options.status);
+      if (options?.status) params.set('status', options.status.toUpperCase());
       params.set('limit', '50');
       url = `${API_BASE}/admin/orders?${params.toString()}`;
       response = await fetch(url, {
@@ -134,9 +134,52 @@ export async function fetchOrders(options?: {
     const data = await response.json();
 
     if (data.success && Array.isArray(data.data)) {
-      apiOrders = data.data;
+      // Normalize admin API response to match Order interface
+      if (options?.admin) {
+        apiOrders = data.data.map((o: any) => ({
+          id: o.id,
+          orderNumber: o.orderNumber,
+          userId: o.userId,
+          items: (o.items || []).map((item: any) => ({
+            productId: item.productId,
+            productName: item.productName,
+            productSlug: item.productSlug,
+            productImage: item.productImage,
+            price: item.price,
+            quantity: item.quantity,
+            subtotal: item.subtotal || item.price * item.quantity,
+          })),
+          address: (() => {
+            try { return typeof o.addressSnapshot === 'string' ? JSON.parse(o.addressSnapshot) : (o.addressSnapshot || {}); } catch { return {}; }
+          })(),
+          shipping: {
+            courier: o.courier || '',
+            service: o.shippingService || '',
+            description: '',
+            cost: o.shippingCost || 0,
+            etd: o.shippingEtd || '',
+          },
+          subtotal: o.subtotal || 0,
+          shippingCost: o.shippingCost || 0,
+          total: o.total || 0,
+          status: (o.status || 'pending').toLowerCase(),
+          statusHistory: (o.statusHistory || []).map((h: any) => ({
+            status: (h.status || 'pending').toLowerCase(),
+            date: h.createdAt?.toString?.() || h.createdAt || '',
+            note: h.note || '',
+          })),
+          paymentMethod: o.paymentMethod || 'bank_transfer',
+          paymentProofUrl: o.paymentProofUrl || null,
+          trackingNumber: o.trackingNumber || null,
+          createdAt: o.createdAt?.toString?.() || o.createdAt || '',
+          updatedAt: o.updatedAt?.toString?.() || o.updatedAt || '',
+          user: o.user || null,
+        }));
+      } else {
+        apiOrders = data.data;
+      }
     } else if (!data.success) {
-      console.warn('Admin API error:', data.error);
+      console.warn('API error:', data.error);
     }
   } catch (error) {
     console.warn('API fetch failed, using localStorage only:', error);
