@@ -49,6 +49,7 @@ export default function LoginPage() {
 
         if (result.success && result.data) {
           localStorage.setItem("beliseken_user_session", JSON.stringify(result.data));
+          if (result.data.email) localStorage.setItem("beliseken_user_email", result.data.email);
           router.push("/dashboard");
         } else {
           setError(result.error || "No HP atau password salah!");

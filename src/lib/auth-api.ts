@@ -35,9 +35,33 @@ const isClient = typeof window !== 'undefined';
 function getLocalSession(): User | null {
   if (!isClient) return null;
   try {
+    // Try localStorage first
     const stored = localStorage.getItem('beliseken_user_session');
-    if (stored) return JSON.parse(stored);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed && parsed.id) return parsed;
+    }
   } catch {}
+  
+  // Fallback: try reading from cookie (set by Google callback)
+  try {
+    const cookies = document.cookie.split(';');
+    for (const cookie of cookies) {
+      const [name, ...rest] = cookie.split('=');
+      if (name.trim() === 'beliseken_user_session') {
+        const value = rest.join('=').trim();
+        if (value) {
+          const parsed = JSON.parse(decodeURIComponent(value));
+          if (parsed && parsed.id) {
+            // Restore to localStorage for future reads
+            localStorage.setItem('beliseken_user_session', JSON.stringify(parsed));
+            return parsed;
+          }
+        }
+      }
+    }
+  } catch {}
+  
   return null;
 }
 
@@ -45,8 +69,13 @@ function setLocalSession(user: User | null) {
   if (!isClient) return;
   if (user) {
     localStorage.setItem('beliseken_user_session', JSON.stringify(user));
+    // Also save email as backup identifier
+    if (user.email) {
+      localStorage.setItem('beliseken_user_email', user.email);
+    }
   } else {
     localStorage.removeItem('beliseken_user_session');
+    localStorage.removeItem('beliseken_user_email');
   }
 }
 
