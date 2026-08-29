@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Package, ChevronDown, ChevronUp, Truck, CheckCircle, XCircle, Clock, CreditCard, User, ExternalLink, Loader2, AlertCircle, RefreshCw, Save } from "lucide-react";
+import { Package, ChevronDown, ChevronUp, Truck, CheckCircle, XCircle, Clock, CreditCard, User, ExternalLink, Loader2, AlertCircle, RefreshCw, Save, Camera } from "lucide-react";
 import { fetchOrders, updateOrderStatus, updateTrackingNumber } from "@/lib/orders-api";
 import { formatPrice } from "@/lib/utils";
 import type { Order } from "@/lib/orders";
@@ -372,6 +372,21 @@ export default function AdminOrdersPage() {
                         )}
                       </div>
                     </div>
+
+                    {/* Payment Proof */}
+                    {(order as any).paymentProofUrl && (
+                      <div className="mt-4 bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+                        <h4 className="text-sm font-semibold text-emerald-800 mb-2 flex items-center gap-2">
+                          <Camera size={14} />
+                          Bukti Pembayaran
+                        </h4>
+                        <img 
+                          src={(order as any).paymentProofUrl} 
+                          alt="Bukti Pembayaran" 
+                          className="w-full max-h-64 object-contain rounded-lg"
+                        />
+                      </div>
+                    )}
 
                     {/* Status History */}
                     {order.statusHistory && order.statusHistory.length > 0 && (

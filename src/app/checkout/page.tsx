@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { MapPin, Truck, CreditCard, CheckCircle, ChevronRight, Package, ArrowLeft, Loader2 } from "lucide-react";
+import { useState, useRef } from "react";
+import { MapPin, Truck, CreditCard, CheckCircle, ChevronRight, Package, ArrowLeft, Loader2, Camera, Upload, Image as ImageIcon, MessageCircle, X } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useCart } from "@/lib/cart";
@@ -35,6 +36,11 @@ export default function CheckoutPage() {
   const [shippingLoading, setShippingLoading] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderId, setOrderId] = useState("");
+  const [orderTotal, setOrderTotal] = useState(0);
+  const [uploadingProof, setUploadingProof] = useState(false);
+  const [proofUploaded, setProofUploaded] = useState(false);
+  const [proofPreview, setProofPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [address, setAddress] = useState<OrderAddress>(() => {
     // Auto-fill from logged-in user's default address
@@ -155,6 +161,55 @@ export default function CheckoutPage() {
     );
   }
 
+  const handleUploadProof = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Hanya file gambar yang diperbolehkan');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Ukuran file maksimal 5MB');
+      return;
+    }
+
+    setUploadingProof(true);
+
+    try {
+      // Convert to base64
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64 = reader.result as string;
+        setProofPreview(base64);
+
+        // Upload to API
+        const res = await fetch(`/api/orders/${orderId}/payment-proof`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ paymentProofUrl: base64 }),
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          setProofUploaded(true);
+        } else {
+          alert('Gagal upload bukti pembayaran');
+          setProofPreview(null);
+        }
+        setUploadingProof(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      alert('Gagal upload bukti pembayaran');
+      setUploadingProof(false);
+      setProofPreview(null);
+    }
+  };
+
   if (orderPlaced) {
     return (
       <>
@@ -169,12 +224,120 @@ export default function CheckoutPage() {
             <div className="bg-white rounded-xl border border-brand-border p-6 mb-6 text-left">
               <p className="text-sm text-brand-muted mb-1">Nomor Pesanan</p>
               <p className="text-xl font-bold text-brand">{orderId}</p>
+              {orderTotal > 0 && (
+                <p className="text-sm text-brand-muted mt-2">Total: <span className="font-bold text-brand">{formatPrice(orderTotal)}</span></p>
+              )}
             </div>
-            <p className="text-sm text-brand-muted mb-6">
-              {paymentMethod === "cod"
-                ? "Pesanan Anda sedang diproses. Pembayaran dilakukan saat barang diterima."
-                : "Silakan lakukan pembayaran sesuai instruksi yang dikirim ke WhatsApp Anda."}
-            </p>
+
+            {/* Payment Instructions for bank transfer */}
+            {paymentMethod === "bank_transfer" && (
+              <div className="bg-white rounded-xl border border-brand-border p-6 mb-6 text-left">
+                <h3 className="font-bold text-brand-navy mb-4 flex items-center gap-2">
+                  <CreditCard size={18} className="text-brand" />
+                  Instruksi Pembayaran Transfer Bank
+                </h3>
+                <div className="space-y-3 text-sm">
+                  <div className="bg-brand-gray rounded-lg p-4">
+                    <p className="text-brand-muted mb-1">Transfer ke rekening:</p>
+                    <p className="font-bold text-brand-navy">BCA: 1234567890</p>
+                    <p className="text-brand-muted text-xs">a.n PT BeliSeken Indonesia</p>
+                  </div>
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <p className="font-semibold text-amber-800">Jumlah yang harus ditransfer:</p>
+                    <p className="text-xl font-extrabold text-amber-600">{formatPrice(orderTotal)}</p>
+                  </div>
+                  <p className="text-xs text-brand-muted">
+                    Mohon transfer sesuai nominal (termasuk 3 digit terakhir) untuk mempercepat verifikasi.
+                  </p>
+                </div>
+
+                {/* Upload Bukti Pembayaran */}
+                <div className="mt-6">
+                  <h4 className="font-semibold text-brand-navy mb-3 flex items-center gap-2">
+                    <Camera size={16} className="text-brand" />
+                    Upload Bukti Pembayaran
+                  </h4>
+                  
+                  {proofUploaded || proofPreview ? (
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                      {proofPreview && (
+                        <img 
+                          src={proofPreview} 
+                          alt="Bukti Pembayaran" 
+                          className="w-full max-h-64 object-contain rounded-lg mb-3"
+                        />
+                      )}
+                      <div className="flex items-center gap-2 text-emerald-700">
+                        <CheckCircle size={16} />
+                        <span className="font-semibold text-sm">Bukti pembayaran berhasil diupload!</span>
+                      </div>
+                      <p className="text-xs text-emerald-600 mt-1">
+                        Admin akan memverifikasi bukti pembayaran Anda dalam 1×24 jam.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-brand-border rounded-xl p-6 text-center hover:border-brand/50 transition-colors">
+                      <input 
+                        ref={fileInputRef}
+                        type="file" 
+                        accept="image/*" 
+                        onChange={handleUploadProof}
+                        className="hidden" 
+                      />
+                      {uploadingProof ? (
+                        <div className="flex flex-col items-center">
+                          <Loader2 size={32} className="animate-spin text-brand mb-2" />
+                          <p className="text-sm text-brand-muted">Mengupload...</p>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center">
+                          <div className="w-16 h-16 bg-brand/10 rounded-full flex items-center justify-center mb-3">
+                            <Upload size={24} className="text-brand" />
+                          </div>
+                          <p className="text-sm font-semibold text-brand-navy mb-1">
+                            Klik untuk upload foto bukti transfer
+                          </p>
+                          <p className="text-xs text-brand-muted">
+                            Format: JPG, PNG, HEIC (Maks. 5MB)
+                          </p>
+                          <button 
+                            onClick={() => fileInputRef.current?.click()}
+                            className="mt-3 px-4 py-2 bg-brand text-white text-sm font-semibold rounded-lg hover:bg-brand-dark transition-colors"
+                          >
+                            Pilih Foto
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* WhatsApp alternative */}
+                <div className="mt-4 bg-[#25D366]/10 border border-[#25D366]/30 rounded-xl p-4">
+                  <p className="text-sm text-brand-navy font-medium mb-2">
+                    Atau kirim via WhatsApp:
+                  </p>
+                  <a
+                    href={`${storeInfo.whatsappLink}?text=Halo, saya sudah transfer untuk pesanan ${orderId} sebesar ${formatPrice(orderTotal)}. Berikut bukti transfernya:`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#25D366] hover:bg-[#20bd5a] text-white text-sm font-semibold rounded-lg transition-colors"
+                  >
+                    <MessageCircle size={16} />
+                    Kirim Bukti via WhatsApp
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {paymentMethod !== "bank_transfer" && (
+              <p className="text-sm text-brand-muted mb-6">
+                {paymentMethod === "cod"
+                  ? "Pesanan Anda sedang diproses. Pembayaran dilakukan saat barang diterima."
+                  : "Silakan lakukan pembayaran sesuai instruksi yang dikirim ke WhatsApp Anda."}
+              </p>
+            )}
+
             <div className="flex gap-3 justify-center">
               <Link href="/dashboard/orders" className="px-6 py-3 bg-brand text-white font-semibold rounded-xl hover:bg-brand-dark transition-colors">
                 Lihat Pesanan
@@ -234,6 +397,7 @@ export default function CheckoutPage() {
 
     clearCart();
     setOrderId(order?.orderNumber || 'BS-UNKNOWN');
+    setOrderTotal(order?.total || total);
     setOrderPlaced(true);
     setLoading(false);
   };

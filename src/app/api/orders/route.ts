@@ -90,6 +90,7 @@ export async function GET(request: NextRequest) {
           note: h.note,
         })),
         paymentMethod: order.paymentMethod,
+        paymentProofUrl: order.paymentProofUrl || null,
         trackingNumber: order.trackingNumber,
         trackingUrl: order.trackingNumber ? generateTrackingUrl(order.trackingNumber, order.courier) : null,
         createdAt: order.createdAt?.toISOString?.() || order.createdAt,
@@ -295,6 +296,7 @@ export async function POST(request: NextRequest) {
         note: h.note,
       })),
       paymentMethod: order.paymentMethod,
+      paymentProofUrl: null,
       createdAt: order.createdAt?.toISOString?.() || order.createdAt,
       updatedAt: order.updatedAt?.toISOString?.() || order.updatedAt,
     };

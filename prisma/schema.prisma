@@ -483,6 +483,7 @@ model Order {
 
   customerNotes   String?
   adminNotes      String?
+  paymentProofUrl String?   // Bukti pembayaran (transfer) - foto resi
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

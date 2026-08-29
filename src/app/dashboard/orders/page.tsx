@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import { Package, Clock, Truck, CheckCircle, XCircle, CreditCard, MapPin, ChevronDown, ChevronUp, ExternalLink, Loader2, AlertCircle } from "lucide-react";
+import { Package, Clock, Truck, CheckCircle, XCircle, CreditCard, MapPin, ChevronDown, ChevronUp, ExternalLink, Loader2, AlertCircle, Camera, Upload, MessageCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { fetchOrders } from "@/lib/orders-api";
@@ -37,6 +37,8 @@ export default function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [uploadingProof, setUploadingProof] = useState<string | null>(null);
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
     loadOrders();
@@ -353,6 +355,95 @@ export default function OrdersPage() {
                             </p>
                           </div>
                         </div>
+
+                        {/* Payment Proof - for waiting_payment + bank_transfer */}
+                        {order.status === "waiting_payment" && order.paymentMethod === "bank_transfer" && (
+                          <div className="bg-white rounded-xl p-4 border border-brand-border mb-4">
+                            <h4 className="font-semibold text-brand-navy text-sm mb-3 flex items-center gap-2">
+                              <Camera size={14} className="text-brand" />
+                              Bukti Pembayaran
+                            </h4>
+                            
+                            {(order as any).paymentProofUrl ? (
+                              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+                                <img 
+                                  src={(order as any).paymentProofUrl} 
+                                  alt="Bukti Pembayaran" 
+                                  className="w-full max-h-48 object-contain rounded-lg mb-2"
+                                />
+                                <div className="flex items-center gap-2 text-emerald-700">
+                                  <CheckCircle size={14} />
+                                  <span className="font-semibold text-xs">Bukti pembayaran sudah diupload — menunggu verifikasi admin</span>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="border-2 border-dashed border-brand-border rounded-xl p-4 text-center hover:border-brand/50 transition-colors">
+                                <input 
+                                  ref={(el) => { fileInputRefs.current[order.id] = el; }}
+                                  type="file" 
+                                  accept="image/*" 
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    if (!file.type.startsWith('image/') || file.size > 5 * 1024 * 1024) {
+                                      alert('File harus gambar dan maksimal 5MB');
+                                      return;
+                                    }
+                                    setUploadingProof(order.id);
+                                    const reader = new FileReader();
+                                    reader.onload = async () => {
+                                      try {
+                                        const res = await fetch(`/api/orders/${order.orderNumber}/payment-proof`, {
+                                          method: 'PATCH',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({ paymentProofUrl: reader.result }),
+                                        });
+                                        const data = await res.json();
+                                        if (data.success) {
+                                          loadOrders();
+                                        } else {
+                                          alert('Gagal upload');
+                                        }
+                                      } catch {
+                                        alert('Gagal upload bukti pembayaran');
+                                      }
+                                      setUploadingProof(null);
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }}
+                                  className="hidden"
+                                />
+                                {uploadingProof === order.id ? (
+                                  <div className="flex flex-col items-center py-2">
+                                    <Loader2 size={24} className="animate-spin text-brand mb-2" />
+                                    <p className="text-xs text-brand-muted">Mengupload...</p>
+                                  </div>
+                                ) : (
+                                  <div className="flex flex-col items-center py-2">
+                                    <Upload size={24} className="text-brand-muted mb-2" />
+                                    <p className="text-xs text-brand-muted mb-2">Upload foto bukti transfer</p>
+                                    <button 
+                                      onClick={() => fileInputRefs.current[order.id]?.click()}
+                                      className="px-3 py-1.5 bg-brand text-white text-xs font-semibold rounded-lg hover:bg-brand-dark"
+                                    >
+                                      Pilih Foto
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            <a
+                              href={`${storeInfo.whatsappLink}?text=Halo, saya sudah transfer untuk pesanan ${order.orderNumber}. Berikut bukti transfernya:`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-3 w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-semibold rounded-lg transition-colors"
+                            >
+                              <MessageCircle size={14} />
+                              Kirim Bukti via WhatsApp
+                            </a>
+                          </div>
+                        )}
 
                         {/* Status History */}
                         <div className="bg-white rounded-xl p-4 border border-brand-border mb-4">
