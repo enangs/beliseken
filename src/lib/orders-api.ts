@@ -71,16 +71,16 @@ function filterOrders(orders: Order[], options?: {
 }): Order[] {
   let filtered = [...orders];
 
-  if (options?.email) {
+  if (options?.userId) {
+    // Filter by userId only — most reliable identifier
+    filtered = filtered.filter(o => o.userId === options.userId);
+  } else if (options?.email) {
+    // Fallback: filter by email in address snapshot
     const emailLower = options.email.toLowerCase();
     filtered = filtered.filter(o =>
       o.address?.email?.toLowerCase() === emailLower ||
       o.userId?.toLowerCase() === emailLower
     );
-  }
-
-  if (options?.userId) {
-    filtered = filtered.filter(o => o.userId === options.userId);
   }
 
   if (options?.status && options.status !== 'all') {

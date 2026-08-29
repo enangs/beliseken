@@ -52,11 +52,22 @@ export default function OrdersPage() {
       const user = getCurrentUser();
       const email = user?.email || (typeof window !== 'undefined' ? localStorage.getItem('beliseken_user_email') : null);
       
-      const data = await fetchOrders({ 
+      // Try with userId first, fallback to email
+      let data = await fetchOrders({ 
         userId: user?.id,
-        email: email || undefined,
+        email: !user?.id ? email || undefined : undefined,
       });
       
+      // If no results with userId, try with email
+      if ((!data || data.length === 0) && email) {
+        data = await fetchOrders({ email });
+      }
+
+      // If still no results and no user session, show login prompt
+      if ((!data || data.length === 0) && !user && !email) {
+        setError('Silakan login terlebih dahulu untuk melihat pesanan Anda.');
+      }
+
       setOrders(data || []);
     } catch (err) {
       console.error('Failed to load orders:', err);
