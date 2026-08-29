@@ -238,9 +238,17 @@ export default function CheckoutPage() {
                 </h3>
                 <div className="space-y-3 text-sm">
                   <div className="bg-brand-gray rounded-lg p-4">
-                    <p className="text-brand-muted mb-1">Transfer ke rekening:</p>
-                    <p className="font-bold text-brand-navy">BCA: 1234567890</p>
-                    <p className="text-brand-muted text-xs">a.n PT BeliSeken Indonesia</p>
+                    <p className="text-brand-muted mb-2">Transfer ke rekening:</p>
+                    <div className="space-y-2">
+                      <div>
+                        <p className="font-bold text-brand-navy">BCA: 8420049855</p>
+                        <p className="text-brand-muted text-xs">a.n ENANG SUNARDI</p>
+                      </div>
+                      <div>
+                        <p className="font-bold text-brand-navy">Mandiri: 1560004186625</p>
+                        <p className="text-brand-muted text-xs">a.n ENANG SUNARDI</p>
+                      </div>
+                    </div>
                   </div>
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                     <p className="font-semibold text-amber-800">Jumlah yang harus ditransfer:</p>
