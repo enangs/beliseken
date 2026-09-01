@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
              "updatedAt" = NOW()
          WHERE "orderNumber" = $2`,
         completed_at ? new Date(completed_at) : new Date(),
-        order_id
+        baseOrderId
       );
 
       // Add status history
@@ -96,17 +96,23 @@ export async function POST(request: NextRequest) {
         `Payment confirmed via ${payment_method || "PakaSir"}`
       );
 
-      // Update payment log
-      await prisma.$executeRawUnsafe(
-        `UPDATE payment_logs 
-         SET "status" = 'COMPLETED',
-             "rawResponse" = $1
-         WHERE "orderId" = $2 AND "provider" = 'PAKASIR'
-         ORDER BY "createdAt" DESC
-         LIMIT 1`,
-        JSON.stringify(payload),
+      // Update most recent payment log
+      const logRows = (await prisma.$queryRawUnsafe(
+        `SELECT "id" FROM payment_logs 
+         WHERE "orderId" = $1 AND "provider" = 'PAKASIR' 
+         ORDER BY "createdAt" DESC LIMIT 1`,
         order.id
-      );
+      )) as any[];
+      if (logRows.length > 0) {
+        await prisma.$executeRawUnsafe(
+          `UPDATE payment_logs 
+           SET "status" = 'COMPLETED',
+               "rawResponse" = $1
+           WHERE "id" = $2`,
+          JSON.stringify(payload),
+          logRows[0].id
+        );
+      }
 
       console.log(`✅ Order ${order_id} marked as PAID`);
     } else if (status === "cancelled" || status === "expired") {
@@ -119,10 +125,10 @@ export async function POST(request: NextRequest) {
              "updatedAt" = NOW()
          WHERE "orderNumber" = $2`,
         newStatus,
-        order_id
+        baseOrderId
       );
 
-      console.log(`ℹ️ Order ${order_id} status updated to ${newStatus}`);
+      console.log(`ℹ️ Order ${baseOrderId} status updated to ${newStatus}`);
     }
 
     return NextResponse.json({ success: true });
