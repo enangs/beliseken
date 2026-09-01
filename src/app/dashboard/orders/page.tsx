@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import { Package, Clock, Truck, CheckCircle, XCircle, CreditCard, MapPin, ChevronDown, ChevronUp, ExternalLink, Loader2, AlertCircle, Camera, Upload, MessageCircle, ShoppingCart } from "lucide-react";
+import { Package, Clock, Truck, CheckCircle, XCircle, CreditCard, MapPin, ChevronDown, ChevronUp, ExternalLink, Loader2, AlertCircle, Camera, Upload, MessageCircle, ShoppingCart, QrCode } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { fetchOrders } from "@/lib/orders-api";
@@ -38,7 +39,34 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [uploadingProof, setUploadingProof] = useState<string | null>(null);
+  const [retryPayment, setRetryPayment] = useState<string | null>(null);
+  const [retryPaymentData, setRetryPaymentData] = useState<Record<string, any>>({});
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  const handleRetryPayment = async (orderNumber: string) => {
+    setRetryPayment(orderNumber);
+    try {
+      const res = await fetch('/api/payment/pakasir/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderNumber, method: 'qris' }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setRetryPaymentData(prev => ({ ...prev, [orderNumber]: data.data }));
+      } else {
+        const errMsg = data.error || '';
+        if (errMsg.includes('Maximum amount')) {
+          alert('Nominal transaksi melebihi batas sandbox. Hubungi admin.');
+        } else {
+          alert('Gagal memproses pembayaran. Silakan coba lagi.');
+        }
+      }
+    } catch {
+      alert('Gagal memproses pembayaran. Silakan coba lagi.');
+    }
+    setRetryPayment(null);
+  };
 
   useEffect(() => {
     loadOrders();
@@ -461,6 +489,76 @@ export default function OrdersPage() {
                               <MessageCircle size={14} />
                               Kirim Bukti via WhatsApp
                             </a>
+                          </div>
+                        )}
+
+                        {/* PakaSir Payment - QRIS / VA retry */}
+                        {order.status === "waiting_payment" && (order.paymentMethod === "qris" || order.paymentMethod === "bank_transfer_va") && (
+                          <div className="bg-white rounded-xl p-4 border border-brand-border mb-4">
+                            {retryPaymentData[order.orderNumber] ? (
+                              /* Show QR code */
+                              <div>
+                                <h4 className="font-semibold text-brand-navy text-sm mb-3 flex items-center gap-2">
+                                  <QrCode size={14} className="text-brand" />
+                                  {retryPaymentData[order.orderNumber].paymentMethod === 'qris' ? 'Scan QRIS untuk Bayar' : 'Virtual Account'}
+                                </h4>
+                                {retryPaymentData[order.orderNumber].paymentMethod === 'qris' && (
+                                  <div className="text-center mb-3">
+                                    <div className="bg-white border-2 border-brand-border rounded-2xl p-4 inline-block">
+                                      <QRCodeSVG
+                                        value={retryPaymentData[order.orderNumber].paymentNumber}
+                                        size={200}
+                                        level="M"
+                                        includeMargin={true}
+                                      />
+                                    </div>
+                                    <p className="text-xs text-brand-muted mt-2">Scan menggunakan mobile banking atau e-wallet</p>
+                                  </div>
+                                )}
+                                {retryPaymentData[order.orderNumber].paymentMethod !== 'qris' && (
+                                  <div className="bg-brand-gray rounded-lg p-3 flex items-center justify-between mb-3">
+                                    <span className="text-lg font-mono font-bold text-brand-navy">{retryPaymentData[order.orderNumber].paymentNumber}</span>
+                                    <button
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(retryPaymentData[order.orderNumber].paymentNumber);
+                                        alert('Nomor VA dicopy!');
+                                      }}
+                                      className="px-3 py-1 bg-brand text-white text-xs font-semibold rounded-lg"
+                                    >Copy</button>
+                                  </div>
+                                )}
+                                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center">
+                                  <p className="text-xs text-amber-700">Total: <span className="font-bold text-lg">Rp{retryPaymentData[order.orderNumber].totalPayment.toLocaleString('id-ID')}</span></p>
+                                  {retryPaymentData[order.orderNumber].expiredAt && (
+                                    <p className="text-xs text-amber-600 mt-1">
+                                      Berlaku hingga {new Date(retryPaymentData[order.orderNumber].expiredAt).toLocaleString('id-ID', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            ) : (
+                              /* Show bayar button */
+                              <div className="text-center py-2">
+                                <button
+                                  onClick={() => handleRetryPayment(order.orderNumber)}
+                                  disabled={retryPayment === order.orderNumber}
+                                  className="px-6 py-3 bg-brand hover:bg-brand-dark text-white font-bold rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2 mx-auto"
+                                >
+                                  {retryPayment === order.orderNumber ? (
+                                    <>
+                                      <Loader2 size={16} className="animate-spin" />
+                                      Memproses...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <QrCode size={16} />
+                                      Bayar Sekarang
+                                    </>
+                                  )}
+                                </button>
+                                <p className="text-xs text-brand-muted mt-2">Klik untuk mendapatkan QR code / nomor Virtual Account</p>
+                              </div>
+                            )}
                           </div>
                         )}
 
