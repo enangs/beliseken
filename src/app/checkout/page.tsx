@@ -471,10 +471,17 @@ export default function CheckoutPage() {
                             expiredAt: data.data.expiredAt,
                           });
                         } else {
-                          alert('Gagal: ' + (data.error || 'Unknown error'));
+                          const errMsg = data.error || '';
+                          if (errMsg.includes('Maximum amount')) {
+                            alert('Nominal transaksi melebihi batas sandbox. Hubungi admin untuk bantuan.');
+                          } else if (errMsg.includes('Api key')) {
+                            alert('Konfigurasi pembayaran bermasalah. Hubungi admin.');
+                          } else {
+                            alert('Gagal memproses pembayaran. Silakan coba lagi atau hubungi admin.');
+                          }
                         }
                       } catch (err) {
-                        alert('Gagal memproses pembayaran');
+                        alert('Gagal memproses pembayaran. Silakan coba lagi.');
                       }
                       setCreatingPayment(false);
                     }}
