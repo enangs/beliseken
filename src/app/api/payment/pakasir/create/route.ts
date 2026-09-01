@@ -40,13 +40,25 @@ export async function POST(request: NextRequest) {
     }
 
     const order = rows[0];
+    console.log(`[PakaSir] Order found: ${order.orderNumber}, total: ${order.total}, status: ${order.status}`);
 
-    if (order.status !== "WAITING_PAYMENT" && order.status !== "PENDING") {
+    if (order.status !== "waiting_payment" && order.status !== "WAITING_PAYMENT" && order.status !== "PENDING" && order.status !== "pending") {
       return NextResponse.json(
         { success: false, error: "Order is not in payable state" },
         { status: 400 }
       );
     }
+
+    // Validate amount - must be positive and reasonable
+    const amount = Number(order.total);
+    if (!amount || amount <= 0 || amount > 50000000) {
+      return NextResponse.json(
+        { success: false, error: `Invalid order amount: ${amount}` },
+        { status: 400 }
+      );
+    }
+
+    console.log(`[PakaSir] Creating transaction for ${order.orderNumber}, amount: ${amount}`);
 
     // Determine PakaSir payment method
     let pakasirMethod = method || "qris";
@@ -57,7 +69,7 @@ export async function POST(request: NextRequest) {
     // Create PakaSir transaction
     const result = await createPakasirTransaction({
       orderId: order.orderNumber,
-      amount: order.total,
+      amount: amount,
       method: pakasirMethod,
     });
 
