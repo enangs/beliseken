@@ -4,8 +4,8 @@ import { NextRequest, NextResponse } from 'next/server';
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip auth for login/logout endpoints
-  if (pathname.includes('/api/admin/auth/')) {
+  // Skip auth for login/logout and cleanup endpoints
+  if (pathname.includes('/api/admin/auth/') || pathname.includes('/api/admin/orders/cleanup')) {
     return NextResponse.next();
   }
 
