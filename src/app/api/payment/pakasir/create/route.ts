@@ -66,9 +66,10 @@ export async function POST(request: NextRequest) {
       pakasirMethod = "qris"; // QRIS covers e-wallets
     }
 
-    // Create PakaSir transaction
+    // Create PakaSir transaction with unique ID to avoid cache issues
+    const uniqueId = `${order.orderNumber}-${Date.now()}`;
     const result = await createPakasirTransaction({
-      orderId: order.orderNumber,
+      orderId: uniqueId,
       amount: amount,
       method: pakasirMethod,
     });
@@ -89,6 +90,7 @@ export async function POST(request: NextRequest) {
         expiredAt: payment.expired_at,
         fee: payment.fee,
         totalPayment: payment.total_payment,
+        pakasirOrderId: uniqueId,
       }),
       orderNumber
     );
