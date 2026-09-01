@@ -90,6 +90,8 @@ export async function GET(request: NextRequest) {
           note: h.note,
         })),
         paymentMethod: order.paymentMethod,
+        paymentProvider: order.paymentProvider || null,
+        paymentRef: order.paymentRef || null,
         paymentProofUrl: order.paymentProofUrl || null,
         trackingNumber: order.trackingNumber,
         trackingUrl: order.trackingNumber ? generateTrackingUrl(order.trackingNumber, order.courier) : null,

@@ -169,6 +169,8 @@ export async function fetchOrders(options?: {
             note: h.note || '',
           })),
           paymentMethod: o.paymentMethod || 'bank_transfer',
+          paymentProvider: o.paymentProvider || null,
+          paymentRef: o.paymentRef || null,
           paymentProofUrl: o.paymentProofUrl || null,
           trackingNumber: o.trackingNumber || null,
           createdAt: o.createdAt?.toString?.() || o.createdAt || '',

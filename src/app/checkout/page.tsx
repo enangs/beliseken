@@ -4,7 +4,8 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState, useRef } from "react";
-import { MapPin, Truck, CreditCard, CheckCircle, ChevronRight, Package, ArrowLeft, Loader2, Camera, Upload, Image as ImageIcon, MessageCircle, X } from "lucide-react";
+import { MapPin, Truck, CreditCard, CheckCircle, ChevronRight, Package, ArrowLeft, Loader2, Camera, Upload, Image as ImageIcon, MessageCircle, X, Clock, Copy, ExternalLink } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useCart } from "@/lib/cart";
@@ -23,8 +24,9 @@ const steps = [
 ];
 
 const paymentMethods = [
-  { id: "bank_transfer", label: "Transfer Bank (BCA/Mandiri/BNI)", description: "Transfer manual ke rekening toko" },
-  { id: "ewallet", label: "E-Wallet (GoPay/OVO/DANA)", description: "Bayar via aplikasi e-wallet" },
+  { id: "qris", label: "QRIS", description: "Scan QR dari semua bank & e-wallet", isPakasir: true, pakasirMethod: "qris" },
+  { id: "bank_transfer_va", label: "Virtual Account (BCA/Mandiri/BNI/BRI)", description: "Bayar via VA di ATM atau mobile banking", isPakasir: true, pakasirMethod: "bri_va" },
+  { id: "bank_transfer", label: "Transfer Bank Manual", description: "Transfer manual ke rekening toko" },
   { id: "cod", label: "Bayar di Tempat (COD)", description: "Bayar saat barang diterima" },
 ];
 
@@ -41,6 +43,15 @@ export default function CheckoutPage() {
   const [proofUploaded, setProofUploaded] = useState(false);
   const [proofPreview, setProofPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // PakaSir payment state
+  const [pakasirPayment, setPakasirPayment] = useState<{
+    paymentMethod: string;
+    paymentNumber: string;
+    totalPayment: number;
+    expiredAt: string;
+  } | null>(null);
+  const [creatingPayment, setCreatingPayment] = useState(false);
 
   const [address, setAddress] = useState<OrderAddress>(() => {
     // Auto-fill from logged-in user's default address
@@ -229,8 +240,101 @@ export default function CheckoutPage() {
               )}
             </div>
 
-            {/* Payment Instructions for bank transfer */}
-            {paymentMethod === "bank_transfer" && (
+            {/* PakaSir Payment: QRIS / VA */}
+            {pakasirPayment && (
+              <div className="bg-white rounded-xl border border-brand-border p-6 mb-6 text-left">
+                <h3 className="font-bold text-brand-navy mb-4 flex items-center gap-2">
+                  <CreditCard size={18} className="text-brand" />
+                  {pakasirPayment.paymentMethod === 'qris' ? 'Bayar via QRIS' : `Bayar via Virtual Account`}
+                </h3>
+
+                {creatingPayment ? (
+                  <div className="text-center py-8">
+                    <Loader2 size={32} className="animate-spin text-brand mx-auto mb-3" />
+                    <p className="text-sm text-brand-muted">Menyiapkan pembayaran...</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* QR Code display for QRIS */}
+                    {pakasirPayment.paymentMethod === 'qris' && pakasirPayment.paymentNumber && (
+                      <div className="text-center mb-6">
+                        <div className="bg-white border-2 border-brand-border rounded-2xl p-6 inline-block mb-4">
+                          <QRCodeSVG
+                            value={pakasirPayment.paymentNumber}
+                            size={220}
+                            level="M"
+                            includeMargin={true}
+                          />
+                        </div>
+                        <p className="text-xs text-brand-muted">
+                          Scan QR menggunakan aplikasi mobile banking atau e-wallet Anda
+                        </p>
+                      </div>
+                    )}
+
+                    {/* VA Number display */}
+                    {pakasirPayment.paymentMethod !== 'qris' && pakasirPayment.paymentNumber && (
+                      <div className="mb-6">
+                        <p className="text-sm text-brand-muted mb-2">Nomor Virtual Account:</p>
+                        <div className="bg-brand-gray rounded-lg p-4 flex items-center justify-between">
+                          <span className="text-xl font-mono font-bold text-brand-navy tracking-wider">
+                            {pakasirPayment.paymentNumber}
+                          </span>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(pakasirPayment.paymentNumber);
+                              alert('Nomor VA berhasil dicopy!');
+                            }}
+                            className="px-3 py-1.5 bg-brand text-white text-xs font-semibold rounded-lg hover:bg-brand-dark flex items-center gap-1"
+                          >
+                            <Copy size={12} />
+                            Copy
+                          </button>
+                        </div>
+                        <p className="text-xs text-brand-muted mt-2">
+                          Bayar melalui ATM, mobile banking, atau internet banking
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Total & Expiry */}
+                    <div className="space-y-3">
+                      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                        <p className="text-sm text-amber-800 font-semibold">Total yang harus dibayar:</p>
+                        <p className="text-2xl font-extrabold text-amber-600">{formatPrice(pakasirPayment.totalPayment)}</p>
+                        {pakasirPayment.totalPayment !== orderTotal && (
+                          <p className="text-xs text-amber-600 mt-1">
+                            (termasuk biaya admin {formatPrice(pakasirPayment.totalPayment - orderTotal)})
+                          </p>
+                        )}
+                      </div>
+
+                      {pakasirPayment.expiredAt && (
+                        <div className="flex items-center gap-2 text-sm text-brand-muted bg-red-50 border border-red-200 rounded-xl p-3">
+                          <Clock size={14} className="text-red-500" />
+                          <span>
+                            Pembayaran harus diselesaikan sebelum{' '}
+                            <span className="font-semibold text-red-600">
+                              {new Date(pakasirPayment.expiredAt).toLocaleString('id-ID', {
+                                day: 'numeric', month: 'long', year: 'numeric',
+                                hour: '2-digit', minute: '2-digit'
+                              })}
+                            </span>
+                          </span>
+                        </div>
+                      )}
+
+                      <p className="text-xs text-brand-muted">
+                        Setelah pembayaran berhasil, status pesanan akan otomatis terupdate.
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Manual Bank Transfer */}
+            {paymentMethod === 'bank_transfer' && !pakasirPayment && (
               <div className="bg-white rounded-xl border border-brand-border p-6 mb-6 text-left">
                 <h3 className="font-bold text-brand-navy mb-4 flex items-center gap-2">
                   <CreditCard size={18} className="text-brand" />
@@ -338,11 +442,10 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            {paymentMethod !== "bank_transfer" && (
+            {/* COD message */}
+            {paymentMethod === 'cod' && (
               <p className="text-sm text-brand-muted mb-6">
-                {paymentMethod === "cod"
-                  ? "Pesanan Anda sedang diproses. Pembayaran dilakukan saat barang diterima."
-                  : "Silakan lakukan pembayaran sesuai instruksi yang dikirim ke WhatsApp Anda."}
+                Pesanan Anda sedang diproses. Pembayaran dilakukan saat barang diterima.
               </p>
             )}
 
@@ -404,9 +507,42 @@ export default function CheckoutPage() {
     }
 
     clearCart();
-    setOrderId(order?.orderNumber || 'BS-UNKNOWN');
-    setOrderTotal(order?.total || total);
+    const orderNumber = order?.orderNumber || 'BS-UNKNOWN';
+    const orderTotalVal = order?.total || total;
+    setOrderId(orderNumber);
+    setOrderTotal(orderTotalVal);
     setOrderPlaced(true);
+
+    // Create PakaSir transaction if applicable
+    const selectedPm = paymentMethods.find(pm => pm.id === paymentMethod);
+    if (selectedPm && (selectedPm as any).isPakasir) {
+      setCreatingPayment(true);
+      try {
+        const res = await fetch('/api/payment/pakasir/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderNumber,
+            method: (selectedPm as any).pakasirMethod || 'qris',
+          }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          setPakasirPayment({
+            paymentMethod: data.data.paymentMethod,
+            paymentNumber: data.data.paymentNumber,
+            totalPayment: data.data.totalPayment,
+            expiredAt: data.data.expiredAt,
+          });
+        } else {
+          console.error('PakaSir error:', data.error);
+        }
+      } catch (err) {
+        console.error('Failed to create PakaSir payment:', err);
+      }
+      setCreatingPayment(false);
+    }
+
     setLoading(false);
   };
 
@@ -596,7 +732,7 @@ export default function CheckoutPage() {
                     <button onClick={() => setStep(2)} className="px-6 py-2.5 border border-brand-border text-brand-navy font-semibold rounded-xl text-sm hover:bg-brand-gray transition-colors">
                       ← Kembali
                     </button>
-                    <button onClick={handlePlaceOrder} disabled={loading} className="px-8 py-3 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2">
+                    <button onClick={handlePlaceOrder} disabled={loading} className="px-8 py-3 bg-brand hover:bg-brand-dark text-white font-bold rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2">
                       {loading ? (
                         <>
                           <Loader2 size={16} className="animate-spin" />
@@ -604,7 +740,10 @@ export default function CheckoutPage() {
                         </>
                       ) : (
                         <>
-                          Bayar & Pesan via WhatsApp
+                          {paymentMethods.find(pm => pm.id === paymentMethod) && (paymentMethods.find(pm => pm.id === paymentMethod) as any).isPakasir
+                            ? 'Buat Pesanan & Bayar'
+                            : 'Bayar & Pesan via WhatsApp'
+                          }
                         </>
                       )}
                     </button>

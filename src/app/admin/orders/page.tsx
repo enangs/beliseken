@@ -291,11 +291,35 @@ export default function AdminOrdersPage() {
                         <div className="bg-white rounded-lg p-3 border border-brand-border text-sm">
                           <p className="text-brand-muted">
                             {order.paymentMethod === "bank_transfer" ? "🏦 Transfer Bank" :
-                             order.paymentMethod === "ewallet" ? "E-Wallet" :
-                             order.paymentMethod === "qris" ? "QRIS" :
+                             order.paymentMethod === "ewallet" ? "💳 E-Wallet" :
+                             order.paymentMethod === "qris" ? "📱 QRIS" :
+                             order.paymentMethod === "bank_transfer_va" ? "🏦 Virtual Account" :
                              order.paymentMethod === "cod" ? "💵 COD (Bayar di Tempat)" :
                              order.paymentMethod || '-'}
                           </p>
+                          {(order as any).paymentProvider && (
+                            <p className="text-xs text-brand-muted mt-1">
+                              Provider: <span className="font-semibold">{(order as any).paymentProvider}</span>
+                            </p>
+                          )}
+                          {(order as any).paymentRef && (
+                            <div className="mt-1 text-xs text-brand-muted">
+                              {(() => {
+                                try {
+                                  const ref = typeof (order as any).paymentRef === 'string'
+                                    ? JSON.parse((order as any).paymentRef)
+                                    : (order as any).paymentRef;
+                                  return (
+                                    <>
+                                      {ref.pakasirMethod && <p>Metode: {ref.pakasirMethod.toUpperCase()}</p>}
+                                      {ref.paymentNumber && <p>No. Pembayaran: <span className="font-mono font-semibold">{ref.paymentNumber.length > 30 ? ref.paymentNumber.slice(0, 30) + '...' : ref.paymentNumber}</span></p>}
+                                      {ref.fee && <p>Fee: {formatPrice(ref.fee)}</p>}
+                                    </>
+                                  );
+                                } catch { return null; }
+                              })()}
+                            </div>
+                          )}
                         </div>
 
                         {/* Tracking Number Section */}

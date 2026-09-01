@@ -357,10 +357,18 @@ export default function OrdersPage() {
                               Pembayaran
                             </h4>
                             <p className="text-sm">
-                              {order.paymentMethod === "bank_transfer" ? "Transfer Bank" :
-                               order.paymentMethod === "ewallet" ? "E-Wallet" :
-                               "COD (Bayar di Tempat)"}
+                              {order.paymentMethod === "bank_transfer" ? "🏦 Transfer Bank" :
+                               order.paymentMethod === "bank_transfer_va" ? "🏦 Virtual Account" :
+                               order.paymentMethod === "qris" ? "📱 QRIS" :
+                               order.paymentMethod === "ewallet" ? "💳 E-Wallet" :
+                               order.paymentMethod === "cod" ? "💵 COD" :
+                               order.paymentMethod}
                             </p>
+                            {(order as any).paymentProvider && (
+                              <p className="text-xs text-brand-muted mt-1">
+                                via {(order as any).paymentProvider}
+                              </p>
+                            )}
                             <p className="text-xs text-brand-muted mt-2">
                               {order.shipping?.etd}
                             </p>
