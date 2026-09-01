@@ -84,12 +84,13 @@ export async function POST(request: NextRequest) {
     // Log payment event
     const logId = `plog-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
     await prisma.$executeRawUnsafe(
-      `INSERT INTO payment_logs ("id", "orderId", "provider", "amount", "status", "rawPayload", "createdAt")
-       VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
+      `INSERT INTO payment_logs ("id", "orderId", "provider", "amount", "method", "status", "rawResponse", "createdAt")
+       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
       logId,
       order.id,
       "PAKASIR",
       payment.total_payment,
+      payment.payment_method,
       "PENDING",
       JSON.stringify(payment)
     );

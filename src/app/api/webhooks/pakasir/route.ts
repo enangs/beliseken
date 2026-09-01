@@ -87,12 +87,10 @@ export async function POST(request: NextRequest) {
       await prisma.$executeRawUnsafe(
         `UPDATE payment_logs 
          SET "status" = 'COMPLETED',
-             "paidAt" = $1,
-             "rawPayload" = $2
-         WHERE "orderId" = $3 AND "provider" = 'PAKASIR'
+             "rawResponse" = $1
+         WHERE "orderId" = $2 AND "provider" = 'PAKASIR'
          ORDER BY "createdAt" DESC
          LIMIT 1`,
-        completed_at ? new Date(completed_at) : new Date(),
         JSON.stringify(payload),
         order.id
       );
