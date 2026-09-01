@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import { Package, Clock, Truck, CheckCircle, XCircle, CreditCard, MapPin, ChevronDown, ChevronUp, ExternalLink, Loader2, AlertCircle, Camera, Upload, MessageCircle } from "lucide-react";
+import { Package, Clock, Truck, CheckCircle, XCircle, CreditCard, MapPin, ChevronDown, ChevronUp, ExternalLink, Loader2, AlertCircle, Camera, Upload, MessageCircle, ShoppingCart } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { fetchOrders } from "@/lib/orders-api";

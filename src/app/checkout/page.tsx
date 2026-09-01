@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState, useRef } from "react";
-import { MapPin, Truck, CreditCard, CheckCircle, ChevronRight, Package, ArrowLeft, Loader2, Camera, Upload, Image as ImageIcon, MessageCircle, X, Clock, Copy, ExternalLink } from "lucide-react";
+import { MapPin, Truck, CreditCard, CheckCircle, ChevronRight, Package, ArrowLeft, Loader2, Camera, Upload, Image as ImageIcon, MessageCircle, X, Clock, Copy, ExternalLink, AlertCircle } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -241,11 +241,11 @@ export default function CheckoutPage() {
             </div>
 
             {/* PakaSir Payment: QRIS / VA */}
-            {pakasirPayment && (
+            {(pakasirPayment || creatingPayment) && (
               <div className="bg-white rounded-xl border border-brand-border p-6 mb-6 text-left">
                 <h3 className="font-bold text-brand-navy mb-4 flex items-center gap-2">
                   <CreditCard size={18} className="text-brand" />
-                  {pakasirPayment.paymentMethod === 'qris' ? 'Bayar via QRIS' : `Bayar via Virtual Account`}
+                  {pakasirPayment?.paymentMethod === 'qris' ? 'Bayar via QRIS' : `Bayar via Virtual Account`}
                 </h3>
 
                 {creatingPayment ? (
@@ -253,7 +253,7 @@ export default function CheckoutPage() {
                     <Loader2 size={32} className="animate-spin text-brand mx-auto mb-3" />
                     <p className="text-sm text-brand-muted">Menyiapkan pembayaran...</p>
                   </div>
-                ) : (
+                ) : pakasirPayment ? (
                   <>
                     {/* QR Code display for QRIS */}
                     {pakasirPayment.paymentMethod === 'qris' && pakasirPayment.paymentNumber && (
@@ -329,7 +329,7 @@ export default function CheckoutPage() {
                       </p>
                     </div>
                   </>
-                )}
+                ) : null}
               </div>
             )}
 
@@ -442,6 +442,59 @@ export default function CheckoutPage() {
               </div>
             )}
 
+            {/* PakaSir failed - fallback */}
+            {!pakasirPayment && !creatingPayment && paymentMethod !== 'bank_transfer' && paymentMethod !== 'cod' && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-6 text-left">
+                <h3 className="font-bold text-amber-800 mb-2 flex items-center gap-2">
+                  <AlertCircle size={18} />
+                  Pembayaran Belum Diproses
+                </h3>
+                <p className="text-sm text-amber-700 mb-4">
+                  Terjadi gangguan saat memproses pembayaran. Silakan coba lagi atau hubungi admin via WhatsApp.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={async () => {
+                      setCreatingPayment(true);
+                      try {
+                        const res = await fetch('/api/payment/pakasir/create', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ orderNumber: orderId, method: 'qris' }),
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                          setPakasirPayment({
+                            paymentMethod: data.data.paymentMethod,
+                            paymentNumber: data.data.paymentNumber,
+                            totalPayment: data.data.totalPayment,
+                            expiredAt: data.data.expiredAt,
+                          });
+                        } else {
+                          alert('Gagal: ' + (data.error || 'Unknown error'));
+                        }
+                      } catch (err) {
+                        alert('Gagal memproses pembayaran');
+                      }
+                      setCreatingPayment(false);
+                    }}
+                    className="px-4 py-2 bg-brand text-white text-sm font-semibold rounded-lg hover:bg-brand-dark"
+                  >
+                    Coba Lagi Bayar
+                  </button>
+                  <a
+                    href={`${storeInfo.whatsappLink}?text=Halo, saya sudah buat pesanan ${orderId} sebesar ${formatPrice(orderTotal)}. Mohon bantu proses pembayaran QRIS.`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 bg-[#25D366] text-white text-sm font-semibold rounded-lg hover:bg-[#20bd5a] flex items-center gap-2"
+                  >
+                    <MessageCircle size={14} />
+                    Hubungi Admin
+                  </a>
+                </div>
+              </div>
+            )}
+
             {/* COD message */}
             {paymentMethod === 'cod' && (
               <p className="text-sm text-brand-muted mb-6">
@@ -511,12 +564,17 @@ export default function CheckoutPage() {
     const orderTotalVal = order?.total || total;
     setOrderId(orderNumber);
     setOrderTotal(orderTotalVal);
-    setOrderPlaced(true);
 
     // Create PakaSir transaction if applicable
     const selectedPm = paymentMethods.find(pm => pm.id === paymentMethod);
-    if (selectedPm && (selectedPm as any).isPakasir) {
+    const isPakasir = selectedPm && (selectedPm as any).isPakasir;
+
+    if (isPakasir) {
       setCreatingPayment(true);
+    }
+    setOrderPlaced(true);
+
+    if (isPakasir) {
       try {
         const res = await fetch('/api/payment/pakasir/create', {
           method: 'POST',
