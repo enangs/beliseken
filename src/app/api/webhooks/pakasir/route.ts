@@ -35,15 +35,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find order by orderNumber
-    const rows = (await prisma.$queryRawUnsafe(
+    // PakaSir order_id may have unique suffix (e.g. BS-0001-1788252401685)
+    // Strip it to get the original orderNumber
+    const baseOrderId = order_id.replace(/-\d{13,}$/, '');
+
+    // Find order by orderNumber (try exact match first, then prefix match)
+    let rows = (await prisma.$queryRawUnsafe(
       `SELECT "id", "orderNumber", "total", "status", "paymentStatus"
        FROM orders WHERE "orderNumber" = $1`,
-      order_id
+      baseOrderId
     )) as any[];
 
     if (!rows || rows.length === 0) {
-      console.warn(`⚠️ Webhook: Order ${order_id} not found`);
+      // Try with original order_id
+      rows = (await prisma.$queryRawUnsafe(
+        `SELECT "id", "orderNumber", "total", "status", "paymentStatus"
+         FROM orders WHERE "orderNumber" = $1`,
+        order_id
+      )) as any[];
+    }
+
+    if (!rows || rows.length === 0) {
+      console.warn(`⚠️ Webhook: Order ${order_id} (base: ${baseOrderId}) not found`);
       return NextResponse.json(
         { success: false, error: "Order not found" },
         { status: 404 }
