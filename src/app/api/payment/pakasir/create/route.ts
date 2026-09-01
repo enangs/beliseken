@@ -111,6 +111,7 @@ export async function POST(request: NextRequest) {
       success: true,
       data: {
         orderNumber: order.orderNumber,
+        dbTotal: amount,
         amount: payment.amount,
         fee: payment.fee,
         totalPayment: payment.total_payment,
