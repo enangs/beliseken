@@ -297,14 +297,14 @@ export async function createOrder(orderData: {
     });
     const data = await response.json();
     if (data.success && data.data) {
-      // Update with server-generated ID
+      // Update with server-generated orderNumber and ID
       const localOrders2 = getLocalOrders();
       const idx = localOrders2.findIndex(o => o.orderNumber === orderNumber);
       if (idx !== -1) {
-        localOrders2[idx] = { ...localOrders2[idx], id: data.data.id };
+        localOrders2[idx] = { ...localOrders2[idx], id: data.data.id, orderNumber: data.data.orderNumber };
         saveLocalOrders(localOrders2);
       }
-      console.log('✅ Order saved to Supabase:', orderNumber);
+      console.log('✅ Order saved to DB:', data.data.orderNumber);
       return data.data;
     } else {
       console.warn('⚠️ API returned error:', data.error);
