@@ -216,6 +216,32 @@ export async function PUT(
       updatedAt: updatedOrder.updatedAt?.toISOString?.() || updatedOrder.updatedAt,
     };
 
+    // Send WhatsApp notification for status changes (non-blocking)
+    if (status) {
+      try {
+        const { notifyOrderShipped, notifyOrderCancelled } = await import('@/lib/fonnte');
+        const upperStatus = status.toUpperCase();
+        const customerName = address.name || 'Customer';
+
+        if (upperStatus === 'SHIPPING' && trackingNumber) {
+          notifyOrderShipped({
+            orderNumber: updatedOrder.orderNumber,
+            customerName,
+            trackingNumber,
+            courier: courier || updatedOrder.courier || 'Kurir',
+          });
+        } else if (upperStatus === 'CANCELLED') {
+          notifyOrderCancelled({
+            orderNumber: updatedOrder.orderNumber,
+            customerName,
+            total: updatedOrder.total,
+          });
+        }
+      } catch (e) {
+        console.warn('WhatsApp notification failed:', e);
+      }
+    }
+
     return NextResponse.json({ success: true, data: transformedOrder });
   } catch (error) {
     console.error('Update order error:', error);
