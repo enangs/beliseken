@@ -43,13 +43,14 @@ export default function OrdersPage() {
   const [retryPaymentData, setRetryPaymentData] = useState<Record<string, any>>({});
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
-  const handleRetryPayment = async (orderNumber: string) => {
+  const handleRetryPayment = async (orderNumber: string, paymentMethod: string = 'qris') => {
     setRetryPayment(orderNumber);
     try {
+      const pakasirMethod = paymentMethod === 'qris' ? 'qris' : paymentMethod.replace('va_', '') + '_va';
       const res = await fetch('/api/payment/pakasir/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderNumber, method: 'qris' }),
+        body: JSON.stringify({ orderNumber, method: pakasirMethod }),
       });
       const data = await res.json();
       if (data.success) {
@@ -386,7 +387,7 @@ export default function OrdersPage() {
                             </h4>
                             <p className="text-sm">
                               {order.paymentMethod === "bank_transfer" ? "🏦 Transfer Bank" :
-                               order.paymentMethod === "bank_transfer_va" ? "🏦 Virtual Account" :
+                               order.paymentMethod?.startsWith("va_") ? `🏦 VA ${order.paymentMethod.replace('va_','').toUpperCase()}` :
                                order.paymentMethod === "qris" ? "📱 QRIS" :
                                order.paymentMethod === "ewallet" ? "💳 E-Wallet" :
                                order.paymentMethod === "cod" ? "💵 COD" :
@@ -540,7 +541,7 @@ export default function OrdersPage() {
                               /* Show bayar button */
                               <div className="text-center py-2">
                                 <button
-                                  onClick={() => handleRetryPayment(order.orderNumber)}
+                                  onClick={() => handleRetryPayment(order.orderNumber, order.paymentMethod || 'qris')}
                                   disabled={retryPayment === order.orderNumber}
                                   className="px-6 py-3 bg-brand hover:bg-brand-dark text-white font-bold rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2 mx-auto"
                                 >

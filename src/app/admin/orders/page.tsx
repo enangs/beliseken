@@ -293,7 +293,7 @@ export default function AdminOrdersPage() {
                             {order.paymentMethod === "bank_transfer" ? "🏦 Transfer Bank" :
                              order.paymentMethod === "ewallet" ? "💳 E-Wallet" :
                              order.paymentMethod === "qris" ? "📱 QRIS" :
-                             order.paymentMethod === "bank_transfer_va" ? "🏦 Virtual Account" :
+                             order.paymentMethod?.startsWith("va_") ? `🏦 VA ${order.paymentMethod.replace('va_','').toUpperCase()}` :
                              order.paymentMethod === "cod" ? "💵 COD (Bayar di Tempat)" :
                              order.paymentMethod || '-'}
                           </p>

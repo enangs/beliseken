@@ -25,7 +25,11 @@ const steps = [
 
 const paymentMethods = [
   { id: "qris", label: "QRIS", description: "Scan QR dari semua bank & e-wallet", isPakasir: true, pakasirMethod: "qris" },
-  { id: "bank_transfer_va", label: "Virtual Account (BCA/Mandiri/BNI/BRI)", description: "Bayar via VA di ATM atau mobile banking", isPakasir: true, pakasirMethod: "bri_va" },
+  { id: "va_bri", label: "VA BRI", description: "Virtual Account BRI - Fee Rp3.500", isPakasir: true, pakasirMethod: "bri_va" },
+  { id: "va_bni", label: "VA BNI", description: "Virtual Account BNI - Fee Rp3.500", isPakasir: true, pakasirMethod: "bni_va" },
+  { id: "va_cimb", label: "VA CIMB Niaga", description: "Virtual Account CIMB Niaga - Fee Rp3.500", isPakasir: true, pakasirMethod: "cimb_niaga_va" },
+  { id: "va_mandiri", label: "VA Mandiri (ATM Bersama)", description: "Virtual Account Mandiri - Fee Rp3.500", isPakasir: true, pakasirMethod: "atm_bersama_va" },
+  { id: "va_permata", label: "VA Permata", description: "Virtual Account Permata - Fee Rp3.500", isPakasir: true, pakasirMethod: "permata_va" },
   { id: "bank_transfer", label: "Transfer Bank Manual", description: "Transfer manual ke rekening toko" },
   { id: "cod", label: "Bayar di Tempat (COD)", description: "Bayar saat barang diterima" },
 ];
@@ -245,7 +249,7 @@ export default function CheckoutPage() {
               <div className="bg-white rounded-xl border border-brand-border p-6 mb-6 text-left">
                 <h3 className="font-bold text-brand-navy mb-4 flex items-center gap-2">
                   <CreditCard size={18} className="text-brand" />
-                  {pakasirPayment?.paymentMethod === 'qris' ? 'Bayar via QRIS' : `Bayar via Virtual Account`}
+                  {pakasirPayment?.paymentMethod === 'qris' ? 'Bayar via QRIS' : `Bayar via Virtual Account ${pakasirPayment?.paymentMethod?.replace('_va','').replace('_',' ').toUpperCase() || ''}`}
                 </h3>
 
                 {creatingPayment ? (
