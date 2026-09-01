@@ -114,7 +114,22 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      console.log(`✅ Order ${order_id} marked as PAID`);
+      console.log(`✅ Order ${baseOrderId} marked as PAID`);
+
+      // Send WhatsApp notification (non-blocking)
+      try {
+        const { notifyPaymentReceived } = await import('@/lib/fonnte');
+        const addr = JSON.parse(order.addressSnapshot || '{}');
+        notifyPaymentReceived({
+          orderNumber: baseOrderId,
+          customerName: addr.name || 'Customer',
+          total: order.total,
+          paymentMethod: payment_method || 'unknown',
+          amountPaid: amount,
+        });
+      } catch (e) {
+        console.warn('WhatsApp notification failed:', e);
+      }
     } else if (status === "cancelled" || status === "expired") {
       // Update order status
       const newStatus =

@@ -148,6 +148,30 @@ export async function PUT(request: NextRequest) {
       return updatedOrder;
     });
 
+    // Send WhatsApp notification for status changes (non-blocking)
+    try {
+      const { notifyOrderShipped, notifyOrderCancelled } = await import('@/lib/fonnte');
+      const addr = JSON.parse((order as any).addressSnapshot || '{}');
+      const customerName = addr.name || 'Customer';
+
+      if (status === 'SHIPPING' && trackingNumber) {
+        notifyOrderShipped({
+          orderNumber: order.orderNumber,
+          customerName,
+          trackingNumber,
+          courier: courier || order.courier || 'Kurir',
+        });
+      } else if (status === 'CANCELLED') {
+        notifyOrderCancelled({
+          orderNumber: order.orderNumber,
+          customerName,
+          total: order.total,
+        });
+      }
+    } catch (e) {
+      console.warn('WhatsApp notification failed:', e);
+    }
+
     return NextResponse.json({
       success: true,
       data: order,

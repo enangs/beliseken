@@ -303,6 +303,21 @@ export async function POST(request: NextRequest) {
       updatedAt: order.updatedAt?.toISOString?.() || order.updatedAt,
     };
 
+    // Send WhatsApp notification to admin (non-blocking)
+    try {
+      const { notifyNewOrder } = await import('@/lib/fonnte');
+      const addr = JSON.parse(order.addressSnapshot || '{}');
+      notifyNewOrder({
+        orderNumber: order.orderNumber,
+        customerName: addr.name || 'Customer',
+        total: order.total,
+        paymentMethod: order.paymentMethod || 'unknown',
+        items: items?.map((i: any) => i.productName).join(', ') || '',
+      });
+    } catch (e) {
+      console.warn('WhatsApp notification failed:', e);
+    }
+
     return NextResponse.json({ success: true, data: transformedOrder }, { status: 201 });
   } catch (error: any) {
     console.error('Create order error:', error);
