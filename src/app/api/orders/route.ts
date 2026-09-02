@@ -36,34 +36,54 @@ export async function GET(request: NextRequest) {
       paramIdx++;
     }
 
+    // Single query with JSON aggregation for items and status history
     const ordersQuery = `
-      SELECT o.* FROM orders o
+      SELECT 
+        o.*,
+        COALESCE(
+          (SELECT json_agg(json_build_object(
+            'productId', oi."productId",
+            'productName', oi."productName",
+            'productSlug', oi."productSlug",
+            'productImage', oi."productImage",
+            'price', oi."price",
+            'quantity', oi."quantity",
+            'subtotal', oi."subtotal"
+          )) FROM order_items oi WHERE oi."orderId" = o.id),
+          '[]'::json
+        ) as items,
+        COALESCE(
+          (SELECT json_agg(json_build_object(
+            'status', osl.status,
+            'date', osl."createdAt",
+            'note', osl.note
+          ) ORDER BY osl."createdAt" DESC) FROM order_status_logs osl WHERE osl."orderId" = o.id),
+          '[]'::json
+        ) as "statusHistory"
+      FROM orders o
       ${whereClause}
       ORDER BY o."createdAt" DESC
     `;
 
     const orders = await prisma.$queryRawUnsafe(ordersQuery, ...params) as any[];
 
-    // Fetch items and status history for each order
-    const transformedOrders = await Promise.all(orders.map(async (order: any) => {
-      const items = await prisma.$queryRawUnsafe(
-        `SELECT * FROM order_items WHERE "orderId" = $1`,
-        order.id
-      ) as any[];
-
-      const statusHistory = await prisma.$queryRawUnsafe(
-        `SELECT * FROM order_status_logs WHERE "orderId" = $1 ORDER BY "createdAt" DESC`,
-        order.id
-      ) as any[];
-
+    const transformedOrders = orders.map((order: any) => {
       let address: any = {};
       try { address = JSON.parse(order.addressSnapshot || '{}'); } catch {}
+
+      // Parse items from JSON aggregate
+      let items = [];
+      try { items = typeof order.items === 'string' ? JSON.parse(order.items) : (order.items || []); } catch {}
+
+      // Parse status history from JSON aggregate
+      let statusHistory = [];
+      try { statusHistory = typeof order.statusHistory === 'string' ? JSON.parse(order.statusHistory) : (order.statusHistory || []); } catch {}
 
       return {
         id: order.id,
         orderNumber: order.orderNumber,
         userId: order.userId,
-        items: (items || []).map((item: any) => ({
+        items: items.map((item: any) => ({
           productId: item.productId,
           productName: item.productName,
           productSlug: item.productSlug,
@@ -84,9 +104,9 @@ export async function GET(request: NextRequest) {
         shippingCost: order.shippingCost,
         total: order.total,
         status: order.status?.toLowerCase() || 'pending',
-        statusHistory: (statusHistory || []).map((h: any) => ({
+        statusHistory: statusHistory.map((h: any) => ({
           status: h.status?.toLowerCase() || 'pending',
-          date: h.createdAt?.toISOString?.() || h.createdAt,
+          date: h.date,
           note: h.note,
         })),
         paymentMethod: order.paymentMethod,
@@ -98,7 +118,7 @@ export async function GET(request: NextRequest) {
         createdAt: order.createdAt?.toISOString?.() || order.createdAt,
         updatedAt: order.updatedAt?.toISOString?.() || order.updatedAt,
       };
-    }));
+    });
 
     return NextResponse.json({ success: true, data: transformedOrders });
   } catch (error) {
