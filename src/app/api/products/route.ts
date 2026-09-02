@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-// Optimize Cloudinary URLs — add auto format (WebP/AVIF) and quality
+// Optimize Cloudinary URLs
 function optimizeImageUrl(url: string | null): string | null {
   if (!url || !url.includes('cloudinary.com')) return url;
   const parts = url.split('/upload/');
@@ -15,7 +15,6 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     
-    // Filters
     const category = searchParams.get('category');
     const brand = searchParams.get('brand');
     const condition = searchParams.get('condition');
@@ -26,173 +25,142 @@ export async function GET(request: NextRequest) {
     const featured = searchParams.get('featured');
     const badge = searchParams.get('badge');
     
-    // Pagination
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
     const skip = (page - 1) * limit;
     
-    // Sorting
     const sort = searchParams.get('sort') || 'newest';
-    let orderBy: any = { createdAt: 'desc' };
-    
+    let orderByClause = 'p."createdAt" DESC';
     switch (sort) {
-      case 'price_asc':
-        orderBy = { sellingPrice: 'asc' };
-        break;
-      case 'price_desc':
-        orderBy = { sellingPrice: 'desc' };
-        break;
-      case 'popular':
-        orderBy = { soldCount: 'desc' };
-        break;
-      case 'rating':
-        orderBy = { avgRating: 'desc' };
-        break;
-      case 'newest':
-      default:
-        orderBy = { createdAt: 'desc' };
+      case 'price_asc': orderByClause = 'p."sellingPrice" ASC'; break;
+      case 'price_desc': orderByClause = 'p."sellingPrice" DESC'; break;
+      case 'popular': orderByClause = 'p."soldCount" DESC'; break;
+      case 'rating': orderByClause = 'p."avgRating" DESC'; break;
     }
 
-    // Build where clause
-    const where: any = {
-      isActive: true,
-    };
+    // Build WHERE clause
+    const conditions: string[] = ['p."isActive" = true'];
+    const params: any[] = [];
+    let paramIdx = 1;
 
     if (category) {
-      where.category = { slug: category };
+      conditions.push(`c.slug = $${paramIdx}`);
+      params.push(category);
+      paramIdx++;
     }
-
     if (brand) {
-      where.brand = { slug: brand };
+      conditions.push(`b.slug = $${paramIdx}`);
+      params.push(brand);
+      paramIdx++;
     }
-
-    if (condition) {
-      where.units = {
-        some: {
-          conditionGrade: { code: { in: condition.split(',') } },
-          status: 'AVAILABLE',
-        },
-      };
+    if (minPrice) {
+      conditions.push(`p."sellingPrice" >= $${paramIdx}`);
+      params.push(parseFloat(minPrice));
+      paramIdx++;
     }
-
-    if (minPrice || maxPrice) {
-      where.sellingPrice = {};
-      if (minPrice) where.sellingPrice.gte = parseFloat(minPrice);
-      if (maxPrice) where.sellingPrice.lte = parseFloat(maxPrice);
+    if (maxPrice) {
+      conditions.push(`p."sellingPrice" <= $${paramIdx}`);
+      params.push(parseFloat(maxPrice));
+      paramIdx++;
     }
-
-    if (inStock === 'true') {
-      where.units = {
-        some: { status: 'AVAILABLE' },
-      };
-    }
-
-    if (search) {
-      // Case-insensitive search using PostgreSQL ILIKE
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-        { sku: { contains: search, mode: 'insensitive' } },
-        { brand: { name: { contains: search, mode: 'insensitive' } } },
-      ];
-    }
-
     if (featured === 'true') {
-      where.isFeatured = true;
+      conditions.push(`p."isFeatured" = true`);
     }
-
     if (badge) {
-      where.badge = badge;
+      conditions.push(`p.badge = $${paramIdx}`);
+      params.push(badge);
+      paramIdx++;
+    }
+    if (search) {
+      conditions.push(`(p.name ILIKE $${paramIdx} OR p.description ILIKE $${paramIdx} OR p.sku ILIKE $${paramIdx} OR b.name ILIKE $${paramIdx})`);
+      params.push(`%${search}%`);
+      paramIdx++;
+    }
+    if (inStock === 'true') {
+      conditions.push(`EXISTS (SELECT 1 FROM product_units pu WHERE pu."productId" = p.id AND pu.status = 'AVAILABLE')`);
+    }
+    if (condition) {
+      const codes = condition.split(',');
+      const codeConditions = codes.map((_, i) => `$${paramIdx + i}`);
+      conditions.push(`EXISTS (SELECT 1 FROM product_units pu2 JOIN condition_grades cg ON pu2."conditionGradeId" = cg.id WHERE pu2."productId" = p.id AND pu2.status = 'AVAILABLE' AND cg.code IN (${codeConditions.join(',')}))`);
+      codes.forEach(c => { params.push(c); paramIdx++; });
     }
 
-    // Execute query — optimized with select
-    const [products, total] = await Promise.all([
-      prisma.product.findMany({
-        where,
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          sku: true,
-          description: true,
-          shortDesc: true,
-          sellingPrice: true,
-          basePrice: true,
-          discount: true,
-          weight: true,
-          dimensions: true,
-          badge: true,
-          isFeatured: true,
-          avgRating: true,
-          reviewCount: true,
-          soldCount: true,
-          viewCount: true,
-          createdAt: true,
-          category: { select: { id: true, name: true, slug: true, icon: true, color: true } },
-          subcategory: { select: { id: true, name: true, slug: true } },
-          brand: { select: { id: true, name: true, slug: true } },
-          images: {
-            where: { isPrimary: true },
-            take: 1,
-            select: { url: true },
-          },
-          _count: {
-            select: { units: { where: { status: 'AVAILABLE' } } },
-          },
-        },
-        orderBy,
-        skip,
-        take: limit,
-      }),
-      prisma.product.count({ where }),
-    ]);
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
-    // Transform response — minimal payload
-    const transformedProducts = products.map((product: any) => ({
-      id: product.id,
-      name: product.name,
-      slug: product.slug,
-      sku: product.sku,
-      description: product.description,
-      shortDesc: product.shortDesc,
-      sellingPrice: product.sellingPrice,
-      basePrice: product.basePrice,
-      discount: product.discount,
-      weight: product.weight,
-      dimensions: product.dimensions,
-      badge: product.badge,
-      isFeatured: product.isFeatured,
-      avgRating: product.avgRating,
-      reviewCount: product.reviewCount,
-      soldCount: product.soldCount,
-      viewCount: product.viewCount,
-      createdAt: product.createdAt,
-      category: product.category,
-      subcategory: product.subcategory,
-      brand: product.brand,
-      imageBase64: optimizeImageUrl(product.images?.[0]?.url || null),
+    // Count query
+    const countQuery = `
+      SELECT COUNT(DISTINCT p.id)::int as total
+      FROM products p
+      LEFT JOIN categories c ON p."categoryId" = c.id
+      LEFT JOIN brands b ON p."brandId" = b.id
+      ${whereClause}
+    `;
+    const countResult = await prisma.$queryRawUnsafe(countQuery, ...params) as any[];
+    const total = countResult[0]?.total || 0;
+
+    // Main query - single JOIN query instead of Prisma ORM
+    const productsQuery = `
+      SELECT 
+        p.id, p.name, p.slug, p.sku, p.description, p."shortDesc",
+        p."sellingPrice", p."basePrice", p.discount, p.weight, p.dimensions,
+        p.badge, p."isFeatured", p."avgRating", p."reviewCount", p."soldCount",
+        p."viewCount", p."createdAt",
+        c.id as cat_id, c.name as cat_name, c.slug as cat_slug, c.icon as cat_icon, c.color as cat_color,
+        sc.id as sub_id, sc.name as sub_name, sc.slug as sub_slug,
+        b.id as brand_id, b.name as brand_name, b.slug as brand_slug,
+        (SELECT pi.url FROM product_images pi WHERE pi."productId" = p.id AND pi."isPrimary" = true LIMIT 1) as image_url,
+        (SELECT COUNT(*)::int FROM product_units pu WHERE pu."productId" = p.id AND pu.status = 'AVAILABLE') as stock_count
+      FROM products p
+      LEFT JOIN categories c ON p."categoryId" = c.id
+      LEFT JOIN categories sc ON p."subcategoryId" = sc.id
+      LEFT JOIN brands b ON p."brandId" = b.id
+      ${whereClause}
+      ORDER BY ${orderByClause}
+      LIMIT ${limit} OFFSET ${skip}
+    `;
+
+    const products = await prisma.$queryRawUnsafe(productsQuery, ...params) as any[];
+
+    // Transform
+    const transformedProducts = products.map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      sku: p.sku,
+      description: p.description,
+      shortDesc: p.shortDesc,
+      sellingPrice: p.sellingPrice,
+      basePrice: p.basePrice,
+      discount: p.discount,
+      weight: p.weight,
+      dimensions: p.dimensions,
+      badge: p.badge,
+      isFeatured: p.isFeatured,
+      avgRating: p.avgRating,
+      reviewCount: p.reviewCount,
+      soldCount: p.soldCount,
+      viewCount: p.viewCount,
+      createdAt: p.createdAt,
+      category: p.cat_id ? { id: p.cat_id, name: p.cat_name, slug: p.cat_slug, icon: p.cat_icon, color: p.cat_color } : null,
+      subcategory: p.sub_id ? { id: p.sub_id, name: p.sub_name, slug: p.sub_slug } : null,
+      brand: p.brand_id ? { id: p.brand_id, name: p.brand_name, slug: p.brand_slug } : null,
+      imageBase64: optimizeImageUrl(p.image_url),
       allImages: [],
-      stock: product._count.units,
-      availableUnits: product._count.units,
+      stock: p.stock_count,
+      availableUnits: p.stock_count,
       supplier: "",
-      status: product._count.units === 0 ? "SOLD_OUT" : "ACTIVE",
+      status: p.stock_count === 0 ? "SOLD_OUT" : "ACTIVE",
       condition: "Grade A",
     }));
 
     const response = NextResponse.json({
       success: true,
       data: transformedProducts,
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
     });
 
-    // Cache for 5 minutes, stale-while-revalidate for 30 minutes
     response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=1800');
-    
     return response;
   } catch (error) {
     console.error('Products API error:', error);
