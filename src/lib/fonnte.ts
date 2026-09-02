@@ -63,8 +63,9 @@ export async function sendWhatsApp(options: SendOptions): Promise<boolean> {
 // NOTIFICATION TEMPLATES
 // ══════════════════════════════════════════════════════════════
 
-function formatPrice(amount: number): string {
-  return `Rp${amount.toLocaleString("id-ID")}`;
+function formatPrice(amount: number | bigint): string {
+  const num = typeof amount === 'bigint' ? Number(amount) : amount;
+  return `Rp${num.toLocaleString("id-ID")}`;
 }
 
 /**
