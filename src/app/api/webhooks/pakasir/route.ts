@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
       try {
         const { notifyPaymentReceived } = await import('@/lib/fonnte');
         const addr = JSON.parse(order.addressSnapshot || '{}');
-        notifyPaymentReceived({
+        await notifyPaymentReceived({
           orderNumber: baseOrderId,
           customerName: addr.name || 'Customer',
           total: order.total,

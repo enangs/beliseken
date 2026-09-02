@@ -155,14 +155,14 @@ export async function PUT(request: NextRequest) {
       const customerName = addr.name || 'Customer';
 
       if (status === 'SHIPPING' && trackingNumber) {
-        notifyOrderShipped({
+        await notifyOrderShipped({
           orderNumber: order.orderNumber,
           customerName,
           trackingNumber,
           courier: courier || order.courier || 'Kurir',
         });
       } else if (status === 'CANCELLED') {
-        notifyOrderCancelled({
+        await notifyOrderCancelled({
           orderNumber: order.orderNumber,
           customerName,
           total: order.total,

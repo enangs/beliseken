@@ -307,7 +307,7 @@ export async function POST(request: NextRequest) {
     try {
       const { notifyNewOrder } = await import('@/lib/fonnte');
       const addr = JSON.parse(order.addressSnapshot || '{}');
-      notifyNewOrder({
+      await notifyNewOrder({
         orderNumber: order.orderNumber,
         customerName: addr.name || 'Customer',
         total: order.total,
