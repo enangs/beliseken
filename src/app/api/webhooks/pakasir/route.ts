@@ -116,20 +116,18 @@ export async function POST(request: NextRequest) {
 
       console.log(`✅ Order ${baseOrderId} marked as PAID`);
 
-      // Send WhatsApp notification (non-blocking)
-      try {
-        const { notifyPaymentReceived } = await import('@/lib/fonnte');
-        const addr = JSON.parse(order.addressSnapshot || '{}');
-        await notifyPaymentReceived({
+      // Send WhatsApp notification (fire-and-forget)
+      const orderForNotif = { ...order };
+      import('@/lib/fonnte').then(({ notifyPaymentReceived }) => {
+        const addr = JSON.parse(orderForNotif.addressSnapshot || '{}');
+        notifyPaymentReceived({
           orderNumber: baseOrderId,
           customerName: addr.name || 'Customer',
-          total: order.total,
+          total: Number(orderForNotif.total),
           paymentMethod: payment_method || 'unknown',
           amountPaid: amount,
-        });
-      } catch (e) {
-        console.warn('WhatsApp notification failed:', e);
-      }
+        }).catch((e: any) => console.error('[Fonnte] Payment notification failed:', e?.message || e));
+      }).catch((e: any) => console.error('[Fonnte] Import failed:', e?.message || e));
     } else if (status === "cancelled" || status === "expired") {
       // Update order status
       const newStatus =

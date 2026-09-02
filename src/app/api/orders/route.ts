@@ -303,20 +303,19 @@ export async function POST(request: NextRequest) {
       updatedAt: order.updatedAt?.toISOString?.() || order.updatedAt,
     };
 
-    // Send WhatsApp notification to admin (non-blocking)
-    try {
-      const { notifyNewOrder } = await import('@/lib/fonnte');
-      const addr = JSON.parse(order.addressSnapshot || '{}');
-      await notifyNewOrder({
-        orderNumber: order.orderNumber,
+    // Send WhatsApp notification to admin (fire-and-forget, don't block response)
+    const orderForNotif = { ...order };
+    const itemsForNotif = items;
+    import('@/lib/fonnte').then(({ notifyNewOrder }) => {
+      const addr = JSON.parse(orderForNotif.addressSnapshot || '{}');
+      notifyNewOrder({
+        orderNumber: orderForNotif.orderNumber,
         customerName: addr.name || 'Customer',
-        total: order.total,
-        paymentMethod: order.paymentMethod || 'unknown',
-        items: items?.map((i: any) => i.productName).join(', ') || '',
-      });
-    } catch (e) {
-      console.warn('WhatsApp notification failed:', e);
-    }
+        total: Number(orderForNotif.total),
+        paymentMethod: orderForNotif.paymentMethod || 'unknown',
+        items: itemsForNotif?.map((i: any) => i.productName).join(', ') || '',
+      }).catch((e: any) => console.error('[Fonnte] New order notification failed:', e?.message || e));
+    }).catch((e: any) => console.error('[Fonnte] Import failed:', e?.message || e));
 
     return NextResponse.json({ success: true, data: transformedOrder }, { status: 201 });
   } catch (error: any) {
