@@ -494,7 +494,7 @@ export default function OrdersPage() {
                         )}
 
                         {/* PakaSir Payment - QRIS / VA retry */}
-                        {order.status === "waiting_payment" && (order.paymentMethod === "qris" || order.paymentMethod === "bank_transfer_va") && (
+                        {order.status === "waiting_payment" && (order.paymentMethod === "qris" || order.paymentMethod?.startsWith("va_")) && (
                           <div className="bg-white rounded-xl p-4 border border-brand-border mb-4">
                             {retryPaymentData[order.orderNumber] ? (
                               /* Show QR code */

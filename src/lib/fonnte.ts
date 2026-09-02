@@ -148,14 +148,15 @@ export async function notifyOrderShipped(order: {
   trackingNumber: string;
   courier: string;
 }) {
+  const trackingInfo = order.trackingNumber && order.trackingNumber !== '-' 
+    ? `📮 Kurir: ${order.courier}\n🔢 No. Resi: *${order.trackingNumber}*` 
+    : `📮 Kurir: ${order.courier}\n⏳ No. Resi: *menunggu update*`;
+
   const message = `🚚 *PESANAN DIKIRIM*
 
 📋 No. Pesanan: *${order.orderNumber}*
 👤 Customer: ${order.customerName}
-📮 Kurir: ${order.courier}
-🔢 No. Resi: *${order.trackingNumber}*
-
-_Customer sudah diberitahu via email/dashboard._
+${trackingInfo}
 
 🔗 Admin: https://beliseken.com/admin/orders`;
 

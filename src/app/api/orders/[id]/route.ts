@@ -223,12 +223,16 @@ export async function PUT(
         const upperStatus = status.toUpperCase();
         const customerName = address.name || 'Customer';
 
-        if (upperStatus === 'SHIPPING' && trackingNumber) {
-          notifyOrderShipped({
+        if (upperStatus === 'SHIPPING') {
+          // Send shipped notification (with or without tracking number)
+          const tracking = trackingNumber || updatedOrder.trackingNumber || '-';
+          const courierName = courier || updatedOrder.courier || 'Kurir';
+          const { notifyOrderShipped } = await import('@/lib/fonnte');
+          await notifyOrderShipped({
             orderNumber: updatedOrder.orderNumber,
             customerName,
-            trackingNumber,
-            courier: courier || updatedOrder.courier || 'Kurir',
+            trackingNumber: tracking,
+            courier: courierName,
           });
         } else if (upperStatus === 'CANCELLED') {
           notifyOrderCancelled({

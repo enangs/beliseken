@@ -461,10 +461,13 @@ export default function CheckoutPage() {
                     onClick={async () => {
                       setCreatingPayment(true);
                       try {
+                        // Use the actual payment method that was selected, not hardcoded 'qris'
+                        const selectedPm = paymentMethods.find(pm => pm.id === paymentMethod);
+                        const pakasirMethod = selectedPm && (selectedPm as any).pakasirMethod || 'qris';
                         const res = await fetch('/api/payment/pakasir/create', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ orderNumber: orderId, method: 'qris' }),
+                          body: JSON.stringify({ orderNumber: orderId, method: pakasirMethod }),
                         });
                         const data = await res.json();
                         if (data.success) {
