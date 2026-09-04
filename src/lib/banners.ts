@@ -26,6 +26,17 @@ export interface PromoCard {
   icon?: string; // lucide-react icon name
 }
 
+export interface HorizontalPromo {
+  id: string;
+  title: string;
+  desc: string;
+  bg: string; // gradient class
+  imageBase64?: string; // gambar background
+  href: string;
+  active: boolean;
+  sortOrder: number;
+}
+
 const BANNERS_KEY = "beliseken_banners";
 const PROMO_CARDS_KEY = "beliseken_promo_cards";
 
@@ -237,6 +248,102 @@ export async function deletePromoCard(id: string): Promise<boolean> {
     return true;
   } catch (e) {
     console.error('Delete promo failed:', e);
+    throw e;
+  }
+}
+
+// ── Horizontal Promo Cards (HORIZONTAL_PROMO type) ──
+
+export async function getHorizontalPromos(): Promise<HorizontalPromo[]> {
+  try {
+    const res = await fetch(cacheBust('/api/banners?type=HORIZONTAL_PROMO'), { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success) {
+        return (data.data || []).map((b: any) => ({
+          id: b.id,
+          title: b.title,
+          desc: b.description || b.highlight || '',
+          bg: b.bg || 'from-blue-500 to-blue-700',
+          imageBase64: b.imageBase64,
+          href: b.href || '/products',
+          active: b.active,
+          sortOrder: b.sortOrder ?? 0,
+        }));
+      }
+    }
+  } catch {}
+  return [];
+}
+
+export async function getActiveHorizontalPromos(): Promise<HorizontalPromo[]> {
+  const promos = await getHorizontalPromos();
+  return promos.filter((p) => p.active).sort((a, b) => a.sortOrder - b.sortOrder);
+}
+
+export async function saveHorizontalPromos(promos: HorizontalPromo[]) {
+  const bannerData = promos.map((p, i) => ({
+    type: 'HORIZONTAL_PROMO',
+    title: p.title,
+    subtitle: '',
+    highlight: p.desc,
+    description: p.desc,
+    imageBase64: p.imageBase64,
+    bg: p.bg,
+    cta: '',
+    href: p.href,
+    active: p.active,
+    sortOrder: i,
+  }));
+  const res = await fetch('/api/banners', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ banners: bannerData, type: 'HORIZONTAL_PROMO' }),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.error || 'Gagal menyimpan promo');
+}
+
+export async function addHorizontalPromo(promo: Omit<HorizontalPromo, 'id'>): Promise<HorizontalPromo> {
+  const promos = await getHorizontalPromos();
+  const newPromo: HorizontalPromo = { ...promo, id: String(Date.now()) };
+  promos.push(newPromo);
+  await saveHorizontalPromos(promos);
+  const fresh = await getHorizontalPromos();
+  return fresh[fresh.length - 1] || newPromo;
+}
+
+export async function updateHorizontalPromo(id: string, updates: Partial<HorizontalPromo>): Promise<void> {
+  try {
+    const res = await fetch('/api/banners', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, updates: {
+        ...(updates.title !== undefined && { title: updates.title }),
+        ...(updates.desc !== undefined && { description: updates.desc }),
+        ...(updates.imageBase64 !== undefined && { imageBase64: updates.imageBase64 }),
+        ...(updates.bg !== undefined && { bg: updates.bg }),
+        ...(updates.href !== undefined && { href: updates.href }),
+        ...(updates.active !== undefined && { active: updates.active }),
+        ...(updates.sortOrder !== undefined && { sortOrder: updates.sortOrder }),
+      }}),
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Gagal update promo');
+  } catch (e) {
+    console.error('Update horizontal promo failed:', e);
+    throw e;
+  }
+}
+
+export async function deleteHorizontalPromo(id: string): Promise<boolean> {
+  try {
+    const res = await fetch(`/api/banners?id=${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Gagal menghapus promo');
+    return true;
+  } catch (e) {
+    console.error('Delete horizontal promo failed:', e);
     throw e;
   }
 }

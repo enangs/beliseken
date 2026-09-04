@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Smartphone, Laptop, Globe, Wifi, Monitor, Tablet, Gamepad2, Headphones, Camera, Watch, Cpu } from "lucide-react";
-import { getActiveBanners, getActivePromoCards, type Banner, type PromoCard } from "@/lib/banners";
+import { getActiveBanners, getActivePromoCards, getActiveHorizontalPromos, type Banner, type PromoCard, type HorizontalPromo } from "@/lib/banners";
 
 const iconMap: Record<string, React.ReactNode> = {
   laptop: <Laptop size={18} />,
@@ -29,17 +29,19 @@ export default function Hero() {
   const [promoCards, setPromoCards] = useState<PromoCard[]>([]);
   const [currentBanner, setCurrentBanner] = useState(0);
 
-  // Default horizontal promo banners (OLX-style)
-  const defaultPromoBanners = [
-    { title: "Laptop Bekas Grade A+", desc: "Dari Rp 2 Jutaan", color: "from-blue-500 to-blue-700", href: "/products?category=laptop" },
-    { title: "Smartphone Bekas Murah", desc: "HP Berkualitas & Bergaransi", color: "from-emerald-500 to-emerald-700", href: "/products?category=smartphone" },
-    { title: "Monitor & TV Bekas", desc: "Hemat Hingga 60%", color: "from-purple-500 to-purple-700", href: "/products?category=monitor" },
-    { title: "Peripheral & Aksesoris", desc: "Keyboard, Mouse, Headset", color: "from-orange-500 to-orange-700", href: "/products?category=peripheral" },
+  const [horizontalPromos, setHorizontalPromos] = useState<HorizontalPromo[]>([]);
+
+  // Fallback horizontal promo banners (OLX-style) when DB is empty
+  const defaultHorizontalPromos: HorizontalPromo[] = [
+    { id: 'd1', title: "Laptop Bekas Grade A+", desc: "Dari Rp 2 Jutaan", bg: "from-blue-500 to-blue-700", href: "/products?category=laptop", active: true, sortOrder: 0 },
+    { id: 'd2', title: "Smartphone Bekas Murah", desc: "HP Berkualitas & Bergaransi", bg: "from-emerald-500 to-emerald-700", href: "/products?category=smartphone", active: true, sortOrder: 1 },
+    { id: 'd3', title: "Monitor & TV Bekas", desc: "Hemat Hingga 60%", bg: "from-purple-500 to-purple-700", href: "/products?category=monitor", active: true, sortOrder: 2 },
+    { id: 'd4', title: "Peripheral & Aksesoris", desc: "Keyboard, Mouse, Headset", bg: "from-orange-500 to-orange-700", href: "/products?category=peripheral", active: true, sortOrder: 3 },
   ];
 
   useEffect(() => {
-    Promise.all([getActiveBanners(), getActivePromoCards()])
-      .then(([b, p]) => { setBanners(b); setPromoCards(p); })
+    Promise.all([getActiveBanners(), getActivePromoCards(), getActiveHorizontalPromos()])
+      .then(([b, p, h]) => { setBanners(b); setPromoCards(p); setHorizontalPromos(h); })
       .catch(() => {});
   }, []);
 
@@ -130,26 +132,7 @@ export default function Hero() {
           </div>
 
           {/* Horizontal Scroll Promo Banners - OLX Style */}
-          <div className="mt-6">
-            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible">
-              {defaultPromoBanners.map((promo, i) => (
-                <Link key={i} href={promo.href} className="flex-shrink-0 w-[280px] md:w-auto md:flex-1">
-                  <div className={`relative bg-gradient-to-r ${promo.color} rounded-2xl p-5 overflow-hidden hover:shadow-lg transition-all duration-300 group min-h-[120px]`}>
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-8 translate-x-8" />
-                    <div className="absolute bottom-0 right-4 w-16 h-16 bg-white/5 rounded-full translate-y-4" />
-                    <div className="relative z-10">
-                      <p className="text-white/80 text-xs font-semibold mb-1 uppercase tracking-wider">Promo</p>
-                      <h3 className="text-white font-bold text-base mb-1">{promo.title}</h3>
-                      <p className="text-white/70 text-sm">{promo.desc}</p>
-                    </div>
-                    <div className="absolute bottom-3 right-4 text-white/40 group-hover:text-white/60 transition-colors">
-                      <ChevronRight size={20} />
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
+          <HorizontalPromoSection promos={horizontalPromos.length > 0 ? horizontalPromos : defaultHorizontalPromos} />
         </div>
       </section>
     );
@@ -274,27 +257,46 @@ export default function Hero() {
         </div>
 
         {/* Horizontal Scroll Promo Banners - OLX Style */}
-        <div className="mt-6">
-          <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible">
-            {defaultPromoBanners.map((promo, i) => (
-              <Link key={i} href={promo.href} className="flex-shrink-0 w-[280px] md:w-auto md:flex-1">
-                <div className={`relative bg-gradient-to-r ${promo.color} rounded-2xl p-5 overflow-hidden hover:shadow-lg transition-all duration-300 group min-h-[120px]`}>
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-8 translate-x-8" />
-                  <div className="absolute bottom-0 right-4 w-16 h-16 bg-white/5 rounded-full translate-y-4" />
-                  <div className="relative z-10">
-                    <p className="text-white/80 text-xs font-semibold mb-1 uppercase tracking-wider">Promo</p>
-                    <h3 className="text-white font-bold text-base mb-1">{promo.title}</h3>
-                    <p className="text-white/70 text-sm">{promo.desc}</p>
-                  </div>
-                  <div className="absolute bottom-3 right-4 text-white/40 group-hover:text-white/60 transition-colors">
-                    <ChevronRight size={20} />
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
+        <HorizontalPromoSection promos={horizontalPromos.length > 0 ? horizontalPromos : defaultHorizontalPromos} />
       </div>
     </section>
+  );
+}
+
+// ── Horizontal Promo Sub-Component ──
+function HorizontalPromoSection({ promos }: { promos: HorizontalPromo[] }) {
+  return (
+    <div className="mt-6">
+      <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible">
+        {promos.map((promo) => (
+          <Link key={promo.id} href={promo.href} className="flex-shrink-0 w-[280px] md:w-auto md:flex-1">
+            <div className="relative rounded-2xl p-5 overflow-hidden hover:shadow-lg transition-all duration-300 group min-h-[120px]">
+              {/* Background image or gradient */}
+              {promo.imageBase64 ? (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={promo.imageBase64} alt={promo.title} width={400} height={200} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/30" />
+                </>
+              ) : (
+                <div className={`absolute inset-0 bg-gradient-to-r ${promo.bg}`} />
+              )}
+              {/* Decorative circles */}
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-8 translate-x-8" />
+              <div className="absolute bottom-0 right-4 w-16 h-16 bg-white/5 rounded-full translate-y-4" />
+              {/* Content */}
+              <div className="relative z-10">
+                <p className="text-white/80 text-xs font-semibold mb-1 uppercase tracking-wider">Promo</p>
+                <h3 className="text-white font-bold text-base mb-1 drop-shadow-sm">{promo.title}</h3>
+                <p className="text-white/80 text-sm drop-shadow-sm">{promo.desc}</p>
+              </div>
+              <div className="absolute bottom-3 right-4 text-white/40 group-hover:text-white/60 transition-colors">
+                <ChevronRight size={20} />
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
   );
 }
