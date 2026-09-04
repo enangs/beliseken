@@ -29,6 +29,14 @@ export default function Hero() {
   const [promoCards, setPromoCards] = useState<PromoCard[]>([]);
   const [currentBanner, setCurrentBanner] = useState(0);
 
+  // Default horizontal promo banners (OLX-style)
+  const defaultPromoBanners = [
+    { title: "Laptop Bekas Grade A+", desc: "Dari Rp 2 Jutaan", color: "from-blue-500 to-blue-700", href: "/products?category=laptop" },
+    { title: "Smartphone Bekas Murah", desc: "HP Berkualitas & Bergaransi", color: "from-emerald-500 to-emerald-700", href: "/products?category=smartphone" },
+    { title: "Monitor & TV Bekas", desc: "Hemat Hingga 60%", color: "from-purple-500 to-purple-700", href: "/products?category=monitor" },
+    { title: "Peripheral & Aksesoris", desc: "Keyboard, Mouse, Headset", color: "from-orange-500 to-orange-700", href: "/products?category=peripheral" },
+  ];
+
   useEffect(() => {
     Promise.all([getActiveBanners(), getActivePromoCards()])
       .then(([b, p]) => { setBanners(b); setPromoCards(p); })
@@ -120,6 +128,28 @@ export default function Hero() {
               ))}
             </div>
           </div>
+
+          {/* Horizontal Scroll Promo Banners - OLX Style */}
+          <div className="mt-6">
+            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible">
+              {defaultPromoBanners.map((promo, i) => (
+                <Link key={i} href={promo.href} className="flex-shrink-0 w-[280px] md:w-auto md:flex-1">
+                  <div className={`relative bg-gradient-to-r ${promo.color} rounded-2xl p-5 overflow-hidden hover:shadow-lg transition-all duration-300 group min-h-[120px]`}>
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-8 translate-x-8" />
+                    <div className="absolute bottom-0 right-4 w-16 h-16 bg-white/5 rounded-full translate-y-4" />
+                    <div className="relative z-10">
+                      <p className="text-white/80 text-xs font-semibold mb-1 uppercase tracking-wider">Promo</p>
+                      <h3 className="text-white font-bold text-base mb-1">{promo.title}</h3>
+                      <p className="text-white/70 text-sm">{promo.desc}</p>
+                    </div>
+                    <div className="absolute bottom-3 right-4 text-white/40 group-hover:text-white/60 transition-colors">
+                      <ChevronRight size={20} />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
     );
@@ -151,7 +181,7 @@ export default function Hero() {
     bg: banner.bg,
     imageBase64: banner.imageBase64,
     icon: (banner as any).icon,
-  } : defaultHero;
+  } : { ...defaultHero, imageBase64: undefined, icon: undefined };
 
   return (
     <section className="bg-brand-gray pt-4 pb-8">
@@ -239,6 +269,28 @@ export default function Hero() {
                   <p className="text-xs text-gray-500">{item.sublabel}</p>
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Horizontal Scroll Promo Banners - OLX Style */}
+        <div className="mt-6">
+          <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible">
+            {defaultPromoBanners.map((promo, i) => (
+              <Link key={i} href={promo.href} className="flex-shrink-0 w-[280px] md:w-auto md:flex-1">
+                <div className={`relative bg-gradient-to-r ${promo.color} rounded-2xl p-5 overflow-hidden hover:shadow-lg transition-all duration-300 group min-h-[120px]`}>
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-8 translate-x-8" />
+                  <div className="absolute bottom-0 right-4 w-16 h-16 bg-white/5 rounded-full translate-y-4" />
+                  <div className="relative z-10">
+                    <p className="text-white/80 text-xs font-semibold mb-1 uppercase tracking-wider">Promo</p>
+                    <h3 className="text-white font-bold text-base mb-1">{promo.title}</h3>
+                    <p className="text-white/70 text-sm">{promo.desc}</p>
+                  </div>
+                  <div className="absolute bottom-3 right-4 text-white/40 group-hover:text-white/60 transition-colors">
+                    <ChevronRight size={20} />
+                  </div>
+                </div>
+              </Link>
             ))}
           </div>
         </div>

@@ -4,6 +4,7 @@ import { lazy, Suspense } from "react";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import KategoriPopuler from "@/components/KategoriPopuler";
+import MerkFavorit from "@/components/MerkFavorit";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Footer from "@/components/Footer";
 
@@ -28,6 +29,7 @@ export default function Home() {
       <Header />
       <main className="flex-1">
         <Hero />
+        <MerkFavorit />
         <KategoriPopuler />
         <Suspense fallback={<SectionFallback />}>
           <FlashSale />
