@@ -40,5 +40,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // If DB not available, return static pages only
   }
 
-  return [...staticPages, ...productPages];
+  // Dynamic blog pages
+  let blogPages: MetadataRoute.Sitemap = [];
+  try {
+    const posts = await prisma.blogPost.findMany({
+      where: { isPublished: true },
+      select: { slug: true, updatedAt: true, publishedAt: true },
+      orderBy: { publishedAt: "desc" },
+    });
+    blogPages = posts.map((p) => ({
+      url: `${baseUrl}/blog/${p.slug}`,
+      lastModified: p.updatedAt || p.publishedAt || new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    }));
+  } catch {
+    // If DB not available, skip blog pages
+  }
+
+  return [...staticPages, ...productPages, ...blogPages];
 }
