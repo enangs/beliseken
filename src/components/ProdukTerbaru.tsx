@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Clock } from "lucide-react";
 import { getProducts as fetchProductsAPI, type ProductResponse } from "@/lib/api";
 import ProductCard from "./ProductCard";
 
@@ -10,10 +9,20 @@ export default function ProdukTerbaru() {
   const [products, setProducts] = useState<ProductResponse[]>([]);
 
   useEffect(() => {
-    fetchProductsAPI({ sort: 'newest', limit: 8 })
-      .then((res) => setProducts(res.data))
+    fetchProductsAPI({ sort: 'newest', limit: 50 })
+      .then((res) => {
+        // Prioritize products with stock first, then sold-out
+        const available = res.data.filter((p: ProductResponse) => p.stock > 0);
+        const soldOut = res.data.filter((p: ProductResponse) => p.stock === 0);
+        setProducts([...available, ...soldOut]);
+      })
       .catch(() => {});
   }, []);
+
+  // Show 8 products on homepage
+  const displayProducts = products.slice(0, 8);
+
+  if (displayProducts.length === 0) return null;
 
   return (
     <section className="py-16 md:py-20 bg-white">
@@ -39,9 +48,9 @@ export default function ProdukTerbaru() {
           </Link>
         </div>
 
-        {/* Product Grid */}
+        {/* Product Grid — 4 columns, up to 8 products */}
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
-          {products.slice(0, 4).map((product) => (
+          {displayProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
