@@ -33,10 +33,10 @@ export default function Home() {
           <BlogPreview />
         </Suspense>
         <Suspense fallback={<SectionFallback />}>
-          <DownloadApp />
+          <CTAJualBarang />
         </Suspense>
         <Suspense fallback={<SectionFallback />}>
-          <CTAJualBarang />
+          <DownloadApp />
         </Suspense>
       </main>
       <WhatsAppButton />
