@@ -15,13 +15,13 @@ export default function DownloadApp() {
     <section className="bg-white py-12 md:py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-center">
-          {/* iPhone Mockup */}
-          <div className="flex justify-center lg:justify-start order-1">
+          {/* iPhone Mockup - cropped at bottom */}
+          <div className="flex justify-center lg:justify-start order-1 overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/app-mockup.png"
               alt="BeliSeken App Preview"
-              className="w-[280px] md:w-[320px] h-auto drop-shadow-2xl"
+              className="w-[300px] md:w-[360px] h-auto drop-shadow-2xl translate-y-8"
             />
           </div>
 
