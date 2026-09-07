@@ -81,6 +81,9 @@ export async function GET(
 
     const transformedProduct = {
       ...product,
+      videoUrl: (product as any).videoUrl || null,
+      performanceNotes: (product as any).performanceNotes || null,
+      minusNotes: (product as any).minusNotes || null,
       imageBase64: allImageUrls[0] || null,
       images: allImageUrls,
       allImages: allImageUrls,
