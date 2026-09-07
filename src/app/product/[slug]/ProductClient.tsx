@@ -22,6 +22,7 @@ export default function ProductClient({ slug }: { slug: string }) {
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [activeTab, setActiveTab] = useState<'info' | 'video' | 'performance' | 'minus'>('info');
+  const [shareTooltip, setShareTooltip] = useState(false);
 
   useEffect(() => {
     fetchProductBySlug(slug)
@@ -387,9 +388,29 @@ export default function ProductClient({ slug }: { slug: string }) {
                 <button className="w-14 h-14 border-2 border-brand-border rounded-xl flex items-center justify-center hover:border-brand hover:text-brand transition-colors">
                   <Heart size={20} />
                 </button>
-                <button className="w-14 h-14 border-2 border-brand-border rounded-xl flex items-center justify-center hover:border-brand hover:text-brand transition-colors">
-                  <Share2 size={20} />
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={async () => {
+                      const shareUrl = `https://beliseken.com/product/${product.slug}`;
+                      const shareText = `Lihat ${product.name} di BeliSeken! ${formatPrice(product.sellingPrice)}`;
+                      if (navigator.share) {
+                        try {
+                          await navigator.share({
+                            title: product.name,
+                            text: shareText,
+                            url: shareUrl,
+                          });
+                        } catch {}
+                      } else {
+                        window.open(`https://wa.me/?text=${encodeURIComponent(shareText + '\n' + shareUrl)}`, '_blank');
+                      }
+                    }}
+                    className="w-14 h-14 border-2 border-brand-border rounded-xl flex items-center justify-center hover:border-brand hover:text-brand transition-colors"
+                    title="Share produk"
+                  >
+                    <Share2 size={20} />
+                  </button>
+                </div>
               </div>
 
               <a
