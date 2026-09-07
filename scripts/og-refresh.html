@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BeliSeken - OG Cache Refresh Tool</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; padding: 20px; }
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { color: #e94560; margin-bottom: 10px; }
+    .subtitle { color: #666; margin-bottom: 20px; }
+    .btn { display: inline-block; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-size: 14px; transition: all 0.2s; }
+    .btn-primary { background: #1877f2; color: white; }
+    .btn-primary:hover { background: #166fe5; }
+    .btn-success { background: #25D366; color: white; }
+    .btn-success:hover { background: #20bd5a; }
+    .btn-secondary { background: #e94560; color: white; }
+    .btn-secondary:hover { background: #d63851; }
+    .actions { margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .product-list { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; }
+    .product-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #f0f0f0; }
+    .product-item:last-child { border-bottom: none; }
+    .product-name { font-weight: 500; color: #333; flex: 1; }
+    .product-links { display: flex; gap: 8px; }
+    .product-links a { text-decoration: none; font-size: 12px; padding: 6px 12px; border-radius: 6px; font-weight: 500; }
+    .link-fb { background: #e7f3ff; color: #1877f2; }
+    .link-fb:hover { background: #d2e8ff; }
+    .link-wa { background: #e8f5e9; color: #25D366; }
+    .link-wa:hover { background: #d4edda; }
+    .link-site { background: #f5f5f5; color: #666; }
+    .link-site:hover { background: #e8e8e8; }
+    .status { padding: 12px 16px; background: #fff3cd; border-radius: 8px; margin-bottom: 16px; font-size: 14px; color: #856404; }
+    .loading { text-align: center; padding: 40px; color: #999; }
+    .count { background: #e94560; color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔄 OG Cache Refresh Tool</h1>
+    <p class="subtitle">Refresh Facebook/WhatsApp Open Graph cache untuk semua produk BeliSeken</p>
+    
+    <div class="status" id="status">
+      ⚠️ Klik "Ping Facebook Crawler" untuk refresh cache semua produk sekaligus.
+      Setelah itu, coba share produk ke WhatsApp — foto produk harusnya muncul.
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" onclick="pingAll()">🚀 Ping Facebook Crawler (Semua)</button>
+      <button class="btn btn-secondary" onclick="openAllFB()">📋 Buka Facebook Debugger (Semua Tab)</button>
+      <button class="btn btn-success" onclick="testShare()">📱 Test Share Pertama</button>
+      <span id="count-badge" class="count" style="display:none"></span>
+    </div>
+
+    <div class="product-list" id="product-list">
+      <div class="loading">Loading products...</div>
+    </div>
+  </div>
+
+  <script>
+    const SITE = 'https://beliseken.com';
+    let products = [];
+
+    async function loadProducts() {
+      try {
+        const res = await fetch(`${SITE}/api/products?limit=50`);
+        const data = await res.json();
+        products = data.data || [];
+        
+        document.getElementById('count-badge').textContent = `${products.length} produk`;
+        document.getElementById('count-badge').style.display = 'inline';
+        
+        const list = document.getElementById('product-list');
+        list.innerHTML = products.map(p => `
+          <div class="product-item">
+            <span class="product-name">${p.name}</span>
+            <div class="product-links">
+              <a href="https://developers.facebook.com/tools/debug/?q=${encodeURIComponent(`${SITE}/product/${p.slug}`)}" target="_blank" class="link-fb">🔍 FB Debug</a>
+              <a href="${SITE}/product/${p.slug}" target="_blank" class="link-site">🌐 Lihat</a>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        document.getElementById('product-list').innerHTML = '<div class="loading">Error loading products</div>';
+      }
+    }
+
+    async function pingAll() {
+      const status = document.getElementById('status');
+      status.innerHTML = '🚀 Mengirim request ke Facebook Crawler...';
+      status.style.background = '#d1ecf1';
+      status.style.color = '#0c5460';
+      
+      let success = 0, failed = 0;
+      
+      for (const p of products) {
+        const url = `${SITE}/product/${p.slug}`;
+        try {
+          // Method 1: Facebook Graph API scrape
+          const res = await fetch(`https://graph.facebook.com/?id=${encodeURIComponent(url)}&scrape=true`, {
+            method: 'POST'
+          });
+          if (res.ok) success++;
+          else failed++;
+        } catch {
+          failed++;
+        }
+        // Rate limit
+        await new Promise(r => setTimeout(r, 500));
+      }
+      
+      status.innerHTML = `✅ Selesai! ${success}/${products.length} produk berhasil di-scrape. Tunggu 1-2 menit lalu coba share ke WhatsApp.`;
+      status.style.background = '#d4edda';
+      status.style.color = '#155724';
+    }
+
+    function openAllFB() {
+      products.forEach(p => {
+        window.open(`https://developers.facebook.com/tools/debug/?q=${encodeURIComponent(`${SITE}/product/${p.slug}`)}`, '_blank');
+      });
+    }
+
+    function testShare() {
+      if (products.length > 0) {
+        window.open(`${SITE}/product/${products[0].slug}`, '_blank');
+      }
+    }
+
+    loadProducts();
+  </script>
+</body>
+</html>
