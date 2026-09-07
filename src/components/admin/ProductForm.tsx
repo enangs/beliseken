@@ -51,6 +51,9 @@ export default function ProductForm({
   const [reviewCount, setReviewCount] = useState(initialData?.reviewCount?.toString() || "0");
   const [description, setDescription] = useState(initialData?.description || "");
   const [specs, setSpecs] = useState(initialData?.specs?.join(", ") || "");
+  const [videoUrl, setVideoUrl] = useState(initialData?.videoUrl || "");
+  const [performanceNotes, setPerformanceNotes] = useState(initialData?.performanceNotes || "");
+  const [minusNotes, setMinusNotes] = useState(initialData?.minusNotes || "");
   const [weight, setWeight] = useState(initialData?.weight?.toString() || "");
   const [dimensions, setDimensions] = useState(initialData?.dimensions || "");
   const [stock, setStock] = useState(initialData?.stock?.toString() || "1");
@@ -225,6 +228,9 @@ export default function ProductForm({
       images: photos.length > 0 ? photos : undefined,
       description: description.trim(),
       specs: specs.split(",").map((s) => s.trim()).filter(Boolean),
+      videoUrl: videoUrl.trim() || undefined,
+      performanceNotes: performanceNotes.trim() || undefined,
+      minusNotes: minusNotes.trim() || undefined,
       weight: weight ? parseInt(weight) : undefined,
       dimensions: dimensions.trim() || undefined,
       stock: stock ? parseInt(stock) : 1,
@@ -476,6 +482,28 @@ export default function ProductForm({
                 ))}
               </div>
             )}
+          </div>
+        </div>
+      </div>
+
+      {/* Media & Detail Info */}
+      <div className="bg-white rounded-xl border border-brand-border p-5">
+        <h2 className="font-bold text-brand-navy mb-4">🎬 Media & Info Detail</h2>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-brand-navy mb-1">URL Video (YouTube/Vimeo)</label>
+            <input type="url" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=..." className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all" />
+            <p className="text-xs text-brand-muted mt-1">Video unboxing, review, atau test produk</p>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-brand-navy mb-1">📝 Catatan Performa</label>
+            <textarea value={performanceNotes} onChange={(e) => setPerformanceNotes(e.target.value)} rows={3} placeholder="Contoh:\n- Boot time: 12 detik\n- Benchmark Score: 4500\n- Temperature max: 75°C\n- Battery health: 85%" className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all resize-none" />
+            <p className="text-xs text-brand-muted mt-1">Detail performa, benchmark, atau hasil test</p>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-brand-navy mb-1">⚠️ Catatan Minus / Kekurangan</label>
+            <textarea value={minusNotes} onChange={(e) => setMinusNotes(e.target.value)} rows={3} placeholder="Contoh:\n- Ada goresan kecil di cover belakang\n- Touchpad agak aus\n- Speaker kanan agak pelan" className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all resize-none" />
+            <p className="text-xs text-brand-muted mt-1">Transparansi kondisi barang untuk buyer</p>
           </div>
         </div>
       </div>

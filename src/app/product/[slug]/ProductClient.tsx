@@ -21,6 +21,7 @@ export default function ProductClient({ slug }: { slug: string }) {
   const [added, setAdded] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [activeTab, setActiveTab] = useState<'info' | 'video' | 'performance' | 'minus'>('info');
 
   useEffect(() => {
     fetchProductBySlug(slug)
@@ -180,6 +181,72 @@ export default function ProductClient({ slug }: { slug: string }) {
                       <img src={img} alt={`${product.name} ${i + 1}`} className="w-full h-full object-cover" />
                     </button>
                   ))}
+                </div>
+              )}
+
+              {/* Info Tabs: Video | Performance | Minus */}
+              {(product.videoUrl || product.performanceNotes || product.minusNotes) && (
+                <div className="mt-6">
+                  <div className="flex gap-2 border-b border-brand-border">
+                    {product.videoUrl && (
+                      <button
+                        onClick={() => setActiveTab('video')}
+                        className={`px-4 py-2.5 text-sm font-semibold rounded-t-lg transition-colors ${
+                          activeTab === 'video' 
+                            ? 'bg-brand text-white' 
+                            : 'bg-gray-100 text-brand-muted hover:bg-gray-200'
+                        }`}
+                      >
+                        🎬 Video
+                      </button>
+                    )}
+                    {product.performanceNotes && (
+                      <button
+                        onClick={() => setActiveTab('performance')}
+                        className={`px-4 py-2.5 text-sm font-semibold rounded-t-lg transition-colors ${
+                          activeTab === 'performance' 
+                            ? 'bg-brand text-white' 
+                            : 'bg-gray-100 text-brand-muted hover:bg-gray-200'
+                        }`}
+                      >
+                        ⚡ Performance
+                      </button>
+                    )}
+                    {product.minusNotes && (
+                      <button
+                        onClick={() => setActiveTab('minus')}
+                        className={`px-4 py-2.5 text-sm font-semibold rounded-t-lg transition-colors ${
+                          activeTab === 'minus' 
+                            ? 'bg-brand text-white' 
+                            : 'bg-gray-100 text-brand-muted hover:bg-gray-200'
+                        }`}
+                      >
+                        ⚠️ Minus
+                      </button>
+                    )}
+                  </div>
+                  <div className="bg-brand-gray rounded-b-xl p-4">
+                    {activeTab === 'video' && product.videoUrl && (
+                      <div className="aspect-video rounded-lg overflow-hidden">
+                        <iframe
+                          src={product.videoUrl.replace('watch?v=', 'embed/')}
+                          className="w-full h-full"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    )}
+                    {activeTab === 'performance' && product.performanceNotes && (
+                      <div className="text-sm text-brand-navy leading-relaxed whitespace-pre-line">
+                        {product.performanceNotes}
+                      </div>
+                    )}
+                    {activeTab === 'minus' && product.minusNotes && (
+                      <div className="text-sm text-brand-navy leading-relaxed whitespace-pre-line">
+                        {product.minusNotes}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
