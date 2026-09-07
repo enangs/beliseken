@@ -54,6 +54,9 @@ function EditProductContent() {
             status: p.isActive ? "ACTIVE" : "SOLD_OUT",
             supplier: "",
             condition: "Grade A",
+            videoUrl: p.videoUrl || "",
+            performanceNotes: p.performanceNotes || "",
+            minusNotes: p.minusNotes || "",
           });
         } else {
           setNotFound(true);
@@ -84,6 +87,9 @@ function EditProductContent() {
         stock: data.stock,
         condition: data.condition,
         status: data.status,
+        videoUrl: data.videoUrl,
+        performanceNotes: data.performanceNotes,
+        minusNotes: data.minusNotes,
       });
       if (result.success) {
         router.push("/admin/products");
