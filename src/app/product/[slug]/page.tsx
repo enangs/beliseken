@@ -1,28 +1,32 @@
 import type { Metadata } from "next";
-import { initialProducts } from "@/data/products";
 import ProductClient from "./ProductClient";
-
-export function generateStaticParams() {
-  return initialProducts.map((p) => ({ slug: p.slug }));
-}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   
-  // Try to find product in local data first
-  const product = initialProducts.find((p) => p.slug === slug);
-  
-  if (!product) {
-    return {
-      title: "Produk Tidak Ditemukan | BeliSeken",
-      description: "Produk yang Anda cari tidak tersedia.",
-    };
-  }
+  let title = "Produk | BeliSeken";
+  let description = "Beli elektronik bekas berkualitas dengan harga terjangkau.";
+  let imageUrl = "https://beliseken.com/og-default.jpg";
+  let url = `https://beliseken.com/product/${slug}`;
 
-  const title = `${product.name} | BeliSeken`;
-  const description = product.description || `${product.name} - ${product.condition} - Harga ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(product.price)}`;
-  const imageUrl = product.imageBase64 || product.image || "https://beliseken.com/og-default.jpg";
-  const url = `https://beliseken.com/product/${slug}`;
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://beliseken.com";
+    const res = await fetch(`${baseUrl}/api/products/${slug}`, { cache: "no-store" });
+    const data = await res.json();
+    
+    if (data.success && data.data) {
+      const p = data.data;
+      title = `${p.name} | BeliSeken`;
+      description = p.description || `${p.name} - Harga ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(p.sellingPrice)}`;
+      
+      // Use the first product image (Cloudinary URL) for OG image
+      if (p.allImages && p.allImages.length > 0 && p.allImages[0]) {
+        imageUrl = p.allImages[0];
+      } else if (p.imageBase64 && !p.imageBase64.startsWith('data:')) {
+        imageUrl = p.imageBase64;
+      }
+    }
+  } catch {}
 
   return {
     title,
@@ -37,7 +41,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
           url: imageUrl,
           width: 1200,
           height: 630,
-          alt: product.name,
+          alt: title,
         },
       ],
       type: "website",
@@ -48,9 +52,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       title,
       description,
       images: [imageUrl],
-    },
-    other: {
-      "whatsapp:image": imageUrl,
     },
   };
 }
