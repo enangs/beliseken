@@ -11,6 +11,7 @@ import Footer from "@/components/Footer";
 // Lazy load below-fold components
 const ProdukTerbaru = lazy(() => import("@/components/ProdukTerbaru"));
 const BlogPreview = lazy(() => import("@/components/BlogPreview"));
+const DownloadApp = lazy(() => import("@/components/DownloadApp"));
 const CTAJualBarang = lazy(() => import("@/components/CTAJualBarang"));
 
 function SectionFallback() {
@@ -30,6 +31,9 @@ export default function Home() {
         </Suspense>
         <Suspense fallback={<SectionFallback />}>
           <BlogPreview />
+        </Suspense>
+        <Suspense fallback={<SectionFallback />}>
+          <DownloadApp />
         </Suspense>
         <Suspense fallback={<SectionFallback />}>
           <CTAJualBarang />
