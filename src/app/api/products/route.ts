@@ -105,12 +105,13 @@ export async function GET(request: NextRequest) {
         p.id, p.name, p.slug, p.sku, p.description, p."shortDesc",
         p."sellingPrice", p."basePrice", p.discount, p.weight, p.dimensions,
         p.badge, p."isFeatured", p."avgRating", p."reviewCount", p."soldCount",
-        p."viewCount", p."createdAt",
+        p."viewCount", p."createdAt", p."videoUrl", p."performanceNotes", p."minusNotes",
         c.id as cat_id, c.name as cat_name, c.slug as cat_slug, c.icon as cat_icon, c.color as cat_color,
         sc.id as sub_id, sc.name as sub_name, sc.slug as sub_slug,
         b.id as brand_id, b.name as brand_name, b.slug as brand_slug,
         (SELECT pi.url FROM product_images pi WHERE pi."productId" = p.id AND pi."isPrimary" = true LIMIT 1) as image_url,
-        (SELECT COUNT(*)::int FROM product_units pu WHERE pu."productId" = p.id AND pu.status = 'AVAILABLE') as stock_count
+        (SELECT COUNT(*)::int FROM product_units pu WHERE pu."productId" = p.id AND pu.status = 'AVAILABLE') as stock_count,
+        (SELECT cg.name FROM product_units pu LEFT JOIN condition_grades cg ON pu."conditionGradeId" = cg.id WHERE pu."productId" = p.id AND pu.status = 'AVAILABLE' ORDER BY pu."conditionScore" DESC LIMIT 1) as condition_name
       FROM products p
       LEFT JOIN categories c ON p."categoryId" = c.id
       LEFT JOIN categories sc ON p."subcategoryId" = sc.id
@@ -142,6 +143,9 @@ export async function GET(request: NextRequest) {
       soldCount: p.soldCount,
       viewCount: p.viewCount,
       createdAt: p.createdAt,
+      videoUrl: p.videoUrl,
+      performanceNotes: p.performanceNotes,
+      minusNotes: p.minusNotes,
       category: p.cat_id ? { id: p.cat_id, name: p.cat_name, slug: p.cat_slug, icon: p.cat_icon, color: p.cat_color } : null,
       subcategory: p.sub_id ? { id: p.sub_id, name: p.sub_name, slug: p.sub_slug } : null,
       brand: p.brand_id ? { id: p.brand_id, name: p.brand_name, slug: p.brand_slug } : null,
@@ -151,7 +155,7 @@ export async function GET(request: NextRequest) {
       availableUnits: p.stock_count,
       supplier: "",
       status: p.stock_count === 0 ? "SOLD_OUT" : "ACTIVE",
-      condition: "Grade A",
+      condition: p.condition_name || "Grade A",
     }));
 
     const response = NextResponse.json({

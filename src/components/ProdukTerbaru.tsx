@@ -5,55 +5,106 @@ import Link from "next/link";
 import { getProducts as fetchProductsAPI, type ProductResponse } from "@/lib/api";
 import ProductCard from "./ProductCard";
 
+type Tab = "terlaris" | "grade-a" | "baru";
+
 export default function ProdukTerbaru() {
-  const [products, setProducts] = useState<ProductResponse[]>([]);
+  const [allProducts, setAllProducts] = useState<ProductResponse[]>([]);
+  const [activeTab, setActiveTab] = useState<Tab>("terlaris");
 
   useEffect(() => {
-    fetchProductsAPI({ sort: 'newest', limit: 50 })
+    fetchProductsAPI({ sort: "newest", limit: 50 })
       .then((res) => {
-        // Prioritize products with stock first, then sold-out
-        const available = res.data.filter((p: ProductResponse) => p.stock > 0);
-        const soldOut = res.data.filter((p: ProductResponse) => p.stock === 0);
-        setProducts([...available, ...soldOut]);
+        if (res?.data) {
+          const available = res.data.filter((p: ProductResponse) => p.stock > 0);
+          const soldOut = res.data.filter((p: ProductResponse) => p.stock === 0);
+          setAllProducts([...available, ...soldOut]);
+        }
       })
       .catch(() => {});
   }, []);
 
-  // Show 8 products on homepage
-  const displayProducts = products.slice(0, 8);
+  // Compute product lists for each tab
+  const bestSellers = [...allProducts]
+    .filter((p) => p.stock > 0)
+    .sort((a, b) => b.soldCount - a.soldCount)
+    .slice(0, 8);
 
-  if (displayProducts.length === 0) return null;
+  const gradeA = [...allProducts]
+    .filter((p) => p.stock > 0 && (p.condition || "").toLowerCase().includes("grade a"))
+    .slice(0, 8);
+
+  const newest = [...allProducts]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 8);
+
+  const displayProducts =
+    activeTab === "terlaris"
+      ? bestSellers
+      : activeTab === "grade-a"
+        ? gradeA
+        : newest;
+
+  const tabConfig: { key: Tab; label: string; icon: string; desc: string }[] = [
+    { key: "terlaris", label: "Paling Laris", icon: "🔥", desc: "Produk terlaris yang paling banyak dibeli" },
+    { key: "grade-a", label: "Grade A+", icon: "✨", desc: "Kondisi terbaik, seperti baru" },
+    { key: "baru", label: "Baru Ditambahkan", icon: "🆕", desc: "Produk segar yang baru masuk" },
+  ];
+
+  const currentTab = tabConfig.find((t) => t.key === activeTab)!;
+
+  if (allProducts.length === 0) return null;
 
   return (
     <section className="py-16 md:py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Tabs */}
+        <div className="flex flex-wrap gap-3 mb-8">
+          {tabConfig.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                activeTab === tab.key
+                  ? "bg-brand text-white shadow-lg shadow-brand/25"
+                  : "bg-gray-100 text-brand-navy hover:bg-gray-200"
+              }`}
+            >
+              {tab.icon} {tab.label}
+            </button>
+          ))}
+        </div>
+
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-2xl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7 text-brand"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></span>
-              <h2 className="text-3xl md:text-4xl font-bold text-brand-navy">
-                Baru Ditambahkan
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-2xl">{currentTab.icon}</span>
+              <h2 className="text-2xl md:text-3xl font-bold text-brand-navy">
+                {currentTab.label}
               </h2>
             </div>
-            <p className="text-brand-muted text-lg">
-              Produk segar yang baru saja masuk ke katalog kami
-            </p>
+            <p className="text-brand-muted text-base">{currentTab.desc}</p>
           </div>
           <Link
-            href="/products?sort=newest"
-            className="text-brand font-semibold hover:text-brand-dark transition-colors mt-4 sm:mt-0"
+            href="/products"
+            className="text-brand font-semibold hover:text-brand-dark transition-colors mt-3 sm:mt-0 text-sm"
           >
-            Semua Produk Baru →
+            Lihat Semua →
           </Link>
         </div>
 
-        {/* Product Grid — 4 columns, up to 8 products */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
-          {displayProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        {/* Product Grid */}
+        {displayProducts.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+            {displayProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 text-brand-muted">
+            <p className="text-lg">Belum ada produk di kategori ini</p>
+          </div>
+        )}
       </div>
     </section>
   );
