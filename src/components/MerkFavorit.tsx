@@ -31,81 +31,81 @@ const brands: Brand[] = [
 function BrandLogo({ brand }: { brand: Brand }) {
   const logoMap: Record<string, React.JSX.Element> = {
     lenovo: (
-      <svg viewBox="0 0 120 40" className="w-24 h-10">
+      <svg viewBox="0 0 120 40" className="h-[34px] w-auto">
         <rect x="0" y="8" width="24" height="24" rx="4" fill="#E2231A" />
         <text x="32" y="26" fontSize="15" fontWeight="bold" fill="#333">Lenovo</text>
       </svg>
     ),
     asus: (
-      <svg viewBox="0 0 100 40" className="w-20 h-10">
+      <svg viewBox="0 0 100 40" className="h-[34px] w-auto">
         <text x="10" y="30" fontSize="26" fontWeight="900" fill="#00529B" letterSpacing="2">ASUS</text>
       </svg>
     ),
     hp: (
-      <svg viewBox="0 0 80 44" className="w-16 h-10">
+      <svg viewBox="0 0 80 44" className="h-[34px] w-auto">
         <circle cx="22" cy="22" r="20" fill="#0096D6" />
         <text x="10" y="30" fontSize="20" fontWeight="bold" fill="white">hp</text>
       </svg>
     ),
     dell: (
-      <svg viewBox="0 0 100 40" className="w-20 h-10">
+      <svg viewBox="0 0 100 40" className="h-[34px] w-auto">
         <ellipse cx="50" cy="20" rx="44" ry="18" fill="none" stroke="#007DB8" strokeWidth="2.5" />
         <text x="16" y="28" fontSize="22" fontWeight="bold" fill="#007DB8">DELL</text>
       </svg>
     ),
     acer: (
-      <svg viewBox="0 0 100 40" className="w-20 h-10">
+      <svg viewBox="0 0 100 40" className="h-[34px] w-auto">
         <text x="10" y="30" fontSize="26" fontWeight="bold" fill="#83B81A" letterSpacing="1">acer</text>
       </svg>
     ),
     apple: (
-      <svg viewBox="0 0 100 44" className="w-20 h-10">
+      <svg viewBox="0 0 100 44" className="h-[34px] w-auto">
         <text x="8" y="34" fontSize="36" fill="#333">{"\uF8FF"}</text>
         <text x="38" y="30" fontSize="18" fontWeight="600" fill="#333">Apple</text>
       </svg>
     ),
     msi: (
-      <svg viewBox="0 0 100 40" className="w-20 h-10">
+      <svg viewBox="0 0 100 40" className="h-[34px] w-auto">
         <rect x="0" y="4" width="32" height="32" rx="5" fill="#FF0000" />
         <text x="5" y="28" fontSize="16" fontWeight="bold" fill="white">MSI</text>
       </svg>
     ),
     samsung: (
-      <svg viewBox="0 0 130 44" className="w-28 h-10">
+      <svg viewBox="0 0 130 44" className="h-[34px] w-auto">
         <ellipse cx="65" cy="22" rx="60" ry="18" fill="none" stroke="#1428A0" strokeWidth="2" />
         <text x="14" y="28" fontSize="18" fontWeight="bold" fill="#1428A0" letterSpacing="3">SAMSUNG</text>
       </svg>
     ),
     xiaomi: (
-      <svg viewBox="0 0 130 44" className="w-28 h-10">
+      <svg viewBox="0 0 130 44" className="h-[34px] w-auto">
         <rect x="0" y="5" width="34" height="34" rx="8" fill="#FF6900" />
         <text x="5" y="30" fontSize="18" fontWeight="bold" fill="white">mi</text>
         <text x="40" y="30" fontSize="18" fontWeight="600" fill="#333">Xiaomi</text>
       </svg>
     ),
     huawei: (
-      <svg viewBox="0 0 130 40" className="w-28 h-10">
+      <svg viewBox="0 0 130 40" className="h-[34px] w-auto">
         <text x="10" y="30" fontSize="18" fontWeight="bold" fill="#CF0A2C" letterSpacing="1">HUAWEI</text>
       </svg>
     ),
     toshiba: (
-      <svg viewBox="0 0 130 40" className="w-28 h-10">
+      <svg viewBox="0 0 130 40" className="h-[34px] w-auto">
         <text x="5" y="28" fontSize="18" fontWeight="bold" fill="#0066B3" letterSpacing="1">TOSHIBA</text>
       </svg>
     ),
     lg: (
-      <svg viewBox="0 0 80 44" className="w-16 h-10">
+      <svg viewBox="0 0 80 44" className="h-[34px] w-auto">
         <circle cx="22" cy="22" r="18" fill="#A50034" />
         <text x="10" y="28" fontSize="16" fontWeight="bold" fill="white">LG</text>
       </svg>
     ),
     sony: (
-      <svg viewBox="0 0 100 40" className="w-20 h-10">
+      <svg viewBox="0 0 100 40" className="h-[34px] w-auto">
         <text x="10" y="30" fontSize="24" fontWeight="900" fill="#000" letterSpacing="4">SONY</text>
       </svg>
     ),
     microsoft: (
-      <svg viewBox="0 0 150 44" className="w-32 h-10">
+      <svg viewBox="0 0 150 44" className="h-[34px] w-auto">
         <rect x="0" y="5" width="14" height="14" fill="#F25022" />
         <rect x="16" y="5" width="14" height="14" fill="#7FBA00" />
         <rect x="0" y="21" width="14" height="14" fill="#00A4EF" />
@@ -116,7 +116,7 @@ function BrandLogo({ brand }: { brand: Brand }) {
   };
 
   return logoMap[brand.slug] || (
-    <span className="text-xl font-bold" style={{ color: brand.color }}>{brand.name}</span>
+    <span className="text-xl font-bold h-[34px] flex items-center" style={{ color: brand.color }}>{brand.name}</span>
   );
 }
 
@@ -174,20 +174,15 @@ export default function MerkFavorit() {
           <div
             ref={scrollRef}
             onScroll={checkScroll}
-            className="flex gap-5 overflow-x-auto scrollbar-hide pb-2 snap-x snap-mandatory"
+            className="flex gap-6 overflow-x-auto scrollbar-hide pb-2 snap-x snap-mandatory items-center"
           >
             {brands.map((brand) => (
               <Link
                 key={brand.slug}
                 href={`/products?brand=${brand.slug}`}
-                className="group flex-shrink-0 w-[140px] md:w-[160px] snap-start"
+                className="group flex-shrink-0 snap-start flex items-center justify-center hover:opacity-70 transition-opacity"
               >
-                <div className="bg-white rounded-2xl border border-gray-100 p-5 flex flex-col items-center justify-center hover:border-brand/30 hover:shadow-lg transition-all duration-300 group-hover:scale-105 min-h-[100px]">
-                  <BrandLogo brand={brand} />
-                </div>
-                <p className="text-center text-xs font-semibold text-gray-500 mt-2.5 group-hover:text-brand transition-colors">
-                  {brand.name}
-                </p>
+                <BrandLogo brand={brand} />
               </Link>
             ))}
           </div>
