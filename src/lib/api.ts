@@ -33,6 +33,10 @@ export interface ProductResponse {
   supplier: string;
   status: string; // ACTIVE, SOLD_OUT, RESERVED
   condition: string;
+  // Media fields
+  videoUrl?: string | null;
+  performanceNotes?: string | null;
+  minusNotes?: string | null;
 }
 
 export interface ProductDetailResponse extends ProductResponse {
@@ -41,6 +45,9 @@ export interface ProductDetailResponse extends ProductResponse {
   allImages: string[]; // all images including main
   units: { id: string; unitSku: string; conditionGrade: { code: string; name: string; description: string }; conditionScore: number; conditionNotes: string | null; batteryHealth: number | null; sellingPrice: number }[];
   reviews: any[]; totalReviews: number;
+  videoUrl?: string | null;
+  performanceNotes?: string | null;
+  minusNotes?: string | null;
 }
 
 export interface CategoryResponse {

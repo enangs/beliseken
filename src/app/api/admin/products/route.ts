@@ -80,7 +80,7 @@ export const GET = withAdminAuth(async (request: NextRequest) => {
 export const POST = withAdminAuth(async (request: NextRequest) => {
   try {
     const body = await request.json();
-    const { name, slug, sku, description, categoryId, subcategoryId, brandId, basePrice, sellingPrice, discount, weight, dimensions, badge, isFeatured, specs, imageBase64, images } = body;
+    const { name, slug, sku, description, categoryId, subcategoryId, brandId, basePrice, sellingPrice, discount, weight, dimensions, badge, isFeatured, specs, imageBase64, images, videoUrl, performanceNotes, minusNotes } = body;
 
     const productSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     const product = await prisma.product.create({
@@ -90,6 +90,7 @@ export const POST = withAdminAuth(async (request: NextRequest) => {
         basePrice: basePrice || 0, sellingPrice: sellingPrice || 0, discount: discount || 0,
         weight: weight || null, dimensions: dimensions || null, badge,
         isFeatured: isFeatured || false, isActive: true, publishedAt: new Date(),
+        videoUrl: videoUrl || null, performanceNotes: performanceNotes || null, minusNotes: minusNotes || null,
         specs: specs ? { create: specs.map((spec: any, i: number) => ({ key: spec.key || `Spec ${i + 1}`, value: spec.value || spec, sortOrder: i })) } : undefined,
       },
       include: { category: true, brand: true },
@@ -128,7 +129,7 @@ export const PUT = withAdminAuth(async (request: NextRequest) => {
       }
     }
 
-    const validFields = ['name', 'slug', 'sku', 'description', 'shortDesc', 'categoryId', 'subcategoryId', 'brandId', 'modelId', 'basePrice', 'sellingPrice', 'minPrice', 'discount', 'weight', 'dimensions', 'metaTitle', 'metaDesc', 'ogImage', 'isActive', 'isFeatured', 'badge', 'sortOrder', 'avgRating', 'reviewCount', 'soldCount', 'viewCount'];
+    const validFields = ['name', 'slug', 'sku', 'description', 'shortDesc', 'categoryId', 'subcategoryId', 'brandId', 'modelId', 'basePrice', 'sellingPrice', 'minPrice', 'discount', 'weight', 'dimensions', 'metaTitle', 'metaDesc', 'ogImage', 'isActive', 'isFeatured', 'badge', 'sortOrder', 'avgRating', 'reviewCount', 'soldCount', 'viewCount', 'videoUrl', 'performanceNotes', 'minusNotes'];
     const updates: Record<string, any> = {};
     for (const key of validFields) { if (rawUpdates[key] !== undefined) updates[key] = rawUpdates[key]; }
     if (rawUpdates.price !== undefined && !updates.sellingPrice) updates.sellingPrice = rawUpdates.price;

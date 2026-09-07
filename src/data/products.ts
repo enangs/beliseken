@@ -25,6 +25,10 @@ export interface Product {
   stock: number; // jumlah unit tersedia
   supplier: string; // nama supplier
   status?: "ACTIVE" | "SOLD_OUT" | "RESERVED"; // status produk
+  // Media fields
+  videoUrl?: string | null;
+  performanceNotes?: string | null;
+  minusNotes?: string | null;
 }
 
 export interface Category {
