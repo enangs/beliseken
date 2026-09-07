@@ -27,7 +27,21 @@ export const GET = withAdminAuth(async (request: NextRequest) => {
         },
       });
       if (!product) return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
-      return NextResponse.json({ success: true, data: product });
+      // Fetch video/performance/minus via raw SQL (Prisma client may not know these columns)
+      let videoUrl: string | null = null;
+      let performanceNotes: string | null = null;
+      let minusNotes: string | null = null;
+      try {
+        const rawResult = await prisma.$queryRawUnsafe(
+          'SELECT "videoUrl", "performanceNotes", "minusNotes" FROM products WHERE id = $1', id
+        ) as any[];
+        if (rawResult?.[0]) {
+          videoUrl = rawResult[0].videoUrl || null;
+          performanceNotes = rawResult[0].performanceNotes || null;
+          minusNotes = rawResult[0].minusNotes || null;
+        }
+      } catch {}
+      return NextResponse.json({ success: true, data: { ...product, videoUrl, performanceNotes, minusNotes } });
     }
 
     const where: any = {};
@@ -90,11 +104,20 @@ export const POST = withAdminAuth(async (request: NextRequest) => {
         basePrice: basePrice || 0, sellingPrice: sellingPrice || 0, discount: discount || 0,
         weight: weight || null, dimensions: dimensions || null, badge,
         isFeatured: isFeatured || false, isActive: true, publishedAt: new Date(),
-        videoUrl: videoUrl || null, performanceNotes: performanceNotes || null, minusNotes: minusNotes || null,
         specs: specs ? { create: specs.map((spec: any, i: number) => ({ key: spec.key || `Spec ${i + 1}`, value: spec.value || spec, sortOrder: i })) } : undefined,
       },
       include: { category: true, brand: true },
     });
+
+    // Save video/performance/minus via raw SQL (Prisma client may not know these columns)
+    if (videoUrl || performanceNotes || minusNotes) {
+      try {
+        await prisma.$executeRawUnsafe(
+          'UPDATE products SET "videoUrl" = $1, "performanceNotes" = $2, "minusNotes" = $3 WHERE id = $4',
+          videoUrl || null, performanceNotes || null, minusNotes || null, product.id
+        );
+      } catch {}
+    }
 
     const allImages: string[] = [];
     if (imageBase64) allImages.push(imageBase64);
@@ -136,7 +159,25 @@ export const PUT = withAdminAuth(async (request: NextRequest) => {
     if (rawUpdates.originalPrice !== undefined && !updates.basePrice) updates.basePrice = rawUpdates.originalPrice;
     if (rawUpdates.status !== undefined) updates.isActive = rawUpdates.status !== 'SOLD_OUT' && rawUpdates.status !== 'RESERVED';
 
+    // Separate video/performance/minus for raw SQL update (Prisma client may not know these columns)
+    const mediaFields: Record<string, string | null> = {};
+    if (updates.videoUrl !== undefined) mediaFields.videoUrl = updates.videoUrl || null;
+    if (updates.performanceNotes !== undefined) mediaFields.performanceNotes = updates.performanceNotes || null;
+    if (updates.minusNotes !== undefined) mediaFields.minusNotes = updates.minusNotes || null;
+    delete updates.videoUrl;
+    delete updates.performanceNotes;
+    delete updates.minusNotes;
+
     const product = await prisma.product.update({ where: { id }, data: updates, include: { category: true, brand: true } });
+
+    // Save video/performance/minus via raw SQL
+    if (Object.keys(mediaFields).length > 0) {
+      try {
+        const setClauses = Object.entries(mediaFields).map(([k, v], i) => `"${k}" = $${i + 1}`).join(', ');
+        const values = Object.values(mediaFields);
+        await prisma.$executeRawUnsafe(`UPDATE products SET ${setClauses} WHERE id = $${values.length + 1}`, ...values, id);
+      } catch {}
+    }
 
     if (imageBase64 !== undefined || (images && Array.isArray(images))) {
       const allImages: string[] = [];
