@@ -258,3 +258,4 @@ export const DELETE = withAdminAuth(async (request: NextRequest) => {
     return NextResponse.json({ success: false, error: 'Gagal hapus produk' }, { status: 500 });
   }
 });
+
