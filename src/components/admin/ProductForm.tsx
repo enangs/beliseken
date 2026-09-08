@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Upload, X, Save, ArrowLeft, Plus, Loader2 } from "lucide-react";
 import type { Product } from "@/data/products";
@@ -12,6 +12,8 @@ interface ProductFormProps {
   submitLabel: string;
 }
 
+interface CategoryOption { id: string; name: string; }
+
 const badgeOptions: Product["badge"][] = ["HOT DEAL", "BEST SELLER", "NEW"];
 const conditionOptions = ["Like New", "Grade A", "Grade B+", "Grade B", "Grade C"];
 const subcategoryOptions = [
@@ -19,6 +21,17 @@ const subcategoryOptions = [
   "Mouse", "Keyboard", "Router", "Switch", "Access Point",
   "Printer", "Speaker", "Headphone", "Kamera", "Lainnya",
 ];
+
+// Map subcategory name to categoryId
+const subcategoryCategoryMap: Record<string, string> = {
+  "Laptop": "cat-laptop", "Laptop Gaming": "cat-laptop",
+  "Smartphone": "cat-smartphone", "Tablet": "cat-smartphone",
+  "Monitor": "cat-monitor",
+  "Mouse": "cat-peripheral", "Keyboard": "cat-peripheral",
+  "Router": "cat-network", "Switch": "cat-network", "Access Point": "cat-network",
+  "Printer": "cat-peripheral", "Speaker": "cat-peripheral",
+  "Headphone": "cat-peripheral", "Kamera": "cat-peripheral", "Lainnya": "cat-peripheral",
+};
 
 const MAX_PHOTOS = 5;
 const MAX_SIZE_MB = 5;
@@ -41,7 +54,30 @@ export default function ProductForm({
   const [name, setName] = useState(initialData?.name || "");
   const [slug, setSlug] = useState(initialData?.slug || "");
   const [brand, setBrand] = useState(initialData?.brand || "");
+  const [categoryId, setCategoryId] = useState(initialData?.category || subcategoryCategoryMap[initialData?.subcategory || "Laptop"] || "cat-laptop");
   const [subcategory, setSubcategory] = useState(initialData?.subcategory || "Laptop");
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
+
+  useEffect(() => {
+    fetch('/api/categories').then(r => r.json()).then(d => {
+      if (d.data) setCategories(d.data);
+    }).catch(() => {
+      // Fallback categories
+      setCategories([
+        { id: 'cat-laptop', name: 'Laptop & Notebook' },
+        { id: 'cat-smartphone', name: 'Smartphone & Tablet' },
+        { id: 'cat-monitor', name: 'Monitor & TV' },
+        { id: 'cat-network', name: 'Networking & IT' },
+        { id: 'cat-peripheral', name: 'Peripheral & Aksesoris' },
+      ]);
+    });
+  }, []);
+
+  // Auto-update categoryId when subcategory changes
+  useEffect(() => {
+    const mapped = subcategoryCategoryMap[subcategory];
+    if (mapped) setCategoryId(mapped);
+  }, [subcategory]);
   const [price, setPrice] = useState(initialData?.price?.toString() || "");
   const [originalPrice, setOriginalPrice] = useState(initialData?.originalPrice?.toString() || "");
   const [discount, setDiscount] = useState(initialData?.discount?.toString() || "");
@@ -213,7 +249,7 @@ export default function ProductForm({
       sku: sku.trim() || `BS-${Date.now()}`,
       name: name.trim(),
       slug: slug.trim(),
-      category: initialData?.category || "Elektronik Bekas",
+      category: categoryId,
       subcategory,
       brand: brand.trim(),
       price: parseInt(price),
@@ -359,6 +395,12 @@ export default function ProductForm({
             <label className="block text-sm font-semibold text-brand-navy mb-1">Brand *</label>
             <input type="text" value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Apple, Dell, Lenovo..." className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all" />
             {errors.brand && <p className="text-xs text-red-500 mt-1">{errors.brand}</p>}
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-brand-navy mb-1">Kategori</label>
+            <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all bg-white">
+              {categories.map((cat) => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
+            </select>
           </div>
           <div>
             <label className="block text-sm font-semibold text-brand-navy mb-1">Subkategori</label>

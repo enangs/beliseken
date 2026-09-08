@@ -117,11 +117,19 @@ export const POST = withAdminAuth(async (request: NextRequest) => {
       resolvedCategoryId = found.id;
     }
 
-    // Resolve subcategory name → subcategoryId
+    // Resolve subcategory name → subcategoryId (model is SubCategory → prisma.subCategory)
     let resolvedSubcategoryId = subcategoryId || null;
     if (!resolvedSubcategoryId && subcategory) {
-      let found = await prisma.subcategory.findFirst({ where: { name: { contains: subcategory } } });
-      if (found) resolvedSubcategoryId = found.id;
+      try {
+        let found = await prisma.subCategory.findFirst({ where: { name: { contains: subcategory } } });
+        if (!found) {
+          // Create subcategory under the resolved category
+          if (resolvedCategoryId) {
+            found = await prisma.subCategory.create({ data: { name: subcategory, slug: subcategory.toLowerCase().replace(/[^a-z0-9]+/g, '-'), categoryId: resolvedCategoryId, isActive: true } });
+          }
+        }
+        if (found) resolvedSubcategoryId = found.id;
+      } catch {}
     }
 
     // Map price fields: form sends price/originalPrice, API expects sellingPrice/basePrice
