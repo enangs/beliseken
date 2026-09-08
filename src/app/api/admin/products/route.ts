@@ -94,17 +94,51 @@ export const GET = withAdminAuth(async (request: NextRequest) => {
 export const POST = withAdminAuth(async (request: NextRequest) => {
   try {
     const body = await request.json();
-    const { name, slug, sku, description, categoryId, subcategoryId, brandId, basePrice, sellingPrice, discount, weight, dimensions, badge, isFeatured, specs, imageBase64, images, videoUrl, performanceNotes, minusNotes } = body;
+    // Accept both form fields (brand, category, price, originalPrice) and API fields (brandId, categoryId, sellingPrice, basePrice)
+    const { name, slug, sku, description, category, subcategory, subcategoryId, brand, brandId, categoryId, basePrice, sellingPrice, price, originalPrice, discount, weight, dimensions, badge, isFeatured, specs, imageBase64, images, videoUrl, performanceNotes, minusNotes, stock, supplier, status, condition, rating, reviewCount } = body;
+
+    // Resolve brand name → brandId
+    let resolvedBrandId = brandId || null;
+    if (!resolvedBrandId && brand) {
+      let found = await prisma.brand.findFirst({ where: { name: { equals: brand, mode: 'insensitive' } } });
+      if (!found) {
+        found = await prisma.brand.create({ data: { name: brand, slug: brand.toLowerCase().replace(/[^a-z0-9]+/g, '-'), isActive: true } });
+      }
+      resolvedBrandId = found.id;
+    }
+
+    // Resolve category name → categoryId
+    let resolvedCategoryId = categoryId || '';
+    if (!resolvedCategoryId && category) {
+      let found = await prisma.category.findFirst({ where: { name: { contains: category } } });
+      if (!found) {
+        found = await prisma.category.create({ data: { name: category, slug: category.toLowerCase().replace(/[^a-z0-9]+/g, '-'), isActive: true } });
+      }
+      resolvedCategoryId = found.id;
+    }
+
+    // Resolve subcategory name → subcategoryId
+    let resolvedSubcategoryId = subcategoryId || null;
+    if (!resolvedSubcategoryId && subcategory) {
+      let found = await prisma.subcategory.findFirst({ where: { name: { contains: subcategory } } });
+      if (found) resolvedSubcategoryId = found.id;
+    }
+
+    // Map price fields: form sends price/originalPrice, API expects sellingPrice/basePrice
+    const finalSellingPrice = sellingPrice || price || 0;
+    const finalBasePrice = basePrice || originalPrice || 0;
 
     const productSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     const product = await prisma.product.create({
       data: {
-        name, slug: productSlug, sku: sku || `SKU-${Date.now()}`, description,
-        categoryId: categoryId || '', subcategoryId: subcategoryId || null, brandId: brandId || null,
-        basePrice: basePrice || 0, sellingPrice: sellingPrice || 0, discount: discount || 0,
-        weight: weight || null, dimensions: dimensions || null, badge,
+        name, slug: productSlug, sku: sku || `SKU-${Date.now()}`, description: description || '',
+        categoryId: resolvedCategoryId, subcategoryId: resolvedSubcategoryId, brandId: resolvedBrandId,
+        basePrice: finalBasePrice, sellingPrice: finalSellingPrice, discount: discount || 0,
+        weight: weight || null, dimensions: dimensions || null, badge: badge || null,
         isFeatured: isFeatured || false, isActive: true, publishedAt: new Date(),
-        specs: specs ? { create: specs.map((spec: any, i: number) => ({ key: spec.key || `Spec ${i + 1}`, value: spec.value || spec, sortOrder: i })) } : undefined,
+        avgRating: rating ? parseFloat(rating.toString()) : 4.5,
+        reviewCount: reviewCount ? parseInt(reviewCount.toString()) : 0,
+        specs: specs ? { create: Array.isArray(specs) ? specs.map((spec: any, i: number) => ({ key: spec.key || `Spec ${i + 1}`, value: spec.value || spec, sortOrder: i })) : [{ key: 'Spesifikasi', value: specs, sortOrder: 0 }] } : undefined,
       },
       include: { category: true, brand: true },
     });
@@ -119,6 +153,30 @@ export const POST = withAdminAuth(async (request: NextRequest) => {
       } catch {}
     }
 
+    // Create a ProductUnit (inventory) if stock > 0
+    const stockCount = stock ? parseInt(stock.toString()) : 1;
+    if (stockCount > 0) {
+      try {
+        const grade = await prisma.conditionGrade.findFirst({ orderBy: { sortOrder: 'asc' } });
+        if (grade) {
+          await prisma.productUnit.create({
+            data: {
+              productId: product.id,
+              unitSku: (product.sku || `SKU-${Date.now()}`) + '-001',
+              conditionScore: 85,
+              conditionNotes: condition || 'Kondisi normal',
+              batteryHealth: 80,
+              purchasePrice: finalBasePrice,
+              sellingPrice: finalSellingPrice,
+              status: 'AVAILABLE',
+              conditionGradeId: grade.id,
+            },
+          });
+        }
+      } catch (e) { console.error('Failed to create product unit:', e); }
+    }
+
+    // Save images
     const allImages: string[] = [];
     if (imageBase64) allImages.push(imageBase64);
     if (images && Array.isArray(images)) images.forEach((img: string) => { if (img && !allImages.includes(img)) allImages.push(img); });
@@ -131,7 +189,7 @@ export const POST = withAdminAuth(async (request: NextRequest) => {
     return NextResponse.json({ success: true, data: product });
   } catch (error) {
     console.error('Create product error:', error);
-    return NextResponse.json({ success: false, error: 'Gagal membuat produk' }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Gagal membuat produk: ' + (error as Error).message }, { status: 500 });
   }
 });
 
