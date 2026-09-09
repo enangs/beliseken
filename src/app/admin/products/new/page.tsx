@@ -15,12 +15,15 @@ export default function NewProductPage() {
     setSaving(true);
     setError("");
     try {
+      console.log('Submitting product data:', JSON.stringify(data).slice(0, 500));
       const res = await fetch("/api/admin/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(data),
       });
       const result = await res.json();
+      console.log('API response:', result);
       if (result.success) {
         router.push("/admin/products");
       } else {

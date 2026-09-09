@@ -49,7 +49,7 @@ export async function fetchBlogPostBySlug(slug: string): Promise<BlogPost | null
 // Admin blog API functions
 export async function getAdminBlogPosts(): Promise<BlogPost[]> {
   try {
-    const res = await fetch('/api/admin/blog', { cache: 'no-store' });
+    const res = await fetch('/api/admin/blog', { cache: 'no-store', credentials: 'include' });
     const data = await res.json();
     
     if (data.success && Array.isArray(data.data)) {
@@ -67,6 +67,7 @@ export async function createBlogPost(post: Omit<BlogPost, 'id'>): Promise<BlogPo
     const res = await fetch('/api/admin/blog', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({
         title: post.title,
         slug: post.slug,
@@ -95,6 +96,7 @@ export async function updateBlogPost(id: string, post: Partial<BlogPost>): Promi
     const res = await fetch('/api/admin/blog', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({
         id,
         title: post.title,
@@ -119,6 +121,7 @@ export async function deleteBlogPost(id: string): Promise<boolean> {
   try {
     const res = await fetch(`/api/admin/blog?id=${id}`, {
       method: 'DELETE',
+      credentials: 'include',
     });
     const data = await res.json();
     return data.success;

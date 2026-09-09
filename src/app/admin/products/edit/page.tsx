@@ -19,7 +19,7 @@ function EditProductContent() {
     if (!id) { setNotFound(true); return; }
     
     // Fetch product with images from API
-    fetch(`/api/admin/products?id=${id}`, { cache: 'no-store' })
+    fetch(`/api/admin/products?id=${id}`, { cache: 'no-store', credentials: 'include' })
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.data) {

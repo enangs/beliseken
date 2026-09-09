@@ -59,9 +59,9 @@ export interface CategoryResponse {
 // Helper: try API, fallback to null
 // ══════════════════════════════════════════════════════════════
 
-async function tryAPI<T>(url: string): Promise<T | null> {
+async function tryAPI<T>(url: string, opts?: RequestInit): Promise<T | null> {
   try {
-    const res = await fetch(url, { cache: 'no-store' });
+    const res = await fetch(url, { cache: 'no-store', credentials: 'include', ...opts });
     if (!res.ok) return null;
     const data = await res.json();
     if (data.success) return data;
@@ -145,7 +145,7 @@ export async function getAdminProducts(params?: { page?: number; limit?: number;
 export async function getProductById(id: string) {
   // Try API
   try {
-    const res = await fetch(`/api/admin/products?id=${id}`, { cache: 'no-store' });
+    const res = await fetch(`/api/admin/products?id=${id}`, { cache: 'no-store', credentials: 'include' });
     if (res.ok) {
       const data = await res.json();
       if (data.success && data.data) {
@@ -166,6 +166,7 @@ export async function createProduct(d: any) {
     const res = await fetch('/api/admin/products', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(d),
     });
     const data = await res.json();
@@ -180,6 +181,7 @@ export async function updateProduct(id: string, u: any) {
     const res = await fetch('/api/admin/products', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ id, ...u }),
     });
     const data = await res.json();
@@ -191,7 +193,7 @@ export async function updateProduct(id: string, u: any) {
 
 export async function deleteProduct(id: string) {
   try {
-    const res = await fetch(`/api/admin/products?id=${id}`, { method: 'DELETE' });
+    const res = await fetch(`/api/admin/products?id=${id}`, { method: 'DELETE', credentials: 'include' });
     const data = await res.json();
     return data;
   } catch (err: any) {
@@ -214,6 +216,7 @@ export async function updateOrderStatus(id: string, status: string, trackingNumb
     const res = await fetch(`/api/orders/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ status, trackingNumber, courier }),
     });
     const data = await res.json();
