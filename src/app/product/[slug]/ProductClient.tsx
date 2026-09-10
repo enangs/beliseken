@@ -288,7 +288,7 @@ export default function ProductClient({ slug }: { slug: string }) {
               {product.description && (
                 <div className="mb-6">
                   <h3 className="font-semibold text-brand-navy mb-2">Deskripsi</h3>
-                  <p className="text-sm text-brand-muted leading-relaxed">{product.description}</p>
+                  <p className="text-sm text-brand-muted leading-relaxed whitespace-pre-line">{product.description}</p>
                 </div>
               )}
 

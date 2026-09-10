@@ -17,7 +17,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     if (data.success && data.data) {
       const p = data.data;
       title = `${p.name} | BeliSeken`;
-      description = p.description || `${p.name} - Harga ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(p.sellingPrice)}`;
+      // Short description for OG (max 200 chars for social media)
+      const price = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(p.sellingPrice);
+      description = `${p.name} ${price} - BeliSeken.com`;
       
       // Use the first product image (Cloudinary URL) for OG image
       if (p.allImages && p.allImages.length > 0 && p.allImages[0]) {
