@@ -242,14 +242,19 @@ export default function ProductForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validate()) {
+      // Scroll to top to show validation errors
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
 
     const data: Omit<Product, "id"> & { id?: string } = {
       ...(initialData ? { id: initialData.id } : {}),
       sku: sku.trim() || `BS-${Date.now()}`,
       name: name.trim(),
       slug: slug.trim(),
-      category: categoryId,
+      categoryId: categoryId,
+      category: categories.find(c => c.id === categoryId)?.name || 'Elektronik Bekas',
       subcategory,
       brand: brand.trim(),
       price: parseInt(price),
@@ -381,6 +386,11 @@ export default function ProductForm({
       <div className="bg-white rounded-xl border border-brand-border p-5">
         <h2 className="font-bold text-brand-navy mb-4">Informasi Dasar</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-semibold text-brand-navy mb-1">Nama Produk *</label>
+            <input type="text" value={name} onChange={(e) => handleNameChange(e.target.value)} placeholder="Lenovo ThinkPad X260" className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all" />
+            {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
+          </div>
           <div>
             <label className="block text-sm font-semibold text-brand-navy mb-1">SKU *</label>
             <input type="text" value={sku} onChange={(e) => setSku(e.target.value)} placeholder="BS-LP-001" className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all font-mono" />
@@ -551,7 +561,7 @@ export default function ProductForm({
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-3 justify-end">
+      <div className="flex items-center gap-3 justify-end pb-12 pt-4">
         <button type="button" onClick={() => router.back()} className="flex items-center gap-2 px-5 py-2.5 border border-brand-border text-brand-navy hover:bg-brand-gray font-semibold rounded-xl text-sm transition-colors">
           <ArrowLeft size={16} /> Batal
         </button>

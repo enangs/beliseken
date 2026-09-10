@@ -25,11 +25,13 @@ export default function NewProductPage() {
       const result = await res.json();
       console.log('API response:', result);
       if (result.success) {
+        alert('✅ Produk berhasil ditambahkan!');
         router.push("/admin/products");
       } else {
         setError(result.error || "Gagal menyimpan produk");
       }
     } catch (err: any) {
+      console.error('Submit error:', err);
       setError("Gagal menyimpan: " + err.message);
     } finally {
       setSaving(false);

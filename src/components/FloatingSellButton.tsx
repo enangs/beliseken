@@ -2,11 +2,17 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 export default function FloatingSellButton() {
+  const pathname = usePathname();
   const [isVisible, setIsVisible] = useState(false);
 
+  // Hide on admin pages
+  const isAdmin = pathname.startsWith("/admin");
+
   useEffect(() => {
+    if (isAdmin) return;
     const handleScroll = () => {
       // Show after scrolling past hero section (about 600px)
       setIsVisible(window.scrollY > 600);
@@ -19,9 +25,9 @@ export default function FloatingSellButton() {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isAdmin]);
 
-  if (!isVisible) return null;
+  if (!isVisible || isAdmin) return null;
 
   return (
     <Link
