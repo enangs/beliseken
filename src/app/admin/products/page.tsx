@@ -12,6 +12,7 @@ export default function AdminProductsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState("all");
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const loadProducts = async () => {
     try {
@@ -34,15 +35,36 @@ export default function AdminProductsPage() {
   };
 
   const handleToggleActive = async (id: string, currentActive: boolean) => {
+    const newActive = !currentActive;
+    // Optimistic update — toggle immediately
+    setProducts(prev => prev.map(p =>
+      p.id === id ? { ...p, isActive: newActive, stock: newActive ? (p.stock || 1) : 0 } : p
+    ));
+    setTogglingId(id);
     try {
-      await fetch('/api/admin/products', {
+      const res = await fetch('/api/admin/products', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ id, isActive: !currentActive }),
+        body: JSON.stringify({ id, isActive: newActive }),
       });
-      loadProducts();
-    } catch (e) { console.error(e); }
+      if (!res.ok) throw new Error('Gagal toggle');
+      const data = await res.json();
+      if (data.success) {
+        // Replace with server-confirmed data to keep stock accurate
+        setProducts(prev => prev.map(p =>
+          p.id === id ? { ...p, isActive: data.data.isActive, stock: data.data._count?.units ?? (newActive ? 1 : 0) } : p
+        ));
+      }
+    } catch (e) {
+      // Rollback on failure
+      setProducts(prev => prev.map(p =>
+        p.id === id ? { ...p, isActive: currentActive, stock: currentActive ? (p.stock || 1) : 0 } : p
+      ));
+      console.error('Toggle rollback:', e);
+    } finally {
+      setTogglingId(null);
+    }
   };
 
   const filtered = products
@@ -236,7 +258,12 @@ export default function AdminProductsPage() {
                       className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-semibold transition-colors hover:bg-gray-100"
                       title={product.stock > 0 ? 'Nonaktifkan' : 'Aktifkan'}
                     >
-                      {product.stock > 0 ? (
+                      {togglingId === product.id ? (
+                        <span className="flex items-center gap-1.5">
+                          <svg className="animate-spin h-4 w-4 text-brand-navy" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a8 8 0 0 1-8 8z"/></svg>
+                          <span className="text-brand-navy">{product.stock > 0 ? 'Menyimpan...' : 'Menyimpan...'}</span>
+                        </span>
+                      ) : product.stock > 0 ? (
                         <><ToggleRight size={22} className="text-emerald-500" /><span className="text-emerald-600">Aktif</span></>
                       ) : (
                         <><ToggleLeft size={22} className="text-red-400" /><span className="text-red-500">Nonaktif</span></>
