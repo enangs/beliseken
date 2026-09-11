@@ -2,9 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Pencil, Trash2, Search, Package, Truck, AlertTriangle, ToggleLeft, ToggleRight } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Package, Truck, AlertTriangle, ToggleLeft, ToggleRight, ImageOff } from "lucide-react";
 import { getAdminProducts, deleteProduct, type ProductResponse } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
+
+function hasPhoto(p: ProductResponse) {
+  return !!(p.imageBase64 && !String(p.imageBase64).startsWith('data:')) || (p.allImages && p.allImages.length > 0);
+}
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<ProductResponse[]>([]);
@@ -219,10 +223,17 @@ export default function AdminProductsPage() {
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-lg flex-shrink-0">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-brand-muted"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                        {hasPhoto(product) ? (
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-brand-muted"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                        ) : (
+                          <ImageOff size={20} className="text-red-400" />
+                        )}
                       </div>
                       <div className="min-w-0">
                         <p className="font-semibold text-brand-navy truncate max-w-[200px]">{product.name}</p>
+                        {!hasPhoto(product) && (
+                          <p className="text-xs text-red-500 font-semibold">⚠️ Tanpa foto</p>
+                        )}
                         <p className="text-xs text-brand-muted">{product.brand?.name || '-'} · {product.category?.name || '-'}</p>
                       </div>
                     </div>

@@ -236,6 +236,7 @@ export default function ProductForm({
     if (!brand.trim()) errs.brand = "Brand wajib diisi";
     if (!price || parseInt(price) <= 0) errs.price = "Harga harus lebih dari 0";
     if (!originalPrice || parseInt(originalPrice) <= 0) errs.originalPrice = "Harga asli wajib diisi";
+    if (photos.length === 0) errs.photo = "Foto produk wajib diisi (min. 1 foto)";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -288,7 +289,7 @@ export default function ProductForm({
       <div className="bg-white rounded-xl border border-brand-border p-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-bold text-brand-navy">Foto Produk ({photos.length}/{MAX_PHOTOS})</h2>
-          <span className="text-xs text-brand-muted">Foto pertama = foto utama</span>
+          <span className="text-xs text-brand-muted">Foto pertama = foto utama · Minimal 1 foto</span>
         </div>
 
         {/* Photo Grid */}
@@ -338,7 +339,7 @@ export default function ProductForm({
               onClick={() => fileInputRef.current?.click()}
               className="aspect-square bg-gray-50 rounded-xl border-2 border-dashed border-brand-border flex flex-col items-center justify-center gap-2 text-brand-muted hover:text-brand hover:border-brand/50 transition-all"
             >
-              <Plus size={24} />
+              <Upload size={24} />
               <span className="text-[10px] font-medium">Tambah Foto</span>
             </button>
           )}
