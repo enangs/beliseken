@@ -98,7 +98,7 @@ export default function AdminOrdersPage() {
     processing: orders.filter((o) => o.status === "processing").length,
     shipping: orders.filter((o) => o.status === "shipping").length,
     completed: orders.filter((o) => o.status === "completed" || o.status === "delivered").length,
-    totalRevenue: orders.filter((o) => o.status === "completed" || o.status === "delivered").reduce((sum, o) => sum + o.total, 0),
+    totalRevenue: orders.filter((o) => o.status === "completed" || o.status === "delivered").reduce((sum, o) => sum + (Number(o.total) || 0), 0),
   };
 
   return (
@@ -238,7 +238,7 @@ export default function AdminOrdersPage() {
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <p className="font-bold text-brand-navy">{formatPrice(order.total)}</p>
+                      <p className="font-bold text-brand-navy">{formatPrice(Number(order.total) || 0)}</p>
                       <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${config.bg} ${config.color}`}>
                         {config.label}
                       </span>
@@ -257,7 +257,7 @@ export default function AdminOrdersPage() {
                           order.items.map((item, i) => (
                             <div key={i} className="flex justify-between text-sm py-1 border-b border-brand-border last:border-0">
                               <span className="text-brand-muted">{item.productName} × {item.quantity}</span>
-                              <span className="font-medium">{formatPrice(item.subtotal)}</span>
+                              <span className="font-medium">{formatPrice(Number(item.subtotal) || 0)}</span>
                             </div>
                           ))
                         ) : (
@@ -265,15 +265,15 @@ export default function AdminOrdersPage() {
                         )}
                         <div className="flex justify-between text-sm pt-2 mt-2 border-t border-brand-border">
                           <span className="text-brand-muted">Subtotal</span>
-                          <span className="font-medium">{formatPrice(order.subtotal)}</span>
+                          <span className="font-medium">{formatPrice(Number(order.subtotal) || 0)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-brand-muted">Ongkir ({order.shipping?.courier || '-'})</span>
-                          <span className="font-medium">{formatPrice(order.shippingCost)}</span>
+                          <span className="font-medium">{formatPrice(Number(order.shippingCost) || 0)}</span>
                         </div>
                         <div className="flex justify-between text-sm font-bold pt-2 border-t border-brand-border">
                           <span>Total</span>
-                          <span className="text-brand">{formatPrice(order.total)}</span>
+                          <span className="text-brand">{formatPrice(Number(order.total) || 0)}</span>
                         </div>
                       </div>
 

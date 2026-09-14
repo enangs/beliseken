@@ -35,9 +35,9 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     getAllCustomers().then(setCustomers).catch(() => setCustomers([]));
   }, []);
-  const totalStock = products.reduce((sum, p) => sum + (p.stock || 0), 0);
-  const soldOutCount = products.filter((p) => p.stock === 0).length;
-  const totalRevenue = orders.filter(o => o.status === 'completed' || o.status === 'delivered').reduce((sum, o) => sum + o.total, 0);
+  const totalStock = products.reduce((sum, p) => sum + (Number(p.stock) || 0), 0);
+  const soldOutCount = products.filter((p) => Number(p.stock) === 0).length;
+  const totalRevenue = orders.filter(o => o.status === 'completed' || o.status === 'delivered').reduce((sum, o) => sum + (Number(o.total) || 0), 0);
 
   const stats = [
     {

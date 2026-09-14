@@ -239,8 +239,8 @@ export default function AdminProductsPage() {
                     </div>
                   </td>
                   <td className="px-4 py-4">
-                    <p className="font-semibold text-brand">{formatPrice(product.sellingPrice)}</p>
-                    {product.discount > 0 && (
+                    <p className="font-semibold text-brand">{formatPrice(Number(product.sellingPrice) || 0)}</p>
+                    {Number(product.discount) > 0 && (
                       <p className="text-xs text-red-500">-{product.discount}%</p>
                     )}
                   </td>

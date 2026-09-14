@@ -124,7 +124,7 @@ export default function AdminSellRequestsPage() {
       `Halo, kami dari BeliSeken tertarik dengan ${req.brand} ${req.model} Anda. ` +
       (req.want_offer
         ? "Kami ingin memberikan penawaran harga."
-        : `Apakah masih tersedia dengan harga Rp ${req.asking_price?.toLocaleString("id-ID")}?`)
+        : `Apakah masih tersedia dengan harga Rp ${(Number(req.asking_price) || 0).toLocaleString("id-ID")}?`)
     );
     return `https://wa.me/${req.whatsapp.replace(/^0/, "62")}?text=${message}`;
   };
@@ -274,7 +274,7 @@ export default function AdminSellRequestsPage() {
                             <span className="text-sm text-brand font-medium">Minta Penawaran</span>
                           ) : (
                             <span className="text-sm font-semibold">
-                              Rp {req.asking_price?.toLocaleString("id-ID")}
+                              Rp {(Number(req.asking_price) || 0).toLocaleString("id-ID")}
                             </span>
                           )}
                         </td>

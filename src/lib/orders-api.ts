@@ -145,9 +145,9 @@ export async function fetchOrders(options?: {
             productName: item.productName,
             productSlug: item.productSlug,
             productImage: item.productImage,
-            price: item.price,
-            quantity: item.quantity,
-            subtotal: item.subtotal || item.price * item.quantity,
+            price: Number(item.price) || 0,
+            quantity: Number(item.quantity) || 0,
+            subtotal: Number(item.subtotal) || (Number(item.price) || 0) * (Number(item.quantity) || 0),
           })),
           address: (() => {
             try { return typeof o.addressSnapshot === 'string' ? JSON.parse(o.addressSnapshot) : (o.addressSnapshot || {}); } catch { return {}; }
@@ -159,9 +159,9 @@ export async function fetchOrders(options?: {
             cost: o.shippingCost || 0,
             etd: o.shippingEtd || '',
           },
-          subtotal: o.subtotal || 0,
-          shippingCost: o.shippingCost || 0,
-          total: o.total || 0,
+          subtotal: Number(o.subtotal) || 0,
+          shippingCost: Number(o.shippingCost) || 0,
+          total: Number(o.total) || 0,
           status: (o.status || 'pending').toLowerCase(),
           statusHistory: (o.statusHistory || []).map((h: any) => ({
             status: (h.status || 'pending').toLowerCase(),
