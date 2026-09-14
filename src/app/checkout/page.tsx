@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useRef, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useState, useRef } from "react";
 import { MapPin, Truck, CreditCard, CheckCircle, ChevronRight, Package, ArrowLeft, Loader2, Camera, Upload, Image as ImageIcon, MessageCircle, X, Clock, Copy, ExternalLink, AlertCircle } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import Header from "@/components/Header";
@@ -35,8 +34,53 @@ const paymentMethods = [
 ];
 
 export default function CheckoutPage() {
+  return (
+    <Suspense fallback={null}>
+      <CheckoutContent />
+    </Suspense>
+  );
+}
+
+function CheckoutContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { items, totalPrice, clearCart } = useCart();
+
+  // Mode "Beli Langsung": produk dibawa dari halaman produk tanpa masuk keranjang
+  const buySlug = searchParams.get("buy");
+  const [buyNowItems, setBuyNowItems] = useState<{ product: any; quantity: number }[] | null>(null);
+
+  useEffect(() => {
+    if (!buySlug || items.length > 0 || buyNowItems) return;
+    let cancel = false;
+    fetch(`/api/products/${buySlug}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (cancel || !d?.data) return;
+        const p = d.data;
+        setBuyNowItems([
+          {
+            product: {
+              ...p,
+              price: p.sellingPrice || p.price,
+              imageBase64: p.imageBase64 || p.allImages?.[0] || p.image || "",
+            },
+            quantity: Math.max(1, Number(searchParams.get("qty")) || 1),
+          },
+        ]);
+      })
+      .catch(() => {});
+    return () => {
+      cancel = true;
+    };
+  }, [buySlug, items.length, buyNowItems]);
+
+  // Dipakai di seluruh halaman: pakai buy-now items kalau ada, kalau tidak pakai keranjang
+  const checkoutItems = buyNowItems && buyNowItems.length > 0 ? buyNowItems : items;
+  const checkoutTotal = checkoutItems.reduce(
+    (sum, item) => sum + (item.product.price || item.product.sellingPrice || 0) * item.quantity,
+    0
+  );
   const [step, setStep] = useState<Step>(1);
   const [loading, setLoading] = useState(false);
   const [shippingLoading, setShippingLoading] = useState(false);
@@ -110,7 +154,7 @@ export default function CheckoutPage() {
           body: JSON.stringify({
             origin: STORE_ORIGIN,
             destination: address.cityId,
-            weight: items.reduce((total, item) => total + (item.product.weight || 500) * item.quantity, 0),
+            weight: checkoutItems.reduce((total, item) => total + (item.product.weight || 500) * item.quantity, 0),
             courier: "jne:sicepat:jnt:pos:tiki",
           }),
         });
@@ -157,7 +201,7 @@ export default function CheckoutPage() {
     calcShipping();
   }, [address.cityId]);
 
-  if (items.length === 0 && !orderPlaced) {
+  if (checkoutItems.length === 0 && !orderPlaced) {
     return (
       <>
         <Header />
@@ -532,7 +576,7 @@ export default function CheckoutPage() {
   }
 
   const shippingCost = selectedShipping?.cost || 0;
-  const total = totalPrice + shippingCost;
+  const total = checkoutTotal + shippingCost;
 
   const handlePlaceOrder = async () => {
     setLoading(true);
@@ -540,7 +584,7 @@ export default function CheckoutPage() {
     const user = getCurrentUser();
     
     const order = await createOrder({
-      items: items.map(item => ({
+      items: checkoutItems.map(item => ({
         productName: item.product.name,
         productSlug: item.product.slug,
         productImage: item.product.imageBase64,
@@ -832,7 +876,7 @@ export default function CheckoutPage() {
                   Ringkasan Pesanan
                 </h3>
                 <div className="space-y-3 mb-4 max-h-60 overflow-y-auto">
-                  {items.map(({ product, quantity }) => (
+                  {checkoutItems.map(({ product, quantity }) => (
                     <div key={product.id} className="flex gap-3">
                       <div className="w-12 h-12 bg-brand-gray rounded-lg flex items-center justify-center flex-shrink-0 text-xs">
                         {quantity}×
@@ -848,7 +892,7 @@ export default function CheckoutPage() {
                 <div className="border-t pt-3 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-brand-muted">Subtotal</span>
-                    <span className="font-medium">{formatPrice(totalPrice)}</span>
+                    <span className="font-medium">{formatPrice(checkoutTotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-brand-muted">Pengiriman ({selectedShipping?.courier} {selectedShipping?.service})</span>

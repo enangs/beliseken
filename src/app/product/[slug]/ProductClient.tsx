@@ -412,10 +412,10 @@ Meski begitu, ini unit bekas:
                     {added ? "Ditambahkan!" : "Tambah ke Keranjang"}
                   </button>
                 )}
-                {/* Checkout Langsung — di samping tombol keranjang */}
+                {/* Checkout Langsung — langsung ke proses belanja dengan produk ini */}
                 {product.stock > 0 && (
                   <a
-                    href="/checkout"
+                    href={`/checkout?buy=${product.slug}&qty=${quantity}`}
                     className="px-4 py-4 bg-brand-navy text-white font-bold rounded-xl flex items-center justify-center gap-1.5 hover:bg-brand-navy/90 transition-colors whitespace-nowrap"
                     title="Checkout Sekarang"
                   >
