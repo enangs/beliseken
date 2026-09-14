@@ -224,15 +224,18 @@ export async function POST(request: NextRequest) {
               unit.id
             );
             
-            // Log inventory change
-            await prisma.$executeRawUnsafe(
-              `INSERT INTO inventory_logs ("id", "productId", "unitId", "changeType", "quantityChange", "reason", "referenceId", "createdAt")
-               VALUES ($1, $2, $3, 'SOLD', -1, 'Order created', $4, NOW())`,
-              `ilog-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-              productId,
-              unit.id,
-              orderId
-            );
+            // Log inventory change (skema DB: action/fromStatus/toStatus — gagal log tidak boleh gagalkan order)
+            try {
+              await prisma.$executeRawUnsafe(
+                `INSERT INTO inventory_logs ("id", "unitId", "action", "fromStatus", "toStatus", "notes", "performedBy", "createdAt")
+                 VALUES ($1, $2, 'SOLD', 'AVAILABLE', 'SOLD', $3, 'system', NOW())`,
+                `ilog-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                unit.id,
+                `Order ${orderNumber} created`
+              );
+            } catch (logErr: any) {
+              console.error('inventory_logs insert failed (non-fatal):', logErr.message);
+            }
           }
           
           // Use real unit SKU if available
