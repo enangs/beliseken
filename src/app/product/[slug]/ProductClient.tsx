@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Star, ShoppingCart, Heart, Shield, Truck, RotateCcw, ChevronRight, Minus, Plus } from "lucide-react";
+import { Star, ShoppingCart, Heart, Shield, Truck, RotateCcw, ChevronRight, Minus, Plus, Zap } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getProductBySlug as fetchProductBySlug, getProducts as fetchProductsAPI, type ProductDetailResponse, type ProductResponse } from "@/lib/api";
@@ -185,13 +185,11 @@ export default function ProductClient({ slug }: { slug: string }) {
               )}
 
               {/* Info Tabs: Video | Performance | Minus | Garansi */}
-              {/* Tab Garansi selalu tampil; tab lain hanya jika ada datanya */}
-              {true && (
+              {/* Semua tab selalu tampil; tab kosong pakai teks default */}
                 <div className="mt-6">
                   <div className="flex gap-2 border-b border-brand-border">
-                    {product.videoUrl && (
-                      <button
-                        onClick={() => setActiveTab('video')}
+                    <button
+                      onClick={() => setActiveTab('video')}
                         className={`px-4 py-2.5 text-sm font-semibold rounded-t-lg transition-colors ${
                           activeTab === 'video' 
                             ? 'bg-brand text-white' 
@@ -200,10 +198,8 @@ export default function ProductClient({ slug }: { slug: string }) {
                       >
                         🎬 Video
                       </button>
-                    )}
-                    {product.performanceNotes && (
-                      <button
-                        onClick={() => setActiveTab('performance')}
+                    <button
+                      onClick={() => setActiveTab('performance')}
                         className={`px-4 py-2.5 text-sm font-semibold rounded-t-lg transition-colors ${
                           activeTab === 'performance' 
                             ? 'bg-brand text-white' 
@@ -212,10 +208,8 @@ export default function ProductClient({ slug }: { slug: string }) {
                       >
                         ⚡ Performance
                       </button>
-                    )}
-                    {product.minusNotes && (
-                      <button
-                        onClick={() => setActiveTab('minus')}
+                    <button
+                      onClick={() => setActiveTab('minus')}
                         className={`px-4 py-2.5 text-sm font-semibold rounded-t-lg transition-colors ${
                           activeTab === 'minus' 
                             ? 'bg-brand text-white' 
@@ -224,7 +218,6 @@ export default function ProductClient({ slug }: { slug: string }) {
                       >
                         ⚠️ Minus
                       </button>
-                    )}
                     <button
                       onClick={() => setActiveTab('warranty')}
                       className={`px-4 py-2.5 text-sm font-semibold rounded-t-lg transition-colors ${
@@ -237,24 +230,41 @@ export default function ProductClient({ slug }: { slug: string }) {
                     </button>
                   </div>
                   <div className="bg-brand-gray rounded-b-xl p-4">
-                    {activeTab === 'video' && product.videoUrl && (
-                      <div className="aspect-video rounded-lg overflow-hidden">
-                        <iframe
-                          src={product.videoUrl.replace('watch?v=', 'embed/')}
-                          className="w-full h-full"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        />
+                    {activeTab === 'video' && (
+                      product.videoUrl ? (
+                        <div className="aspect-video rounded-lg overflow-hidden">
+                          <iframe
+                            src={product.videoUrl.replace('watch?v=', 'embed/')}
+                            className="w-full h-full"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        </div>
+                      ) : (
+                        <div className="text-sm text-brand-muted leading-relaxed">
+                          📹 Video review produk ini belum tersedia. Hubungi kami via WhatsApp untuk demo unit langsung!
+                        </div>
+                      )
+                    )}
+                    {activeTab === 'performance' && (
+                      <div className="text-sm text-brand-navy leading-relaxed whitespace-pre-line">
+                        {product.performanceNotes || `⚡ Laporan performa unit ini belum diinput.
+
+Setiap unit BeliSeken sudah melewati quality control:
+✅ Test fungsi 100% (layar, keyboard, port, speaker, kamera)
+✅ Stress test suhu & performa
+✅ Battery health check (untuk perangkat berbaterai)
+
+Butuh detail benchmark? Tanya via WhatsApp — kami test langsung untuk Anda!`}
                       </div>
                     )}
-                    {activeTab === 'performance' && product.performanceNotes && (
+                    {activeTab === 'minus' && (
                       <div className="text-sm text-brand-navy leading-relaxed whitespace-pre-line">
-                        {product.performanceNotes}
-                      </div>
-                    )}
-                    {activeTab === 'minus' && product.minusNotes && (
-                      <div className="text-sm text-brand-navy leading-relaxed whitespace-pre-line">
-                        {product.minusNotes}
+                        {product.minusNotes || `✨ Kondisi unit ini sangat baik — tidak ada catatan minus signifikan.
+
+Meski begitu, ini unit bekas:
+• Bisa ada goresan halus yang tidak terlihat di foto
+• Kami foto unit asli yang dikirim — apa yang Anda lihat itu yang Anda dapat`}
                       </div>
                     )}
                     {activeTab === 'warranty' && (
@@ -267,7 +277,6 @@ export default function ProductClient({ slug }: { slug: string }) {
                     )}
                   </div>
                 </div>
-              )}
             </div>
 
             <div>
@@ -402,6 +411,16 @@ export default function ProductClient({ slug }: { slug: string }) {
                     <ShoppingCart size={20} />
                     {added ? "Ditambahkan!" : "Tambah ke Keranjang"}
                   </button>
+                )}
+                {/* Checkout Langsung — di samping tombol keranjang */}
+                {product.stock > 0 && (
+                  <a
+                    href="/checkout"
+                    className="w-14 h-14 bg-brand-navy text-white rounded-xl flex items-center justify-center hover:bg-brand-navy/90 transition-colors"
+                    title="Checkout Sekarang"
+                  >
+                    <Zap size={22} />
+                  </a>
                 )}
                 <button className="w-14 h-14 border-2 border-brand-border rounded-xl flex items-center justify-center hover:border-brand hover:text-brand transition-colors">
                   <Heart size={20} />
