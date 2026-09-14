@@ -181,7 +181,7 @@ export default function AdminDashboardPage() {
               {products.slice(0, 5).map((product) => (
                 <tr key={product.id} className="border-b border-brand-border last:border-0 hover:bg-brand-gray/50">
                   <td className="px-5 py-3 font-medium text-brand-navy">{product.name}</td>
-                  <td className="px-5 py-3 text-brand font-semibold">{formatPrice(product.price)}</td>
+                  <td className="px-5 py-3 text-brand font-semibold">{formatPrice(Number(product.sellingPrice ?? product.price) || 0)}</td>
                   <td className="px-5 py-3">
                     <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${
                       product.stock === 0 ? "bg-red-100 text-red-600" :
