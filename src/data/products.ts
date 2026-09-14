@@ -29,6 +29,7 @@ export interface Product {
   videoUrl?: string | null;
   performanceNotes?: string | null;
   minusNotes?: string | null;
+  warrantyNotes?: string | null;
 }
 
 export interface Category {

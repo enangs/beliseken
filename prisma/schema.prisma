@@ -130,6 +130,12 @@ model Product {
   weight          Int?                    // gram
   dimensions      String?                 // PxLxT cm
 
+  // Media & Detail Info
+  videoUrl        String?                 // URL video produk (YouTube/Vimeo)
+  performanceNotes String?                // Catatan performa
+  minusNotes      String?                 // Catatan minus/kekurangan
+  warrantyNotes   String?                 // Catatan garansi per produk
+
   // SEO & Meta
   metaTitle       String?
   metaDesc        String?

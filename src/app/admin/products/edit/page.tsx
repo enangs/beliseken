@@ -57,6 +57,7 @@ function EditProductContent() {
             videoUrl: p.videoUrl || "",
             performanceNotes: p.performanceNotes || "",
             minusNotes: p.minusNotes || "",
+            warrantyNotes: p.warrantyNotes || "",
           });
         } else {
           setNotFound(true);
@@ -90,6 +91,7 @@ function EditProductContent() {
         videoUrl: data.videoUrl,
         performanceNotes: data.performanceNotes,
         minusNotes: data.minusNotes,
+        warrantyNotes: data.warrantyNotes,
       });
       if (result.success) {
         router.push("/admin/products");

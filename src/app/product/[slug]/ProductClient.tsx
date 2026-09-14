@@ -21,7 +21,7 @@ export default function ProductClient({ slug }: { slug: string }) {
   const [added, setAdded] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [activeTab, setActiveTab] = useState<'info' | 'video' | 'performance' | 'minus'>('info');
+  const [activeTab, setActiveTab] = useState<'video' | 'performance' | 'minus' | 'warranty'>('warranty');
 
   useEffect(() => {
     fetchProductBySlug(slug)
@@ -184,8 +184,9 @@ export default function ProductClient({ slug }: { slug: string }) {
                 </div>
               )}
 
-              {/* Info Tabs: Video | Performance | Minus */}
-              {(product.videoUrl || product.performanceNotes || product.minusNotes) && (
+              {/* Info Tabs: Video | Performance | Minus | Garansi */}
+              {/* Tab Garansi selalu tampil; tab lain hanya jika ada datanya */}
+              {true && (
                 <div className="mt-6">
                   <div className="flex gap-2 border-b border-brand-border">
                     {product.videoUrl && (
@@ -224,6 +225,16 @@ export default function ProductClient({ slug }: { slug: string }) {
                         ⚠️ Minus
                       </button>
                     )}
+                    <button
+                      onClick={() => setActiveTab('warranty')}
+                      className={`px-4 py-2.5 text-sm font-semibold rounded-t-lg transition-colors ${
+                        activeTab === 'warranty' 
+                          ? 'bg-brand text-white' 
+                          : 'bg-gray-100 text-brand-muted hover:bg-gray-200'
+                      }`}
+                    >
+                      🛡️ Garansi
+                    </button>
                   </div>
                   <div className="bg-brand-gray rounded-b-xl p-4">
                     {activeTab === 'video' && product.videoUrl && (
@@ -244,6 +255,14 @@ export default function ProductClient({ slug }: { slug: string }) {
                     {activeTab === 'minus' && product.minusNotes && (
                       <div className="text-sm text-brand-navy leading-relaxed whitespace-pre-line">
                         {product.minusNotes}
+                      </div>
+                    )}
+                    {activeTab === 'warranty' && (
+                      <div className="text-sm text-brand-navy leading-relaxed whitespace-pre-line">
+                        {product.warrantyNotes || `✅ Garansi toko 30 hari (ganti unit jika ada kerusakan fungsi)
+✅ Retur 7 hari jika barang tidak sesuai deskripsi
+✅ Sudah lolos quality control & test fungsi 100%
+✅ Setiap unit disertai struk & kartu garansi BeliSeken`}
                       </div>
                     )}
                   </div>

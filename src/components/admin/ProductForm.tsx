@@ -90,6 +90,7 @@ export default function ProductForm({
   const [videoUrl, setVideoUrl] = useState(initialData?.videoUrl || "");
   const [performanceNotes, setPerformanceNotes] = useState(initialData?.performanceNotes || "");
   const [minusNotes, setMinusNotes] = useState(initialData?.minusNotes || "");
+  const [warrantyNotes, setWarrantyNotes] = useState(initialData?.warrantyNotes || "");
   const [weight, setWeight] = useState(initialData?.weight?.toString() || "");
   const [dimensions, setDimensions] = useState(initialData?.dimensions || "");
   const [stock, setStock] = useState(initialData?.stock?.toString() || "1");
@@ -273,6 +274,7 @@ export default function ProductForm({
       videoUrl: videoUrl.trim() || undefined,
       performanceNotes: performanceNotes.trim() || undefined,
       minusNotes: minusNotes.trim() || undefined,
+      warrantyNotes: warrantyNotes.trim() || undefined,
       weight: weight ? parseInt(weight) : undefined,
       dimensions: dimensions.trim() || undefined,
       stock: stock ? parseInt(stock) : 1,
@@ -557,6 +559,11 @@ export default function ProductForm({
             <label className="block text-sm font-semibold text-brand-navy mb-1">⚠️ Catatan Minus / Kekurangan</label>
             <textarea value={minusNotes} onChange={(e) => setMinusNotes(e.target.value)} rows={3} placeholder="Contoh:\n- Ada goresan kecil di cover belakang\n- Touchpad agak aus\n- Speaker kanan agak pelan" className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all resize-none" />
             <p className="text-xs text-brand-muted mt-1">Transparansi kondisi barang untuk buyer</p>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-brand-navy mb-1">🛡️ Catatan Garansi (opsional)</label>
+            <textarea value={warrantyNotes} onChange={(e) => setWarrantyNotes(e.target.value)} rows={3} placeholder="Kosongkan untuk pakai garansi standar toko. Contoh:\n- Garansi toko 30 hari ganti unit\n- Battery health dijamin min. 80%\n- Free charger original" className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all resize-none" />
+            <p className="text-xs text-brand-muted mt-1">Kalau kosong, tampil garansi standar toko (30 hari)</p>
           </div>
         </div>
       </div>

@@ -37,6 +37,7 @@ export interface ProductResponse {
   videoUrl?: string | null;
   performanceNotes?: string | null;
   minusNotes?: string | null;
+  warrantyNotes?: string | null;
 }
 
 export interface ProductDetailResponse extends ProductResponse {
@@ -48,6 +49,7 @@ export interface ProductDetailResponse extends ProductResponse {
   videoUrl?: string | null;
   performanceNotes?: string | null;
   minusNotes?: string | null;
+  warrantyNotes?: string | null;
 }
 
 export interface CategoryResponse {

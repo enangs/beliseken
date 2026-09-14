@@ -27,21 +27,23 @@ export const GET = withAdminAuth(async (request: NextRequest) => {
         },
       });
       if (!product) return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
-      // Fetch video/performance/minus via raw SQL (Prisma client may not know these columns)
+      // Fetch video/performance/minus/warranty via raw SQL (Prisma client may not know these columns)
       let videoUrl: string | null = null;
       let performanceNotes: string | null = null;
       let minusNotes: string | null = null;
+      let warrantyNotes: string | null = null;
       try {
         const rawResult = await prisma.$queryRawUnsafe(
-          'SELECT "videoUrl", "performanceNotes", "minusNotes" FROM products WHERE id = $1', id
+          'SELECT "videoUrl", "performanceNotes", "minusNotes", "warrantyNotes" FROM products WHERE id = $1', id
         ) as any[];
         if (rawResult?.[0]) {
           videoUrl = rawResult[0].videoUrl || null;
           performanceNotes = rawResult[0].performanceNotes || null;
           minusNotes = rawResult[0].minusNotes || null;
+          warrantyNotes = rawResult[0].warrantyNotes || null;
         }
       } catch {}
-      return NextResponse.json({ success: true, data: { ...product, videoUrl, performanceNotes, minusNotes } });
+      return NextResponse.json({ success: true, data: { ...product, videoUrl, performanceNotes, minusNotes, warrantyNotes } });
     }
 
     const where: any = {};
@@ -95,7 +97,7 @@ export const POST = withAdminAuth(async (request: NextRequest) => {
   try {
     const body = await request.json();
     // Accept both form fields (brand, category, price, originalPrice) and API fields (brandId, categoryId, sellingPrice, basePrice)
-    const { name, slug, sku, description, category, subcategory, subcategoryId, brand, brandId, categoryId, basePrice, sellingPrice, price, originalPrice, discount, weight, dimensions, badge, isFeatured, specs, imageBase64, images, videoUrl, performanceNotes, minusNotes, stock, supplier, status, condition, rating, reviewCount } = body;
+    const { name, slug, sku, description, category, subcategory, subcategoryId, brand, brandId, categoryId, basePrice, sellingPrice, price, originalPrice, discount, weight, dimensions, badge, isFeatured, specs, imageBase64, images, videoUrl, performanceNotes, minusNotes, warrantyNotes, stock, supplier, status, condition, rating, reviewCount } = body;
 
     // Resolve brand name → brandId
     let resolvedBrandId = brandId || null;
@@ -151,12 +153,12 @@ export const POST = withAdminAuth(async (request: NextRequest) => {
       include: { category: true, brand: true },
     });
 
-    // Save video/performance/minus via raw SQL (Prisma client may not know these columns)
-    if (videoUrl || performanceNotes || minusNotes) {
+    // Save video/performance/minus/warranty via raw SQL (Prisma client may not know these columns)
+    if (videoUrl || performanceNotes || minusNotes || warrantyNotes) {
       try {
         await prisma.$executeRawUnsafe(
-          'UPDATE products SET "videoUrl" = $1, "performanceNotes" = $2, "minusNotes" = $3 WHERE id = $4',
-          videoUrl || null, performanceNotes || null, minusNotes || null, product.id
+          'UPDATE products SET "videoUrl" = $1, "performanceNotes" = $2, "minusNotes" = $3, "warrantyNotes" = $4 WHERE id = $5',
+          videoUrl || null, performanceNotes || null, minusNotes || null, warrantyNotes || null, product.id
         );
       } catch {}
     }
@@ -218,21 +220,23 @@ export const PUT = withAdminAuth(async (request: NextRequest) => {
       }
     }
 
-    const validFields = ['name', 'slug', 'sku', 'description', 'shortDesc', 'categoryId', 'subcategoryId', 'brandId', 'modelId', 'basePrice', 'sellingPrice', 'minPrice', 'discount', 'weight', 'dimensions', 'metaTitle', 'metaDesc', 'ogImage', 'isActive', 'isFeatured', 'badge', 'sortOrder', 'avgRating', 'reviewCount', 'soldCount', 'viewCount', 'videoUrl', 'performanceNotes', 'minusNotes'];
+    const validFields = ['name', 'slug', 'sku', 'description', 'shortDesc', 'categoryId', 'subcategoryId', 'brandId', 'modelId', 'basePrice', 'sellingPrice', 'minPrice', 'discount', 'weight', 'dimensions', 'metaTitle', 'metaDesc', 'ogImage', 'isActive', 'isFeatured', 'badge', 'sortOrder', 'avgRating', 'reviewCount', 'soldCount', 'viewCount', 'videoUrl', 'performanceNotes', 'minusNotes', 'warrantyNotes'];
     const updates: Record<string, any> = {};
     for (const key of validFields) { if (rawUpdates[key] !== undefined) updates[key] = rawUpdates[key]; }
     if (rawUpdates.price !== undefined && !updates.sellingPrice) updates.sellingPrice = rawUpdates.price;
     if (rawUpdates.originalPrice !== undefined && !updates.basePrice) updates.basePrice = rawUpdates.originalPrice;
     if (rawUpdates.status !== undefined) updates.isActive = rawUpdates.status !== 'SOLD_OUT' && rawUpdates.status !== 'RESERVED';
 
-    // Separate video/performance/minus for raw SQL update (Prisma client may not know these columns)
+    // Separate video/performance/minus/warranty for raw SQL update (Prisma client may not know these columns)
     const mediaFields: Record<string, string | null> = {};
     if (updates.videoUrl !== undefined) mediaFields.videoUrl = updates.videoUrl || null;
     if (updates.performanceNotes !== undefined) mediaFields.performanceNotes = updates.performanceNotes || null;
     if (updates.minusNotes !== undefined) mediaFields.minusNotes = updates.minusNotes || null;
+    if (updates.warrantyNotes !== undefined) mediaFields.warrantyNotes = updates.warrantyNotes || null;
     delete updates.videoUrl;
     delete updates.performanceNotes;
     delete updates.minusNotes;
+    delete updates.warrantyNotes;
 
     const product = await prisma.product.update({ where: { id }, data: updates, include: { category: true, brand: true } });
 

@@ -69,19 +69,21 @@ export async function GET(
       data: { viewCount: { increment: 1 } },
     });
 
-    // Fetch video/performance/minus fields via raw SQL (Prisma client may not know about them yet)
+    // Fetch video/performance/minus/warranty fields via raw SQL (Prisma client may not know about them yet)
     let videoUrl: string | null = null;
     let performanceNotes: string | null = null;
     let minusNotes: string | null = null;
+    let warrantyNotes: string | null = null;
     try {
       const rawResult = await prisma.$queryRawUnsafe(
-        'SELECT "videoUrl", "performanceNotes", "minusNotes" FROM products WHERE id = $1',
+        'SELECT "videoUrl", "performanceNotes", "minusNotes", "warrantyNotes" FROM products WHERE id = $1',
         product.id
       ) as any[];
       if (rawResult && rawResult[0]) {
         videoUrl = rawResult[0].videoUrl || null;
         performanceNotes = rawResult[0].performanceNotes || null;
         minusNotes = rawResult[0].minusNotes || null;
+        warrantyNotes = rawResult[0].warrantyNotes || null;
       }
     } catch {}
 
@@ -100,6 +102,7 @@ export async function GET(
       videoUrl,
       performanceNotes,
       minusNotes,
+      warrantyNotes,
       imageBase64: allImageUrls[0] || null,
       images: allImageUrls,
       allImages: allImageUrls,
