@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useCallback, useMemo, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2, Mail, Phone } from "lucide-react";
 
@@ -10,8 +10,16 @@ import { loginUser } from "@/lib/auth-api";
 
 type LoginMode = "email" | "phone";
 
-export default function LoginPage() {
+// Halaman tujuan setelah login — default ke /products (bukan profile)
+const safeRedirect = (raw: string | null): string => {
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/products";
+  return raw;
+};
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = safeRedirect(searchParams.get("redirect"));
   const [mode, setMode] = useState<LoginMode>("email");
   const [showPassword, setShowPassword] = useState(false);
   const [identifier, setIdentifier] = useState(""); // email or phone
@@ -50,7 +58,7 @@ export default function LoginPage() {
         if (result.success && result.data) {
           localStorage.setItem("beliseken_user_session", JSON.stringify(result.data));
           if (result.data.email) localStorage.setItem("beliseken_user_email", result.data.email);
-          router.push("/dashboard");
+          router.push(redirect);
         } else {
           setError(result.error || "No HP atau password salah!");
         }
@@ -61,7 +69,7 @@ export default function LoginPage() {
           if (result.user?.email === "admin@beliseken.com") {
             router.push("/admin");
           } else {
-            router.push("/dashboard");
+            router.push(redirect);
           }
         } else if (result.needsVerification) {
           setNeedsVerification(true);
@@ -75,7 +83,7 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
-  }, [identifier, password, isFormValid, mode, router]);
+  }, [identifier, password, isFormValid, mode, router, redirect]);
 
   const handleGoogleLogin = useCallback(() => {
     setError("");
@@ -274,5 +282,13 @@ export default function LoginPage() {
         </div>
       </main>
     </>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }

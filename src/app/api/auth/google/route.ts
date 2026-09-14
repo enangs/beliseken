@@ -10,9 +10,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${baseUrl}/login?error=Google+not+configured`);
   }
 
+  const { searchParams: requestParams } = new URL(request.url);
+  const redirectTo = requestParams.get('redirect') || '/products';
+
   const redirectUri = `${baseUrl}/api/auth/google/callback`;
   const scope = 'openid email profile';
 
+  // Simpan halaman tujuan setelah login di state (default /products)
   const params = new URLSearchParams({
     client_id: clientId,
     redirect_uri: redirectUri,
@@ -20,6 +24,7 @@ export async function GET(request: NextRequest) {
     scope,
     access_type: 'offline',
     prompt: 'consent',
+    state: Buffer.from(redirectTo).toString('base64url'),
   });
 
   return NextResponse.redirect(

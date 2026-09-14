@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
   Search,
   ShoppingCart,
@@ -77,6 +77,7 @@ function highlightMatch(text: string, query: string) {
 
 export default function Header() {
   const router = useRouter();
+  const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -416,7 +417,10 @@ export default function Header() {
                   )}
                 </div>
               ) : (
-                <Link href="/login" className="flex items-center gap-2 px-4 py-2.5 bg-brand text-white rounded-xl hover:bg-brand-dark transition-colors text-sm font-semibold">
+                <Link
+                  href={`/login?redirect=${encodeURIComponent(pathname || "/products")}`}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-brand text-white rounded-xl hover:bg-brand-dark transition-colors text-sm font-semibold"
+                >
                   <User size={16} />
                   <span className="hidden md:block">Masuk / Daftar</span>
                 </Link>

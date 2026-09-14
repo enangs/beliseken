@@ -9,6 +9,14 @@ export async function GET(request: NextRequest) {
   const error = searchParams.get('error');
   const baseUrl = process.env.NEXTAUTH_URL || 'https://beliseken.com';
 
+  // Halaman tujuan setelah login (dikirim via state di /api/auth/google)
+  let redirectTo = '/products';
+  try {
+    const stateRaw = searchParams.get('state') ? Buffer.from(searchParams.get('state')!, 'base64url').toString() : '';
+    if (stateRaw.startsWith('/') && !stateRaw.startsWith('//')) redirectTo = stateRaw;
+  } catch {}
+  const safePath = redirectTo;
+
   if (error || !code) {
     return NextResponse.redirect(`${baseUrl}/login?error=Google+login+failed`);
   }
@@ -96,7 +104,7 @@ export async function GET(request: NextRequest) {
       addresses: [],
     };
 
-    const response = NextResponse.redirect(`${baseUrl}/dashboard`);
+    const response = NextResponse.redirect(`${baseUrl}${safePath}`);
 
     // Set session in cookie (same format as login API)
     response.cookies.set('beliseken_user_session', JSON.stringify(sessionData), {
@@ -114,7 +122,7 @@ export async function GET(request: NextRequest) {
 <body>
   <script>
     localStorage.setItem('beliseken_user_session', '${JSON.stringify(sessionData).replace(/'/g, "\\'")}');
-    window.location.href = '${baseUrl}/dashboard';
+    window.location.href = '${baseUrl}${safePath}';
   </script>
 </body>
 </html>`;
