@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { ChevronRight, ChevronLeft } from "lucide-react";
 import { getCategories, type CategoryResponse } from "@/lib/api";
 
 // Category icon mapping (SVG files)
@@ -23,8 +23,60 @@ const categoryBadges: Record<string, { label: string; color: string }> = {
   "Peripheral & Aksesoris": { label: "Sale", color: "bg-purple-500" },
 };
 
+// Card kategori horizontal — icon besar + teks di sampingnya
+function KategoriCard({
+  href,
+  icon,
+  title,
+  subtitle,
+  badge,
+  titleClass = "text-brand-navy",
+}: {
+  href: string;
+  icon: string;
+  title: string;
+  subtitle?: string;
+  badge?: { label: string; color: string };
+  titleClass?: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex-shrink-0 snap-start w-56 flex items-center gap-4 bg-gray-50 hover:bg-white border border-transparent hover:border-brand-border rounded-2xl px-5 py-4 transition-all duration-300 hover:shadow-md"
+    >
+      <div className="relative flex-shrink-0">
+        {badge && (
+          <span className={`absolute -top-2 -right-2 ${badge.color} text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10`}>
+            {badge.label}
+          </span>
+        )}
+        <div className="w-14 h-14 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={icon}
+            alt={title}
+            className="w-11 h-11 object-contain opacity-80 group-hover:opacity-100 transition-opacity"
+          />
+        </div>
+      </div>
+      <div className="min-w-0">
+        <p className={`text-sm font-semibold ${titleClass} group-hover:text-brand transition-colors leading-tight truncate`}>
+          {title}
+        </p>
+        {subtitle && (
+          <p className="text-xs text-brand-muted mt-0.5">{subtitle}</p>
+        )}
+      </div>
+      <ChevronRight size={16} className="ml-auto text-gray-300 group-hover:text-brand transition-colors flex-shrink-0" />
+    </Link>
+  );
+}
+
 export default function KategoriPopuler() {
   const [categories, setCategories] = useState<CategoryResponse[]>([]);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
 
   useEffect(() => {
     getCategories()
@@ -32,97 +84,103 @@ export default function KategoriPopuler() {
       .catch(() => {});
   }, []);
 
+  const checkScroll = () => {
+    if (!scrollRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+    setCanScrollLeft(scrollLeft > 5);
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 5);
+  };
+
+  const scroll = (direction: "left" | "right") => {
+    if (!scrollRef.current) return;
+    const scrollAmount = scrollRef.current.clientWidth * 0.8;
+    scrollRef.current.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
+    });
+    setTimeout(checkScroll, 350);
+  };
+
   return (
     <section className="py-8 bg-white border-b border-brand-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Title */}
+        {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-bold text-brand-navy">Kategori</h2>
           <Link
             href="/products"
-            className="text-sm font-semibold text-brand hover:text-brand-dark transition-colors"
+            className="text-sm font-semibold text-brand hover:text-brand-dark transition-colors flex items-center gap-1"
           >
-            Lihat Semua →
+            Lihat Semua <ChevronRight size={16} />
           </Link>
         </div>
 
-        {/* Category Grid - Clean SVG Icons + Jual Barang */}
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-6">
-          {/* Jual Barang - Special Item */}
-          <Link
-            href="/sell"
-            className="group flex flex-col items-center gap-3"
-          >
-            <div className="relative">
-              <span className="absolute -top-2 -right-3 bg-brand text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10">
-                Hot
-              </span>
-              <div className="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/icons/jualbarang.svg"
-                  alt="Jual Barang"
-                  className="w-14 h-14 sm:w-16 sm:h-16 object-contain opacity-80 group-hover:opacity-100 transition-opacity"
-                />
-              </div>
-            </div>
-            <div className="text-center">
-              <p className="text-xs sm:text-sm font-semibold text-brand group-hover:text-brand-dark transition-colors leading-tight">
-                Jual Barang
-              </p>
-              <p className="text-[10px] sm:text-xs text-brand-muted mt-0.5">
-                Jual barang bekasmu
-              </p>
-            </div>
-          </Link>
+        {/* Carousel */}
+        <div className="relative">
+          {/* Left Arrow */}
+          {canScrollLeft && (
+            <button
+              onClick={() => scroll("left")}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 w-10 h-10 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
+            >
+              <ChevronLeft size={20} className="text-brand-navy" />
+            </button>
+          )}
 
-          {/* Categories from Database */}
-          {categories.length === 0 ? (
-            <>
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex flex-col items-center gap-3">
-                  <div className="w-16 h-16 bg-gray-200 rounded animate-pulse" />
-                  <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
+          {/* Scrollable Container */}
+          <div
+            ref={scrollRef}
+            onScroll={checkScroll}
+            className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 snap-x snap-mandatory items-center"
+          >
+            {/* Jual Barang - Special Item */}
+            <KategoriCard
+              href="/sell"
+              icon="/icons/jualbarang.svg"
+              title="Jual Barang"
+              subtitle="Jual barang bekasmu"
+              badge={{ label: "Hot", color: "bg-brand" }}
+              titleClass="text-brand"
+            />
+
+            {/* Loading skeleton */}
+            {categories.length === 0 &&
+              [1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="flex-shrink-0 w-56 flex items-center gap-4 bg-gray-50 rounded-2xl px-5 py-4">
+                  <div className="w-14 h-14 bg-gray-200 rounded-xl animate-pulse flex-shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
+                    <div className="h-3 w-16 bg-gray-200 rounded animate-pulse" />
+                  </div>
                 </div>
               ))}
-            </>
-          ) : (
-            categories.map((category) => {
+
+            {/* Categories from Database */}
+            {categories.map((category) => {
               const icon = categoryIcons[category.name] || "/icons/lightbulb.svg";
               const badge = categoryBadges[category.name];
 
               return (
-                <Link
+                <KategoriCard
                   key={category.id}
                   href={`/category/${category.slug}`}
-                  className="group flex flex-col items-center gap-3"
-                >
-                  <div className="relative">
-                    {badge && (
-                      <span className={`absolute -top-2 -right-3 ${badge.color} text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10`}>
-                        {badge.label}
-                      </span>
-                    )}
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={icon}
-                        alt={category.name}
-                        className="w-14 h-14 sm:w-16 sm:h-16 object-contain opacity-80 group-hover:opacity-100 transition-opacity"
-                      />
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xs sm:text-sm font-semibold text-brand-navy group-hover:text-brand transition-colors leading-tight">
-                      {category.name}
-                    </p>
-                    <p className="text-[10px] sm:text-xs text-brand-muted mt-0.5">
-                      {category.itemCount} produk
-                    </p>
-                  </div>
-                </Link>
+                  icon={icon}
+                  title={category.name}
+                  subtitle={`${category.itemCount} produk`}
+                  badge={badge}
+                />
               );
-            })
+            })}
+          </div>
+
+          {/* Right Arrow */}
+          {canScrollRight && (
+            <button
+              onClick={() => scroll("right")}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 w-10 h-10 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
+            >
+              <ChevronRight size={20} className="text-brand-navy" />
+            </button>
           )}
         </div>
       </div>
