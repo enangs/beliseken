@@ -7,6 +7,7 @@ import { useRouter, usePathname } from "next/navigation";
 import {
   Search,
   ShoppingCart,
+  Zap,
   Menu,
   X,
   ChevronDown,
@@ -386,6 +387,18 @@ export default function Header() {
 
             {/* Right Side */}
             <div className="flex items-center gap-2">
+              {/* Checkout Langsung — hanya tampil kalau keranjang ada isi */}
+              {totalItems > 0 && (
+                <Link
+                  href="/checkout"
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-brand text-white rounded-xl hover:bg-brand-dark transition-colors text-sm font-semibold"
+                  title="Checkout Sekarang"
+                >
+                  <Zap size={16} />
+                  <span className="hidden lg:block">Checkout</span>
+                </Link>
+              )}
+
               <Link href="/dashboard/cart" className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-brand/5 transition-colors relative">
                 <ShoppingCart size={20} className="text-brand-navy" />
                 {totalItems > 0 && (
