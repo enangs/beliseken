@@ -416,10 +416,11 @@ Meski begitu, ini unit bekas:
                 {product.stock > 0 && (
                   <a
                     href="/checkout"
-                    className="w-14 h-14 bg-brand-navy text-white rounded-xl flex items-center justify-center hover:bg-brand-navy/90 transition-colors"
+                    className="px-4 py-4 bg-brand-navy text-white font-bold rounded-xl flex items-center justify-center gap-1.5 hover:bg-brand-navy/90 transition-colors whitespace-nowrap"
                     title="Checkout Sekarang"
                   >
-                    <Zap size={22} />
+                    <Zap size={18} />
+                    <span className="text-sm">Checkout</span>
                   </a>
                 )}
                 <button className="w-14 h-14 border-2 border-brand-border rounded-xl flex items-center justify-center hover:border-brand hover:text-brand transition-colors">
