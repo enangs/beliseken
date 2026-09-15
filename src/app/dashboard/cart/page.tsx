@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Minus, Plus, Trash2, ShoppingCart } from "lucide-react";
-import Header from "@/components/Header";
+import Header, { CHECKOUT_DISABLED } from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useCart } from "@/lib/cart";
 import { storeInfo } from "@/data/products";
@@ -138,6 +138,11 @@ export default function CartPage() {
               <span className="font-bold text-brand-navy text-lg">Total</span>
               <span className="text-xl font-extrabold text-brand">{formatPrice(totalPrice)}</span>
             </div>
+            {CHECKOUT_DISABLED ? (
+              <div className="w-full py-4 bg-amber-50 border border-amber-200 text-amber-700 font-semibold rounded-xl text-center text-sm mb-3">
+                🔒 Checkout sementara ditutup — pembelian dibuka segera. Silakan chat WhatsApp untuk resi/tanya stok.
+              </div>
+            ) : (
             <Link
               href="/checkout"
               className="block w-full py-4 bg-brand hover:bg-brand-dark text-white font-bold rounded-xl text-center transition-colors text-lg flex items-center justify-center gap-2"
@@ -148,6 +153,7 @@ export default function CartPage() {
               </svg>
               Lanjut ke Checkout
             </Link>
+            )}
             <a
               href={`${storeInfo.whatsappLink}?text=${encodeURIComponent(waMessage)}`}
               target="_blank"

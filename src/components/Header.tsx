@@ -36,6 +36,10 @@ const storeInfo = {
   operatingHours: 'Senin - Sabtu, 09:00 - 18:00 WIB',
 };
 
+// Mode preview promosi: nonaktifkan sementara checkout (barang real belum tersedia).
+// Set NEXT_PUBLIC_DISABLE_CHECKOUT=false di Vercel env untuk membuka kembali.
+export const CHECKOUT_DISABLED = process.env.NEXT_PUBLIC_DISABLE_CHECKOUT === "true";
+
 interface Suggestion {
   name: string;
   slug: string;

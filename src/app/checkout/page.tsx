@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { MapPin, Truck, CreditCard, CheckCircle, ChevronRight, Package, ArrowLeft, Loader2, Camera, Upload, Image as ImageIcon, MessageCircle, X, Clock, Copy, ExternalLink, AlertCircle } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
-import Header from "@/components/Header";
+import Header, { CHECKOUT_DISABLED } from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useCart } from "@/lib/cart";
 import { createOrder } from "@/lib/orders-api";
@@ -35,6 +35,35 @@ const paymentMethods = [
 ];
 
 export default function CheckoutPage() {
+  // Mode preview: checkout dimatikan global
+  if (CHECKOUT_DISABLED) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-lg mx-auto px-4 py-20 text-center">
+          <div className="text-6xl mb-6">🔒</div>
+          <h1 className="text-2xl font-extrabold text-brand-navy mb-3">Checkout Segera Dibuka</h1>
+          <p className="text-brand-muted mb-2">
+            Kami sedang menyiapkan stok barang terverifikasi untuk Anda.
+          </p>
+          <p className="text-brand-muted mb-8">
+            Sementara ini pembelian bisa dilakukan via WhatsApp — klik tombol di bawah.
+          </p>
+          <a
+            href="https://wa.me/6285101256123?text=Halo%2C%20saya%20ingin%20bertanya%20tentang%20produk%20di%20BeliSeken"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold rounded-xl transition-colors"
+          >
+            <MessageCircle size={20} />
+            Chat WhatsApp
+          </a>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <Suspense fallback={null}>
       <CheckoutContent />
