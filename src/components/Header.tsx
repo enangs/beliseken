@@ -386,6 +386,20 @@ export default function Header() {
 
             {/* Right Side */}
             <div className="flex items-center gap-2">
+              {/* Jual Barang - Eye-catching CTA */}
+              <Link
+                href="/sell"
+                className="hidden md:flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-yellow-400 to-amber-500 text-brand-navy rounded-xl font-bold text-sm shadow-md hover:shadow-lg hover:scale-105 transition-all relative overflow-hidden group"
+                title="Jual elektronik bekas Anda di BeliSeken"
+              >
+                <span className="absolute inset-0 bg-white/30 -translate-x-full group-hover:translate-x-full transition-transform duration-700" aria-hidden="true" />
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                  <circle cx="12" cy="13" r="4" />
+                </svg>
+                <span className="hidden lg:inline">Jual Barang</span>
+                <span className="absolute -top-1.5 -right-1.5 bg-brand text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full animate-pulse">💰</span>
+              </Link>
               <Link href="/dashboard/cart" className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-brand/5 transition-colors relative">
                 <ShoppingCart size={20} className="text-brand-navy" />
                 {totalItems > 0 && (

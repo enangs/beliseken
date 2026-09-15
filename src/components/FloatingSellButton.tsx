@@ -14,8 +14,8 @@ export default function FloatingSellButton() {
   useEffect(() => {
     if (isAdmin) return;
     const handleScroll = () => {
-      // Show after scrolling past hero section (about 600px)
-      setIsVisible(window.scrollY > 600);
+      // Show after scrolling past hero section (about 300px)
+      setIsVisible(window.scrollY > 300);
     };
 
     // Show immediately on mobile
@@ -23,7 +23,7 @@ export default function FloatingSellButton() {
       setIsVisible(true);
     }
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isAdmin]);
 
@@ -32,14 +32,15 @@ export default function FloatingSellButton() {
   return (
     <Link
       href="/sell"
-      className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-40 bg-brand text-white px-4 py-3 rounded-full shadow-lg hover:bg-brand-dark transition-all hover:scale-105 flex items-center gap-2 font-semibold text-sm md:text-base"
+      className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-40 bg-gradient-to-r from-yellow-400 to-amber-500 text-brand-navy px-4 py-3 rounded-full shadow-xl hover:shadow-2xl transition-all hover:scale-110 flex items-center gap-2 font-bold text-sm md:text-base animate-bounce"
+      style={{ animationDuration: "2.5s" }}
       aria-label="Jual Barang"
     >
       <svg
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="2.2"
         strokeLinecap="round"
         strokeLinejoin="round"
         className="w-5 h-5"
