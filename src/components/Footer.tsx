@@ -42,7 +42,13 @@ export default function Footer() {
               </picture>
             </Link>
             <p className="text-white/60 text-sm mb-4">
-              Jual beli elektronik bekas premium di Bekasi. Garansi 30 hari, pengiriman aman.
+              BeliSeken.com adalah toko online elektronik bekas premium yang dikontrol penuh oleh admin — dari sourcing, quality control (QC), pricing, hingga pengiriman. Setiap unit sudah lolos pemeriksaan fungsi 100% dan disertai garansi toko 30 hari.
+            </p>
+            <p className="text-white/60 text-sm mb-4">
+              Kami menerima titip-jual (consignment) barang elektronik bekas: pemilik barang menitipkan, kami verifikasi kondisinya secara fisik, lalu tayangkan di platform. Pembeli mendapat pengalaman semaman membeli langsung dari toko — karena semua barang sudah lolos QC BeliSeken.
+            </p>
+            <p className="text-brand font-semibold text-sm mb-4">
+              Marketplace-nya titip-jual, kontrol-nya tetap toko.
             </p>
             <div className="flex items-center gap-3">
               <a href="https://www.instagram.com/beliseken1/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-brand transition-colors">
