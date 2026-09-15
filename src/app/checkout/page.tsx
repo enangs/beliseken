@@ -10,6 +10,7 @@ import Footer from "@/components/Footer";
 import { useCart } from "@/lib/cart";
 import { createOrder } from "@/lib/orders-api";
 import { PROVINCES, CITIES, STORE_ORIGIN, type OrderAddress, type ShippingOption } from "@/lib/orders";
+import { DISTRICTS } from "@/lib/districts";
 import { formatPrice } from "@/lib/utils";
 import { storeInfo } from "@/data/products";
 import { getCurrentUser, getDefaultAddress, saveUserAddress } from "@/lib/auth-api";
@@ -113,8 +114,8 @@ function CheckoutContent() {
         address: defaultAddr.address,
         city: defaultAddr.city,
         cityId: defaultAddr.cityId,
-        district: "",
-        districtId: "",
+        district: defaultAddr.district || "",
+        districtId: defaultAddr.districtId || "",
         province: defaultAddr.province || "JAWA BARAT",
         provinceId: defaultAddr.provinceId || "6",
         postcode: defaultAddr.postcode || "17510",
@@ -577,6 +578,7 @@ function CheckoutContent() {
 
   const shippingCost = selectedShipping?.cost || 0;
   const total = checkoutTotal + shippingCost;
+  const districts = DISTRICTS[address.cityId] || [];
 
   const handlePlaceOrder = async () => {
     setLoading(true);
@@ -608,6 +610,8 @@ function CheckoutContent() {
             address: address.address,
             city: address.city,
             cityId: address.cityId,
+            district: address.district,
+            districtId: address.districtId,
             province: address.province,
             provinceId: address.provinceId,
             postcode: address.postcode,
@@ -733,15 +737,37 @@ function CheckoutContent() {
                       <select value={address.cityId} onChange={(e) => {
                         const cities = CITIES[address.provinceId] || [];
                         const city = cities.find((c) => c.id === e.target.value);
-                        setAddress({ ...address, cityId: e.target.value, city: city?.name || "" });
+                        setAddress({ ...address, cityId: e.target.value, city: city?.name || "", district: "", districtId: "" });
                       }} className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand bg-white" disabled={!address.provinceId}>
                         <option value="">Pilih Kota</option>
                         {(CITIES[address.provinceId] || []).map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
                       </select>
                     </div>
+                    <div>
+                      <label className="text-sm font-semibold text-brand-navy block mb-1">Kecamatan *</label>
+                      <input
+                        type="text"
+                        list="district-options"
+                        value={address.district}
+                        onChange={(e) => {
+                          const d = districts.find((x) => x.name.toLowerCase() === e.target.value.toLowerCase());
+                          setAddress({ ...address, district: e.target.value, districtId: d?.id || "" });
+                        }}
+                        placeholder={address.cityId ? "Pilih atau ketik kecamatan" : "Pilih kota dulu"}
+                        className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand"
+                        disabled={!address.cityId}
+                      />
+                      <datalist id="district-options">
+                        {districts.map((d) => (<option key={d.id} value={d.name} />))}
+                      </datalist>
+                    </div>
+                    <div>
+                      <label className="text-sm font-semibold text-brand-navy block mb-1">Kode Pos</label>
+                      <input type="text" value={address.postcode} onChange={(e) => setAddress({ ...address, postcode: e.target.value })} placeholder="17510" className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand" />
+                    </div>
                     <div className="sm:col-span-2">
                       <label className="text-sm font-semibold text-brand-navy block mb-1">Alamat Lengkap *</label>
-                      <textarea value={address.address} onChange={(e) => setAddress({ ...address, address: e.target.value })} rows={3} placeholder="Jalan, nomor rumah, RT/RW, kelurahan..." className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand resize-none" />
+                      <textarea value={address.address} onChange={(e) => setAddress({ ...address, address: e.target.value })} rows={3} placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan/desa, patokan..." className="w-full px-4 py-2.5 border border-brand-border rounded-lg text-sm outline-none focus:border-brand resize-none" />
                     </div>
                     <div>
                       <label className="text-sm font-semibold text-brand-navy block mb-1">Kode Pos</label>
@@ -763,7 +789,7 @@ function CheckoutContent() {
                     </div>
                   )}
                   <div className="mt-6 flex justify-end">
-                    <button onClick={() => setStep(2)} disabled={!address.name || !address.phone || !address.cityId || !address.address} className="px-6 py-2.5 bg-brand hover:bg-brand-dark text-white font-semibold rounded-xl text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    <button onClick={() => setStep(2)} disabled={!address.name || !address.phone || !address.cityId || !address.address || !address.district.trim()} className="px-6 py-2.5 bg-brand hover:bg-brand-dark text-white font-semibold rounded-xl text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                       Lanjut ke Pengiriman →
                     </button>
                   </div>

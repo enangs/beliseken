@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, label, name, phone, address, city, cityId, province, provinceId, postcode, isDefault } = body;
+    const { userId, label, name, phone, address, city, cityId, district, districtId, province, provinceId, postcode, isDefault } = body;
 
     if (!userId || !name || !phone || !address) {
       return NextResponse.json(
@@ -61,6 +61,8 @@ export async function POST(request: NextRequest) {
         address,
         city: city || '',
         cityId: cityId || '',
+        district: district || '',
+        districtId: districtId || '',
         province: province || '',
         provinceId: provinceId || '',
         postcode: postcode || '',

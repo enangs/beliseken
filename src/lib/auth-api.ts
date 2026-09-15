@@ -19,6 +19,8 @@ interface UserAddress {
   address: string;
   city: string;
   cityId: string;
+  district?: string;
+  districtId?: string;
   province: string;
   provinceId: string;
   postcode: string;
