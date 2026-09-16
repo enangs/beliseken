@@ -1,6 +1,65 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+// Grafik unggulan App vs Web — animasi bar saat masuk viewport
+function AppAdvantageChart() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [animate, setAnimate] = useState(false);
+
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      ([entry]) => entry.isIntersecting && setAnimate(true),
+      { threshold: 0.3 }
+    );
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+
+  const bars = [
+    { label: "Notif Flash Sale", app: 95, web: 40, appNote: "Push instan", webNote: "Cek manual" },
+    { label: "Kecepatan Belanja", app: 92, web: 65, appNote: "1-tap checkout", webNote: "Buka browser" },
+    { label: "Tracking Pesanan", app: 98, web: 55, appNote: "Real-time", webNote: "Refresh halaman" },
+    { label: "Promo Eksklusif", app: 100, web: 30, appNote: "Khusus user app", webNote: "Standar" },
+  ];
+
+  return (
+    <div ref={ref} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-5 md:p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-white font-bold text-sm md:text-base">📊 Keunggulan Aplikasi</h3>
+        <div className="flex items-center gap-4 text-[11px]">
+          <span className="flex items-center gap-1.5 text-white/80"><span className="w-3 h-3 rounded bg-brand inline-block" /> App</span>
+          <span className="flex items-center gap-1.5 text-white/50"><span className="w-3 h-3 rounded bg-white/25 inline-block" /> Web</span>
+        </div>
+      </div>
+      <div className="space-y-4">
+        {bars.map((b, i) => (
+          <div key={i}>
+            <div className="flex justify-between items-center mb-1.5">
+              <span className="text-white/80 text-xs font-semibold">{b.label}</span>
+              <span className="text-brand text-xs font-bold">{b.appNote} vs {b.webNote}</span>
+            </div>
+            {/* App bar */}
+            <div className="h-3 bg-white/10 rounded-full overflow-hidden mb-1">
+              <div
+                className="h-full bg-gradient-to-r from-brand to-[#ff6b6b] rounded-full transition-all duration-1000 ease-out"
+                style={{ width: animate ? `${b.app}%` : "0%", transitionDelay: `${i * 150}ms` }}
+              />
+            </div>
+            {/* Web bar */}
+            <div className="h-3 bg-white/10 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-white/25 rounded-full transition-all duration-1000 ease-out"
+                style={{ width: animate ? `${b.web}%` : "0%", transitionDelay: `${i * 150 + 100}ms` }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="text-white/40 text-[11px] mt-4 text-center">Indeks pengalaman pengguna — makin panjang makin unggul</p>
+    </div>
+  );
+}
 
 export default function DownloadApp() {
   const [qrUrl, setQrUrl] = useState("");
@@ -115,7 +174,7 @@ export default function DownloadApp() {
             </p>
 
             {/* Features grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               {features.map((f, i) => (
                 <div key={i} className="flex items-start gap-3 bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:bg-white/10 transition-colors">
                   <div className="text-brand flex-shrink-0 mt-0.5">{f.icon}</div>
@@ -125,6 +184,11 @@ export default function DownloadApp() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Grafik unggulan App */}
+            <div className="mb-8">
+              <AppAdvantageChart />
             </div>
 
             {/* Download buttons */}
