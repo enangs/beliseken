@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BeliSeken API Documentation — untuk Developer Android</title>
+<meta name="description" content="Dokumentasi lengkap REST API beliseken.com untuk integrasi aplikasi Android/iOS: produk, kategori, banner, auth, order, dan pembayaran.">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;line-height:1.65;color:#1f2937;background:#f8fafc}
+.wrap{max-width:980px;margin:0 auto;padding:32px 20px 80px}
+header{text-align:center;margin-bottom:36px;padding:36px 20px;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);border-radius:16px;color:#fff}
+header h1{font-size:2em;margin-bottom:8px}
+header h1 span{color:#e94560}
+header p{color:#cbd5e1;max-width:640px;margin:0 auto}
+.badge{display:inline-block;background:#22c55e;color:#fff;padding:4px 14px;border-radius:20px;font-size:.85em;margin-top:14px;font-weight:600}
+.baseurl{margin-top:18px;background:rgba(255,255,255,.08);border:1px dashed rgba(255,255,255,.35);border-radius:10px;padding:12px 16px;font-family:Consolas,Menlo,monospace;font-size:1.05em;display:inline-block}
+h2{font-size:1.45em;color:#1a1a2e;margin:44px 0 14px;padding-bottom:10px;border-bottom:3px solid #e94560;display:flex;align-items:center;gap:10px}
+h2 .num{background:#e94560;color:#fff;font-size:.7em;width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+h3{font-size:1.1em;color:#e94560;margin:20px 0 8px}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.93em;background:#fff}
+th{background:#1a1a2e;color:#fff;text-align:left;padding:10px 14px}
+td{padding:10px 14px;border-bottom:1px solid #e2e8f0;vertical-align:top}
+tr:nth-child(even) td{background:#f8fafc}
+code{font-family:Consolas,Menlo,monospace;background:#f1f5f9;color:#e94560;padding:2px 7px;border-radius:6px;font-size:.92em}
+.method{display:inline-block;font-weight:700;font-size:.78em;padding:3px 10px;border-radius:6px;color:#fff;letter-spacing:.5px}
+.get{background:#0ea5e9}
+.post{background:#22c55e}
+.endpoint{font-family:Consolas,Menlo,monospace;background:#1a1a2e;color:#a5f3fc;padding:12px 16px;border-radius:10px;font-size:.95em;overflow-x:auto;margin:10px 0;white-space:pre}
+pre{font-family:Consolas,Menlo,monospace;background:#1a1a2e;color:#e2e8f0;padding:18px;border-radius:12px;font-size:.85em;overflow-x:auto;line-height:1.55}
+pre .k{color:#93c5fd}
+pre .s{color:#86efac}
+pre .n{color:#fcd34d}
+.note{background:#fef9c3;border-left:4px solid #eab308;padding:12px 16px;border-radius:0 10px 10px 0;font-size:.93em;margin:12px 0}
+.ok{background:#dcfce7;border-left:4px solid #22c55e;padding:12px 16px;border-radius:0 10px 10px 0;font-size:.93em;margin:12px 0}
+.warn{background:#fee2e2;border-left:4px solid #ef4444;padding:12px 16px;border-radius:0 10px 10px 0;font-size:.93em;margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin:14px 0}
+.grid .card{margin:0}
+footer{text-align:center;color:#64748b;font-size:.9em;margin-top:60px}
+a{color:#e94560}
+.toc{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px 24px;margin-bottom:10px}
+.toc a{display:block;padding:5px 0;text-decoration:none;color:#1a1a2e;font-weight:600;font-size:.95em}
+.toc a:hover{color:#e94560}
+@media print{body{background:#fff}.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+<h1>📱 <span>BeliSeken</span>.com API</h1>
+<p>Dokumentasi REST API untuk developer aplikasi Android / iOS. Semua data produk, kategori, banner, pesanan, dan pembayaran tersedia melalui endpoint JSON di bawah.</p>
+<div class="badge">✅ LIVE — semua endpoint sudah aktif di production</div><br>
+<div class="baseurl">Base URL: https://beliseken.com</div>
+</header>
+
+<nav class="toc">
+<a href="#s1">1. Daftar Produk (list + filter + pagination)</a>
+<a href="#s2">2. Detail Produk</a>
+<a href="#s3">3. Kategori</a>
+<a href="#s4">4. Banner &amp; Promo</a>
+<a href="#s5">5. Autentikasi</a>
+<a href="#s6">6. Order &amp; Pembayaran</a>
+<a href="#s7">7. Panduan Implementasi (Coil, Retrofit, caching)</a>
+<a href="#s8">8. Contoh Response &amp; Uji Cepat</a>
+</nav>
+
+<!-- 1. PRODUCTS -->
+<h2 id="s1"><span class="num">1</span> Daftar Produk</h2>
+<div class="card">
+<span class="method get">GET</span> <code>/api/products</code>
+<p>Ambil daftar produk aktif. Mendukung filter, pencarian, sorting, dan pagination.</p>
+
+<h3>Query Parameters (semua opsional)</h3>
+<table>
+<tr><th>Param</th><th>Contoh</th><th>Keterangan</th></tr>
+<tr><td><code>page</code></td><td><code>?page=1</code></td><td>Nomor halaman (default 1)</td></tr>
+<tr><td><code>limit</code></td><td><code>?limit=20</code></td><td>Jumlah item per halaman (default 20)</td></tr>
+<tr><td><code>category</code></td><td><code>?category=laptop-notebook</code></td><td>Slug kategori</td></tr>
+<tr><td><code>brand</code></td><td><code>?brand=lenovo</code></td><td>Slug brand</td></tr>
+<tr><td><code>condition</code></td><td><code>?condition=A,B</code></td><td>Grade kondisi (A/B/C, pisah dengan koma)</td></tr>
+<tr><td><code>minPrice</code></td><td><code>?minPrice=1000000</code></td><td>Harga minimum (rupiah, angka polos)</td></tr>
+<tr><td><code>maxPrice</code></td><td><code>?maxPrice=5000000</code></td><td>Harga maksimum</td></tr>
+<tr><td><code>q</code></td><td><code>?q=thinkpad</code></td><td>Pencarian nama / deskripsi / SKU / brand</td></tr>
+<tr><td><code>inStock</code></td><td><code>?inStock=true</code></td><td>Hanya produk dengan stok tersedia</td></tr>
+<tr><td><code>featured</code></td><td><code>?featured=true</code></td><td>Produk unggulan saja</td></tr>
+<tr><td><code>badge</code></td><td><code>?badge=NEW</code></td><td>Filter label produk</td></tr>
+<tr><td><code>sort</code></td><td><code>?sort=newest</code></td><td><code>newest</code> · <code>price_asc</code> · <code>price_desc</code> · <code>popular</code> · <code>rating</code></td></tr>
+</table>
+
+<h3>Contoh URL</h3>
+<div class="endpoint">GET https://beliseken.com/api/products?limit=20&amp;inStock=true&amp;sort=newest
+GET https://beliseken.com/api/products?category=laptop-notebook&amp;brand=lenovo&amp;maxPrice=5000000</div>
+
+<h3>Response</h3>
+<pre>{
+  <span class="k">"success"</span>: true,
+  <span class="k">"data"</span>: [
+    {
+      <span class="k">"id"</span>: <span class="s">"cmtv7scx70003jp04l983nrv3"</span>,
+      <span class="k">"name"</span>: <span class="s">"Lenovo Thinkpad L13 Gen 2"</span>,
+      <span class="k">"slug"</span>: <span class="s">"lenovo-thinkpad-l13-gen-2"</span>,
+      <span class="k">"sku"</span>: <span class="s">"BS-LP-0100"</span>,
+      <span class="k">"description"</span>: <span class="s">"Catatan: ..."</span>,
+      <span class="k">"sellingPrice"</span>: <span class="n">6300000</span>,
+      <span class="k">"basePrice"</span>: <span class="n">6500000</span>,
+      <span class="k">"discount"</span>: <span class="n">0</span>,
+      <span class="k">"avgRating"</span>: <span class="n">4.6</span>,
+      <span class="k">"reviewCount"</span>: <span class="n">45</span>,
+      <span class="k">"soldCount"</span>: <span class="n">12</span>,
+      <span class="k">"category"</span>: { <span class="k">"id"</span>: <span class="s">"..."</span>, <span class="k">"name"</span>: <span class="s">"Laptop &amp; Notebook"</span>, <span class="k">"slug"</span>: <span class="s">"laptop-notebook"</span> },
+      <span class="k">"brand"</span>: { <span class="k">"id"</span>: <span class="s">"..."</span>, <span class="k">"name"</span>: <span class="s">"Lenovo"</span>, <span class="k">"slug"</span>: <span class="s">"lenovo"</span> },
+      <span class="k">"imageBase64"</span>: <span class="s">"https://res.cloudinary.com/.../foto-utama.jpg"</span>,
+      <span class="k">"allImages"</span>: [],
+      <span class="k">"stock"</span>: <span class="n">3</span>,
+      <span class="k">"status"</span>: <span class="s">"ACTIVE"</span>,
+      <span class="k">"condition"</span>: <span class="s">"Grade A"</span>
+    }
+  ],
+  <span class="k">"meta"</span>: { <span class="k">"page"</span>: 1, <span class="k">"limit"</span>: 20, <span class="k">"total"</span>: 18, <span class="k">"totalPages"</span>: 9 }
+}</pre>
+
+<div class="warn">⚠️ <b>Penting:</b> field <code>imageBase64</code> berisi <b>URL https biasa</b> (Cloudinary), BUKAN string base64. Langsung dipakai di Coil/Glide tanpa decode.</div>
+<div class="note">💡 <code>stock == 0</code> atau <code>status == "SOLD_OUT"</code> → tampilkan produk sebagai sold out. Harga dalam rupiah penuh (integer) — format ke <code>Rp 6.300.000</code> di sisi app.</div>
+</div>
+
+<!-- 2. PRODUCT DETAIL -->
+<h2 id="s2"><span class="num">2</span> Detail Produk</h2>
+<div class="card">
+<span class="method get">GET</span> <code>/api/products/{slug}</code>
+<p>Ambil detail lengkap satu produk berdasarkan slug.</p>
+<div class="endpoint">GET https://beliseken.com/api/products/lenovo-thinkpad-l13-gen-2</div>
+
+<h3>Field Tambahan (di luar field list)</h3>
+<table>
+<tr><th>Field</th><th>Isi</th></tr>
+<tr><td><code>allImages</code> / <code>images</code></td><td>Array URL semua foto produk, sudah urut</td></tr>
+<tr><td><code>specs</code></td><td>Array spesifikasi <code>{ label, value }</code></td></tr>
+<tr><td><code>units</code></td><td>Unit fisik tersedia: grade kondisi, skor, catatan, health baterai</td></tr>
+<tr><td><code>reviews</code></td><td>10 ulasan terakhir (nama user, rating, komentar)</td></tr>
+<tr><td><code>videoUrl</code></td><td>URL video produk (bisa <code>null</code>)</td></tr>
+<tr><td><code>performanceNotes</code></td><td>Catatan performa (bisa <code>null</code>)</td></tr>
+<tr><td><code>minusNotes</code></td><td>Catatan minus / kekurangan unit (bisa <code>null</code>)</td></tr>
+<tr><td><code>warrantyNotes</code></td><td>Catatan garansi (bisa <code>null</code>)</td></tr>
+<tr><td><code>totalReviews</code></td><td>Jumlah total ulasan</td></tr>
+</table>
+
+<h3>Error 404</h3>
+<pre>{ <span class="k">"success"</span>: false, <span class="k">"error"</span>: <span class="s">"Product not found"</span> }</pre>
+</div>
+
+<!-- 3. CATEGORIES -->
+<h2 id="s3"><span class="num">3</span> Kategori</h2>
+<div class="card">
+<span class="method get">GET</span> <code>/api/categories</code>
+<p>Daftar kategori aktif, termasuk subkategori nested dan jumlah produk per kategori (<code>itemCount</code>).</p>
+<div class="endpoint">GET https://beliseken.com/api/categories</div>
+</div>
+
+<!-- 4. BANNERS -->
+<h2 id="s4"><span class="num">4</span> Banner &amp; Promo</h2>
+<div class="card">
+<span class="method get">GET</span> <code>/api/banners</code>
+<p>Banner hero dan kartu promo untuk homepage app. Filter opsional: <code>?type=hero</code> atau <code>?type=promo</code>.</p>
+<div class="endpoint">GET https://beliseken.com/api/banners</div>
+<p>Response: array berisi <code>imageUrl</code> (Cloudinary), <code>title</code>, <code>subtitle</code>, <code>linkUrl</code>, <code>icon</code>.</p>
+</div>
+
+<!-- 5. AUTH -->
+<h2 id="s5"><span class="num">5</span> Autentikasi</h2>
+<div class="card">
+<table>
+<tr><th>Endpoint</th><th>Method</th><th>Body JSON</th></tr>
+<tr><td><code>/api/auth/login</code></td><td><span class="method post">POST</span></td><td><code>{ "email": "...", "password": "..." }</code></td></tr>
+<tr><td><code>/api/auth/register</code></td><td><span class="method post">POST</span></td><td><code>{ "name", "email", "password", "phone" }</code></td></tr>
+<tr><td><code>/api/auth/login-phone</code></td><td><span class="method post">POST</span></td><td><code>{ "phone", "password" }</code></td></tr>
+<tr><td><code>/api/auth/google</code></td><td><span class="method get">GET</span></td><td>Redirect OAuth — buka via Custom Tab / WebView</td></tr>
+</table>
+</div>
+
+<!-- 6. ORDERS -->
+<h2 id="s6"><span class="num">6</span> Order &amp; Pembayaran</h2>
+<div class="card">
+<table>
+<tr><th>Endpoint</th><th>Method</th><th>Keterangan</th></tr>
+<tr><td><code>/api/orders</code></td><td><span class="method post">POST</span></td><td>Buat pesanan baru (checkout)</td></tr>
+<tr><td><code>/api/orders</code></td><td><span class="method get">GET</span></td><td>Riwayat pesanan user</td></tr>
+<tr><td><code>/api/orders/{id}</code></td><td><span class="method get">GET</span></td><td>Detail satu pesanan</td></tr>
+<tr><td><code>/api/cart/validate</code></td><td><span class="method post">POST</span></td><td>Validasi keranjang sebelum checkout</td></tr>
+<tr><td><code>/api/payment/pakasir/create</code></td><td><span class="method post">POST</span></td><td>Buat transaksi QRIS / VA → return payment URL</td></tr>
+<tr><td><code>/api/payment/pakasir/status?orderId=...</code></td><td><span class="method get">GET</span></td><td>Cek status pembayaran</td></tr>
+</table>
+<div class="note">💡 Pembayaran memakai <b>Pakasir</b>: app membuat order → panggil <code>create</code> → buka payment URL di WebView → polling <code>status</code> sampai lunas.</div>
+</div>
+
+<!-- 7. IMPLEMENTATION -->
+<h2 id="s7"><span class="num">7</span> Panduan Implementasi</h2>
+<div class="grid">
+<div class="card">
+<h3>🖼️ Image Loading</h3>
+<p>Pakai <b>Coil</b> atau <b>Glide</b>. URL sudah auto-optimize (WebP, resize) oleh Cloudinary — tidak perlu transformasi tambahan di client.</p>
+</div>
+<div class="card">
+<h3>📄 Pagination</h3>
+<p>Ikuti <code>meta.totalPages</code> untuk infinite scroll / load more. Gunakan <code>limit=20</code> sebagai standar.</p>
+</div>
+<div class="card">
+<h3>⚡ Caching</h3>
+<p>Response sudah dikirim dengan HTTP cache header. Tambahkan OkHttp Cache / Room di client agar app terasa instan saat offline.</p>
+</div>
+<div class="card">
+<h3>🚨 Error Handling</h3>
+<p>Jika <code>success: false</code>, tampilkan isi field <code>error</code> ke user. HTTP code: 404 = tidak ditemukan, 500 = server error.</p>
+</div>
+</div>
+<div class="warn">⚠️ Jangan hardcode URL gambar — selalu ambil dari <code>imageBase64</code> / <code>allImages</code>, karena penyimpanan gambar bisa berubah (base64 → Cloudinary) sewaktu-waktu.</div>
+</div>
+
+<!-- 8. TEST -->
+<h2 id="s8"><span class="num">8</span> Uji Cepat (tanpa install apa pun)</h2>
+<div class="card">
+<h3>cURL</h3>
+<pre>curl <span class="s">"https://beliseken.com/api/products?limit=5"</span>
+curl <span class="s">"https://beliseken.com/api/products/lenovo-thinkpad-l13-gen-2"</span>
+curl <span class="s">"https://beliseken.com/api/categories"</span></pre>
+<h3>Browser</h3>
+<p>Tempel langsung di browser: <a href="https://beliseken.com/api/products?limit=5">beliseken.com/api/products?limit=5</a></p>
+</div>
+
+<footer>
+<p><b>BeliSeken.com</b> — Marketplace Elektronik Bekas Terverifikasi · Dokumentasi API v1 · September 2026</p>
+<p>Base URL: <code>https://beliseken.com</code> · Kontak: admin@beliseken.com · WA 0851-0125-6123</p>
+</footer>
+
+</div>
+</body>
+</html>
