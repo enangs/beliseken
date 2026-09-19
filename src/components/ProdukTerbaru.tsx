@@ -10,7 +10,7 @@ export default function ProdukTerbaru() {
   const [allProducts, setAllProducts] = useState<ProductResponse[]>([]);
 
   useEffect(() => {
-    fetchProductsAPI({ sort: "newest", limit: 50 })
+    fetchProductsAPI({ sort: "newest", limit: 12 })
       .then((res) => {
         if (res?.data) {
           const available = res.data.filter((p: ProductResponse) => p.stock > 0);
@@ -24,13 +24,13 @@ export default function ProdukTerbaru() {
   // New products (just added)
   const newProducts = [...allProducts]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 8);
+    .slice(0, 4);
 
   // Best sellers (most sold, with stock)
   const bestSellers = [...allProducts]
     .filter((p) => p.stock > 0)
     .sort((a, b) => b.soldCount - a.soldCount)
-    .slice(0, 8);
+    .slice(0, 4);
 
   // Regular products (rest of available products)
   const regularProducts = [...allProducts]
