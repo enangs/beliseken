@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ChevronLeft, ChevronRight, Smartphone, Laptop, Globe, Wifi, Monitor, Tablet, Gamepad2, Headphones, Camera, Watch, Cpu } from "lucide-react";
 import { getActiveBanners, getActivePromoCards, getActiveHorizontalPromos, type Banner, type PromoCard, type HorizontalPromo } from "@/lib/banners";
 
@@ -175,8 +176,16 @@ export default function Hero() {
             <div className={`relative bg-gradient-to-r ${heroData.bg} rounded-2xl overflow-hidden aspect-[16/7] transition-all duration-500`}>
               {heroData.imageBase64 && (
                 <div className="absolute inset-0">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={heroData.imageBase64} alt={heroData.title} width={1200} height={525} fetchPriority="high" decoding="async" className="w-full h-full object-cover" />
+                  <Image
+                    src={heroData.imageBase64}
+                    alt={heroData.title}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 66vw"
+                    className="object-cover"
+                    priority
+                    placeholder="blur"
+                    blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI1MjUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNTI1IiBmaWxsPSIjZjNmNGY2Ii8+PC9zdmc+"
+                  />
                   <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
                 </div>
               )}
@@ -210,8 +219,16 @@ export default function Hero() {
                 <Link key={promo.id} href={promo.href} className="flex-1 relative rounded-2xl overflow-hidden hover:shadow-xl transition-shadow group">
                   {promo.imageBase64 ? (
                     <div className="absolute inset-0">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={promo.imageBase64} alt={promo.title} width={400} height={300} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                      <Image
+                        src={promo.imageBase64}
+                        alt={promo.title}
+                        fill
+                        sizes="400px"
+                        className="object-cover"
+                        loading="lazy"
+                        placeholder="blur"
+                        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2YzZjRmNiIvPjwvc3ZnPg=="
+                      />
                       <div className="absolute inset-0 bg-gradient-to-br from-black/50 to-black/70" />
                     </div>
                   ) : (
@@ -274,8 +291,16 @@ function HorizontalPromoSection({ promos }: { promos: HorizontalPromo[] }) {
               {/* Background image or gradient */}
               {promo.imageBase64 ? (
                 <>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={promo.imageBase64} alt={promo.title} width={400} height={200} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
+                  <Image
+                    src={promo.imageBase64}
+                    alt={promo.title}
+                    fill
+                    sizes="280px"
+                    className="object-cover"
+                    loading="lazy"
+                    placeholder="blur"
+                    blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YzZjRmNiIvPjwvc3ZnPg=="
+                  />
                   <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/30" />
                 </>
               ) : (

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getProducts as fetchProductsAPI, type ProductResponse } from "@/lib/api";
 import ProductCard from "./ProductCard";
+import ProductCardSkeleton from "./ProductCardSkeleton";
 
 export default function ProdukTerbaru() {
   const [allProducts, setAllProducts] = useState<ProductResponse[]>([]);
@@ -36,7 +37,24 @@ export default function ProdukTerbaru() {
     .filter((p) => p.stock > 0)
     .slice(0, 8);
 
-  if (allProducts.length === 0) return null;
+  if (allProducts.length === 0) return (
+    <section className="py-12 md:py-16 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xl">🆕</span>
+              <h2 className="text-2xl md:text-3xl font-bold text-brand-navy">Baru Ditambahkan</h2>
+            </div>
+            <p className="text-brand-muted text-sm">Memuat produk...</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+          <ProductCardSkeleton count={8} />
+        </div>
+      </div>
+    </section>
+  );
 
   return (
     <>

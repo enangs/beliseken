@@ -193,6 +193,31 @@ html {
     content-visibility: auto;
     contain-intrinsic-size: 0 500px;
   }
+  
+  /* Optimize image rendering */
+  img {
+    image-rendering: auto;
+    image-rendering: -webkit-optimize-contrast;
+  }
+}
+
+/* Critical CSS for above-the-fold content */
+.hero-section {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.product-card {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* Optimize font loading */
+.font-sans {
+  font-display: swap;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Reduce animation for mobile */

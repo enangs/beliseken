@@ -2,6 +2,7 @@
 
 import { useState, useCallback, memo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ShoppingCart, Star, Check } from "lucide-react";
 import { type ProductResponse } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
@@ -54,14 +55,15 @@ const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
       <Link href={`/product/${product.slug}`}>
         <div className="relative aspect-square sm:aspect-[4/3] bg-gray-100 overflow-hidden">
           {product.imageBase64 ? (
-            <img
+            <Image
               src={product.imageBase64}
               alt={`${product.name} - ${product.brand?.name || ""} ${product.category?.name || ""}`}
-              loading="lazy"
-              decoding="async"
-              width={400}
-              height={300}
-              className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              className="object-cover group-hover:scale-105 transition-all duration-300"
+              placeholder="blur"
+              blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZGRlIiBmb250LXNpemU9IjQwIj7wn5qoPC90ZXh0Pjwvc3ZnPg=="
+              priority={false}
             />
           ) : (
             <>

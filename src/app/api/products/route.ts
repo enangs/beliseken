@@ -4,11 +4,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 // Optimize Cloudinary URLs
-function optimizeImageUrl(url: string | null): string | null {
+function optimizeImageUrl(url: string | null, size: 'thumbnail' | 'medium' | 'large' = 'medium'): string | null {
   if (!url || !url.includes('cloudinary.com')) return url;
   const parts = url.split('/upload/');
   if (parts.length !== 2) return url;
-  return `${parts[0]}/upload/q_auto,f_auto,w_800/${parts[1]}`;
+  
+  const sizeParams = {
+    thumbnail: 'q_auto,f_auto,w_200,h_200,c_fill',
+    medium: 'q_auto,f_auto,w_400',
+    large: 'q_auto,f_auto,w_800',
+  };
+  
+  return `${parts[0]}/upload/${sizeParams[size]}/${parts[1]}`;
+}
+
+// Optimize base64 images by adding quality parameters
+function optimizeBase64Image(base64: string | null): string | null {
+  if (!base64) return null;
+  // For base64 images, we can't optimize further, but we can ensure they're properly formatted
+  return base64;
 }
 
 export async function GET(request: NextRequest) {
@@ -149,7 +163,7 @@ export async function GET(request: NextRequest) {
       category: p.cat_id ? { id: p.cat_id, name: p.cat_name, slug: p.cat_slug, icon: p.cat_icon, color: p.cat_color } : null,
       subcategory: p.sub_id ? { id: p.sub_id, name: p.sub_name, slug: p.sub_slug } : null,
       brand: p.brand_id ? { id: p.brand_id, name: p.brand_name, slug: p.brand_slug } : null,
-      imageBase64: optimizeImageUrl(p.image_url),
+      imageBase64: optimizeImageUrl(p.image_url, 'thumbnail'),
       allImages: [],
       stock: p.stock_count,
       availableUnits: p.stock_count,

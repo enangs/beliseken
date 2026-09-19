@@ -7,6 +7,7 @@ import KategoriPopuler from "@/components/KategoriPopuler";
 import MerkFavorit from "@/components/MerkFavorit";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Footer from "@/components/Footer";
+import PrefetchLinks from "@/components/PrefetchLinks";
 
 // Lazy load below-fold components
 const ProdukTerbaru = lazy(() => import("@/components/ProdukTerbaru"));
@@ -21,6 +22,7 @@ function SectionFallback() {
 export default function Home() {
   return (
     <>
+      <PrefetchLinks />
       <Header />
       <main className="flex-1">
         <Hero />
