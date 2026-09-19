@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BeliSeken.com - Konfigurasi Lengkap</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #fff;
+            padding: 40px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #e94560;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            color: #1a1a2e;
+            margin-bottom: 10px;
+        }
+        
+        h1 span {
+            color: #e94560;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: #22c55e;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+        
+        h2 {
+            font-size: 1.5em;
+            color: #1a1a2e;
+            margin: 30px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e94560;
+        }
+        
+        h3 {
+            font-size: 1.2em;
+            color: #e94560;
+            margin: 20px 0 10px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 0.95em;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border: 1px solid #e5e7eb;
+        }
+        
+        th {
+            background: #1a1a2e;
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        tr:hover {
+            background: #f1f5f9;
+        }
+        
+        .status-active {
+            color: #22c55e;
+            font-weight: bold;
+        }
+        
+        .status-planned {
+            color: #f59e0b;
+            font-weight: bold;
+        }
+        
+        code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9em;
+        }
+        
+        pre {
+            background: #1a1a2e;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        
+        pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid #f59e0b;
+            padding: 15px 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 15px 0;
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-left: 4px solid #3b82f6;
+            padding: 15px 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 15px 0;
+        }
+        
+        .success-box {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            border-left: 4px solid #22c55e;
+            padding: 15px 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 15px 0;
+        }
+        
+        ul {
+            margin: 10px 0 10px 20px;
+        }
+        
+        li {
+            margin: 5px 0;
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 15px 0;
+        }
+        
+        .card {
+            background: #f8f9fa;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .card h4 {
+            color: #1a1a2e;
+            margin-bottom: 10px;
+        }
+        
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #e5e7eb;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        @media print {
+            body {
+                padding: 20px;
+            }
+            
+            h2 {
+                page-break-before: always;
+            }
+            
+            h2:first-of-type {
+                page-break-before: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛒 <span>BeliSeken</span>.com</h1>
+            <p class="subtitle">E-commerce Elektronik Bekas Premium</p>
+            <p class="subtitle">Konfigurasi Lengkap Server & Teknologi</p>
+            <span class="badge">✅ Production Ready</span>
+            <p style="margin-top: 15px; color: #999;">Terakhir diperbarui: 19 September 2026 | Versi 1.0.0</p>
+        </header>
+
+        <section>
+            <h2>🌐 Website Overview</h2>
+            <table>
+                <tr>
+                    <th width="30%">Item</th>
+                    <th>Detail</th>
+                </tr>
+                <tr>
+                    <td><strong>Domain</strong></td>
+                    <td>beliseken.com</td>
+                </tr>
+                <tr>
+                    <td><strong>URL</strong></td>
+                    <td>https://beliseken.com</td>
+                </tr>
+                <tr>
+                    <td><strong>Admin URL</strong></td>
+                    <td>https://beliseken.com/admin</td>
+                </tr>
+                <tr>
+                    <td><strong>API URL</strong></td>
+                    <td>https://beliseken.com/api</td>
+                </tr>
+                <tr>
+                    <td><strong>Status</strong></td>
+                    <td><span class="status-active">🟢 Online</span></td>
+                </tr>
+                <tr>
+                    <td><strong>SSL</strong></td>
+                    <td>✅ Valid (Vercel Auto)</td>
+                </tr>
+            </table>
+        </section>
+
+        <section>
+            <h2>🖥️ Server & Hosting</h2>
+            
+            <h3>Vercel (Primary Hosting)</h3>
+            <table>
+                <tr>
+                    <th width="30%">Item</th>
+                    <th>Detail</th>
+                </tr>
+                <tr>
+                    <td><strong>Platform</strong></td>
+                    <td>Vercel</td>
+                </tr>
+                <tr>
+                    <td><strong>Region</strong></td>
+                    <td>Global (Edge Network)</td>
+                </tr>
+                <tr>
+                    <td><strong>Auto Deploy</strong></td>
+                    <td>✅ GitHub integration</td>
+                </tr>
+                <tr>
+                    <td><strong>Build Time</strong></td>
+                    <td>~50-60 seconds</td>
+                </tr>
+                <tr>
+                    <td><strong>Node.js</strong></td>
+                    <td>18.x</td>
+                </tr>
+                <tr>
+                    <td><strong>Bandwidth</strong></td>
+                    <td>100GB/month (Free plan)</td>
+                </tr>
+            </table>
+
+            <h3>Database (PostgreSQL)</h3>
+            <table>
+                <tr>
+                    <th width="30%">Item</th>
+                    <th>Detail</th>
+                </tr>
+                <tr>
+                    <td><strong>Provider</strong></td>
+                    <td>Vercel Postgres / Neon / Supabase</td>
+                </tr>
+                <tr>
+                    <td><strong>Type</strong></td>
+                    <td>PostgreSQL 15+</td>
+                </tr>
+                <tr>
+                    <td><strong>ORM</strong></td>
+                    <td>Prisma 6.19.3</td>
+                </tr>
+                <tr>
+                    <td><strong>Tables</strong></td>
+                    <td>20+ tables</td>
+                </tr>
+                <tr>
+                    <td><strong>Connection</strong></td>
+                    <td>Connection pooling (PgBouncer)</td>
+                </tr>
+            </table>
+        </section>
+
+        <section>
+            <h2>⚙️ Technology Stack</h2>
+            
+            <h3>Frontend</h3>
+            <table>
+                <tr>
+                    <th>Technology</th>
+                    <th>Version</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td><strong>Next.js</strong></td>
+                    <td>14.2.35</td>
+                    <td>React framework</td>
+                </tr>
+                <tr>
+                    <td><strong>React</strong></td>
+                    <td>18.3.1</td>
+                    <td>UI library</td>
+                </tr>
+                <tr>
+                    <td><strong>TypeScript</strong></td>
+                    <td>5.x</td>
+                    <td>Type safety</td>
+                </tr>
+                <tr>
+                    <td><strong>Tailwind CSS</strong></td>
+                    <td>4.x</td>
+                    <td>Styling</td>
+                </tr>
+                <tr>
+                    <td><strong>Lucide React</strong></td>
+                    <td>1.33.0</td>
+                    <td>Icons</td>
+                </tr>
+            </table>
+
+            <h3>Backend</h3>
+            <table>
+                <tr>
+                    <th>Technology</th>
+                    <th>Version</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td><strong>Next.js API Routes</strong></td>
+                    <td>14.2.35</td>
+                    <td>REST API</td>
+                </tr>
+                <tr>
+                    <td><strong>Prisma</strong></td>
+                    <td>6.19.3</td>
+                    <td>Database ORM</td>
+                </tr>
+                <tr>
+                    <td><strong>NextAuth</strong></td>
+                    <td>5.0.0-beta.32</td>
+                    <td>Authentication</td>
+                </tr>
+                <tr>
+                    <td><strong>JWT</strong></td>
+                    <td>9.0.3</td>
+                    <td>Token management</td>
+                </tr>
+                <tr>
+                    <td><strong>bcryptjs</strong></td>
+                    <td>3.0.3</td>
+                    <td>Password hashing</td>
+                </tr>
+            </table>
+
+            <h3>Image & Media</h3>
+            <table>
+                <tr>
+                    <th>Technology</th>
+                    <th>Version</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td><strong>Cloudinary</strong></td>
+                    <td>2.11.0</td>
+                    <td>Image CDN & optimization</td>
+                </tr>
+                <tr>
+                    <td><strong>next/image</strong></td>
+                    <td>14.2.35</td>
+                    <td>Image optimization</td>
+                </tr>
+                <tr>
+                    <td><strong>qrcode.react</strong></td>
+                    <td>4.2.0</td>
+                    <td>QR code generation</td>
+                </tr>
+            </table>
+
+            <h3>Payment Gateway</h3>
+            <table>
+                <tr>
+                    <th>Technology</th>
+                    <th>Status</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td><strong>Pakasir</strong></td>
+                    <td><span class="status-active">✅ Active</span></td>
+                    <td>QRIS & VA payment</td>
+                </tr>
+            </table>
+
+            <h3>WhatsApp Integration</h3>
+            <table>
+                <tr>
+                    <th>Technology</th>
+                    <th>Status</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td><strong>Fonnte</strong></td>
+                    <td><span class="status-active">✅ Active</span></td>
+                    <td>WhatsApp notifications</td>
+                </tr>
+            </table>
+        </section>
+
+        <section>
+            <h2>🗄️ Database Schema</h2>
+            
+            <h3>Tables Overview</h3>
+            <table>
+                <tr>
+                    <th>Module</th>
+                    <th>Tables</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><strong>Master Data</strong></td>
+                    <td>Category, SubCategory, Brand, BrandModel, ConditionGrade</td>
+                    <td>Product catalog</td>
+                </tr>
+                <tr>
+                    <td><strong>Product</strong></td>
+                    <td>Product, ProductUnit, ProductImage, ProductSpec, PriceHistory</td>
+                    <td>Product management</td>
+                </tr>
+                <tr>
+                    <td><strong>Procurement</strong></td>
+                    <td>Supplier, PurchaseOrder, PurchaseOrderItem</td>
+                    <td>Supplier management</td>
+                </tr>
+                <tr>
+                    <td><strong>Inventory</strong></td>
+                    <td>InventoryLog, StockReservation</td>
+                    <td>Stock tracking</td>
+                </tr>
+                <tr>
+                    <td><strong>User & Auth</strong></td>
+                    <td>User, UserAddress</td>
+                    <td>Customer management</td>
+                </tr>
+                <tr>
+                    <td><strong>Orders</strong></td>
+                    <td>Order, OrderItem, OrderStatusLog, PaymentLog, ShipmentLog</td>
+                    <td>Order management</td>
+                </tr>
+                <tr>
+                    <td><strong>Reviews</strong></td>
+                    <td>Review, WishlistItem</td>
+                    <td>Customer reviews</td>
+                </tr>
+                <tr>
+                    <td><strong>CMS</strong></td>
+                    <td>Banner, BlogPost, StoreSetting, AuditLog</td>
+                    <td>Content management</td>
+                </tr>
+                <tr>
+                    <td><strong>Sell Requests</strong></td>
+                    <td>SellRequest</td>
+                    <td>Jual Barang feature</td>
+                </tr>
+            </table>
+        </section>
+
+        <section>
+            <h2>🔐 Authentication & Security</h2>
+            
+            <h3>Authentication Methods</h3>
+            <table>
+                <tr>
+                    <th>Method</th>
+                    <th>Status</th>
+                    <th>Provider</th>
+                </tr>
+                <tr>
+                    <td>Email + Password</td>
+                    <td><span class="status-active">✅ Active</span></td>
+                    <td>NextAuth</td>
+                </tr>
+                <tr>
+                    <td>Google OAuth</td>
+                    <td><span class="status-active">✅ Active</span></td>
+                    <td>Google</td>
+                </tr>
+                <tr>
+                    <td>Phone OTP</td>
+                    <td><span class="status-planned">⏳ Planned</span></td>
+                    <td>-</td>
+                </tr>
+            </table>
+
+            <h3>User Roles</h3>
+            <table>
+                <tr>
+                    <th>Role</th>
+                    <th>Permissions</th>
+                </tr>
+                <tr>
+                    <td><strong>SUPER_ADMIN</strong></td>
+                    <td>Full access</td>
+                </tr>
+                <tr>
+                    <td><strong>ADMIN</strong></td>
+                    <td>Manage products, orders, customers</td>
+                </tr>
+                <tr>
+                    <td><strong>CUSTOMER</strong></td>
+                    <td>Browse, purchase, reviews</td>
+                </tr>
+            </table>
+
+            <h3>Security Headers</h3>
+            <pre><code>X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+X-XSS-Protection: 1; mode=block</code></pre>
+        </section>
+
+        <section>
+            <h2>💳 Payment Integration</h2>
+            
+            <h3>Pakasir Gateway</h3>
+            <table>
+                <tr>
+                    <th>Feature</th>
+                    <th>Status</th>
+                </tr>
+                <tr>
+                    <td>QRIS</td>
+                    <td><span class="status-active">✅ Active</span></td>
+                </tr>
+                <tr>
+                    <td>Virtual Account (VA)</td>
+                    <td><span class="status-active">✅ Active</span></td>
+                </tr>
+                <tr>
+                    <td>Bank Transfer</td>
+                    <td><span class="status-active">✅ Active</span></td>
+                </tr>
+                <tr>
+                    <td>E-Wallet</td>
+                    <td><span class="status-planned">⏳ Planned</span></td>
+                </tr>
+            </table>
+
+            <h3>Payment Flow</h3>
+            <pre><code>Customer → Checkout → Pakasir → QR/VA → Payment → Webhook → Order Update → WhatsApp Notify</code></pre>
+        </section>
+
+        <section>
+            <h2>📱 WhatsApp Notifications (Fonnte)</h2>
+            
+            <h3>Notification Types</h3>
+            <table>
+                <tr>
+                    <th>Event</th>
+                    <th>Recipient</th>
+                    <th>Message</th>
+                </tr>
+                <tr>
+                    <td>New Order</td>
+                    <td>Admin</td>
+                    <td>"Pesanan baru #ORDER-XXX"</td>
+                </tr>
+                <tr>
+                    <td>Payment Success</td>
+                    <td>Admin + Customer</td>
+                    <td>"Pembayaran lunas"</td>
+                </tr>
+                <tr>
+                    <td>Order Shipped</td>
+                    <td>Customer</td>
+                    <td>"Pesanan dikirim"</td>
+                </tr>
+                <tr>
+                    <td>Order Delivered</td>
+                    <td>Customer</td>
+                    <td>"Pesanan diterima"</td>
+                </tr>
+            </table>
+        </section>
+
+        <section>
+            <h2>🖼️ Image Management (Cloudinary)</h2>
+            
+            <h3>Configuration</h3>
+            <table>
+                <tr>
+                    <th width="30%">Setting</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td><strong>Cloud Name</strong></td>
+                    <td>(from env)</td>
+                </tr>
+                <tr>
+                    <td><strong>API Key</strong></td>
+                    <td>(from env)</td>
+                </tr>
+                <tr>
+                    <td><strong>Folder</strong></td>
+                    <td>beliseken/products</td>
+                </tr>
+                <tr>
+                    <td><strong>Auto Optimization</strong></td>
+                    <td>✅ q_auto, f_auto</td>
+                </tr>
+                <tr>
+                    <td><strong>Max Upload Size</strong></td>
+                    <td>10MB</td>
+                </tr>
+                <tr>
+                    <td><strong>Allowed Formats</strong></td>
+                    <td>JPG, PNG, WebP, GIF</td>
+                </tr>
+            </table>
+
+            <h3>Image Sizes</h3>
+            <table>
+                <tr>
+                    <th>Purpose</th>
+                    <th>Dimensions</th>
+                    <th>Quality</th>
+                </tr>
+                <tr>
+                    <td>Thumbnail</td>
+                    <td>400x300</td>
+                    <td>Auto</td>
+                </tr>
+                <tr>
+                    <td>Medium</td>
+                    <td>800x600</td>
+                    <td>Auto</td>
+                </tr>
+                <tr>
+                    <td>Large</td>
+                    <td>1200x900</td>
+                    <td>Auto</td>
+                </tr>
+                <tr>
+                    <td>Original</td>
+                    <td>Max 2048</td>
+                    <td>Auto</td>
+                </tr>
+            </table>
+        </section>
+
+        <section>
+            <h2>🚀 Performance Optimization</h2>
+            
+            <h3>Caching Strategy</h3>
+            <table>
+                <tr>
+                    <th>Resource</th>
+                    <th>Cache Duration</th>
+                </tr>
+                <tr>
+                    <td>Static assets (_next/static)</td>
+                    <td>1 year (immutable)</td>
+                </tr>
+                <tr>
+                    <td>Images (/images)</td>
+                    <td>7 days</td>
+                </tr>
+                <tr>
+                    <td>Icons (/icons)</td>
+                    <td>30 days</td>
+                </tr>
+                <tr>
+                    <td>API responses</td>
+                    <td>5 minutes</td>
+                </tr>
+                <tr>
+                    <td>HTML pages</td>
+                    <td>1 hour</td>
+                </tr>
+            </table>
+
+            <h3>Optimizations Implemented</h3>
+            <table>
+                <tr>
+                    <th>Optimization</th>
+                    <th>Status</th>
+                </tr>
+                <tr>
+                    <td>Next.js Image optimization</td>
+                    <td><span class="status-active">✅</span></td>
+                </tr>
+                <tr>
+                    <td>Cloudinary CDN</td>
+                    <td><span class="status-active">✅</span></td>
+                </tr>
+                <tr>
+                    <td>Lazy loading</td>
+                    <td><span class="status-active">✅</span></td>
+                </tr>
+                <tr>
+                    <td>Code splitting</td>
+                    <td><span class="status-active">✅</span></td>
+                </tr>
+                <tr>
+                    <td>Bundle optimization</td>
+                    <td><span class="status-active">✅</span></td>
+                </tr>
+                <tr>
+                    <td>Prefetch links</td>
+                    <td><span class="status-active">✅</span></td>
+                </tr>
+                <tr>
+                    <td>Skeleton loading</td>
+                    <td><span class="status-active">✅</span></td>
+                </tr>
+                <tr>
+                    <td>Content visibility</td>
+                    <td><span class="status-active">✅</span></td>
+                </tr>
+            </table>
+
+            <h3>Performance Scores</h3>
+            <table>
+                <tr>
+                    <th>Metric</th>
+                    <th>Mobile</th>
+                    <th>Desktop</th>
+                </tr>
+                <tr>
+                    <td><strong>Performance</strong></td>
+                    <td>67 → <strong>75+</strong></td>
+                    <td>80 → <strong>85+</strong></td>
+                </tr>
+                <tr>
+                    <td><strong>Accessibility</strong></td>
+                    <td>82</td>
+                    <td>87</td>
+                </tr>
+                <tr>
+                    <td><strong>Best Practices</strong></td>
+                    <td>100</td>
+                    <td>100</td>
+                </tr>
+                <tr>
+                    <td><strong>SEO</strong></td>
+                    <td>100</td>
+                    <td>100</td>
+                </tr>
+            </table>
+        </section>
+
+        <section>
+            <h2>📊 API Endpoints</h2>
+            
+            <h3>Public API</h3>
+            <table>
+                <tr>
+                    <th>Endpoint</th>
+                    <th>Method</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><code>/api/products</code></td>
+                    <td>GET</td>
+                    <td>List products</td>
+                </tr>
+                <tr>
+                    <td><code>/api/products/[slug]</code></td>
+                    <td>GET</td>
+                    <td>Product detail</td>
+                </tr>
+                <tr>
+                    <td><code>/api/categories</code></td>
+                    <td>GET</td>
+                    <td>List categories</td>
+                </tr>
+                <tr>
+                    <td><code>/api/banners</code></td>
+                    <td>GET</td>
+                    <td>Active banners</td>
+                </tr>
+                <tr>
+                    <td><code>/api/blog</code></td>
+                    <td>GET</td>
+                    <td>Blog posts</td>
+                </tr>
+                <tr>
+                    <td><code>/api/search/suggest</code></td>
+                    <td>GET</td>
+                    <td>Search suggestions</td>
+                </tr>
+            </table>
+
+            <h3>Protected API (Auth Required)</h3>
+            <table>
+                <tr>
+                    <th>Endpoint</th>
+                    <th>Method</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><code>/api/auth/login</code></td>
+                    <td>POST</td>
+                    <td>Email login</td>
+                </tr>
+                <tr>
+                    <td><code>/api/auth/register</code></td>
+                    <td>POST</td>
+                    <td>Registration</td>
+                </tr>
+                <tr>
+                    <td><code>/api/auth/google</code></td>
+                    <td>GET</td>
+                    <td>Google OAuth</td>
+                </tr>
+                <tr>
+                    <td><code>/api/orders</code></td>
+                    <td>GET/POST</td>
+                    <td>User orders</td>
+                </tr>
+                <tr>
+                    <td><code>/api/cart/validate</code></td>
+                    <td>POST</td>
+                    <td>Validate cart</td>
+                </tr>
+                <tr>
+                    <td><code>/api/upload</code></td>
+                    <td>POST</td>
+                    <td>Upload image</td>
+                </tr>
+            </table>
+
+            <h3>Admin API</h3>
+            <table>
+                <tr>
+                    <th>Endpoint</th>
+                    <th>Method</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><code>/api/admin/products</code></td>
+                    <td>CRUD</td>
+                    <td>Manage products</td>
+                </tr>
+                <tr>
+                    <td><code>/api/admin/orders</code></td>
+                    <td>CRUD</td>
+                    <td>Manage orders</td>
+                </tr>
+                <tr>
+                    <td><code>/api/admin/customers</code></td>
+                    <td>GET</td>
+                    <td>List customers</td>
+                </tr>
+                <tr>
+                    <td><code>/api/admin/banners</code></td>
+                    <td>CRUD</td>
+                    <td>Manage banners</td>
+                </tr>
+                <tr>
+                    <td><code>/api/admin/blog</code></td>
+                    <td>CRUD</td>
+                    <td>Manage blog</td>
+                </tr>
+            </table>
+
+            <h3>Payment API</h3>
+            <table>
+                <tr>
+                    <th>Endpoint</th>
+                    <th>Method</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><code>/api/payment/pakasir/create</code></td>
+                    <td>POST</td>
+                    <td>Create payment</td>
+                </tr>
+                <tr>
+                    <td><code>/api/payment/pakasir/status</code></td>
+                    <td>GET</td>
+                    <td>Check status</td>
+                </tr>
+                <tr>
+                    <td><code>/api/webhooks/pakasir</code></td>
+                    <td>POST</td>
+                    <td>Payment webhook</td>
+                </tr>
+            </table>
+        </section>
+
+        <section>
+            <h2>🌍 Environment Variables</h2>
+            
+            <h3>Required Variables</h3>
+            <pre><code># Database
+DATABASE_URL=postgresql://...
+
+# Authentication
+NEXTAUTH_SECRET=your-secret
+NEXTAUTH_URL=https://beliseken.com
+
+# Google OAuth
+GOOGLE_CLIENT_ID=xxx
+GOOGLE_CLIENT_SECRET=xxx
+
+# Cloudinary
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=xxx
+NEXT_PUBLIC_CLOUDINARY_API_KEY=xxx
+CLOUDINARY_API_SECRET=xxx
+
+# Payment (Pakasir)
+PAKASIR_API_KEY=xxx
+
+# WhatsApp (Fonnte)
+FONNTE_API_KEY=xxx
+ADMIN_WHATSAPP=085101256123
+
+# Optional
+NEXT_PUBLIC_DISABLE_CHECKOUT=false</code></pre>
+        </section>
+
+        <section>
+            <h2>📁 Project Structure</h2>
+            <pre><code>beliseken/
+├── prisma/
+│   ├── schema.prisma          # Database schema
+│   ├── migrations/            # Database migrations
+│   └── seed.ts               # Seed data
+├── public/
+│   ├── icons/                 # SVG icons
+│   ├── images/                # Static images
+│   └── .well-known/           # Asset links
+├── scripts/
+│   └── migrate-images-to-cloudinary.ts
+├── src/
+│   ├── app/
+│   │   ├── api/               # API routes
+│   │   ├── admin/             # Admin dashboard
+│   │   ├── blog/              # Blog pages
+│   │   ├── category/          # Category pages
+│   │   ├── product/           # Product pages
+│   │   ├── checkout/          # Checkout flow
+│   │   └── dashboard/         # User dashboard
+│   ├── components/
+│   │   ├── admin/             # Admin components
+│   │   └── ...                # Shared components
+│   ├── lib/
+│   │   ├── api.ts             # API client
+│   │   ├── auth.ts            # Authentication
+│   │   ├── cart.ts            # Cart logic
+│   │   ├── cloudinary.ts      # Cloudinary config
+│   │   ├── prisma.ts          # Database client
+│   │   └── utils.ts           # Utilities
+│   └── data/
+│       └── products.ts        # Product data
+├── next.config.mjs            # Next.js config
+├── tailwind.config.ts         # Tailwind config
+├── tsconfig.json              # TypeScript config
+└── package.json               # Dependencies</code></pre>
+        </section>
+
+        <section>
+            <h2>🔧 Development Commands</h2>
+            <pre><code># Development
+npm run dev              # Start dev server
+npm run build            # Build for production
+npm run start            # Start production server
+
+# Database
+npm run db:seed          # Seed database
+npm run db:reset         # Reset database
+npm run db:studio        # Open Prisma Studio
+
+# Migration
+npx prisma migrate dev   # Run migrations
+npx prisma generate      # Generate client
+
+# Image Migration
+npx tsx scripts/migrate-images-to-cloudinary.ts</code></pre>
+        </section>
+
+        <section>
+            <h2>📈 Monitoring & Analytics</h2>
+            <table>
+                <tr>
+                    <th>Service</th>
+                    <th>Status</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td>Vercel Analytics</td>
+                    <td><span class="status-active">✅</span></td>
+                    <td>Performance monitoring</td>
+                </tr>
+                <tr>
+                    <td>Google Analytics</td>
+                    <td><span class="status-active">✅</span></td>
+                    <td>Traffic analytics</td>
+                </tr>
+                <tr>
+                    <td>Facebook Pixel</td>
+                    <td><span class="status-active">✅</span></td>
+                    <td>Ad tracking</td>
+                </tr>
+                <tr>
+                    <td>PageSpeed Insights</td>
+                    <td><span class="status-active">✅</span></td>
+                    <td>Performance testing</td>
+                </tr>
+            </table>
+        </section>
+
+        <section>
+            <h2>🚦 Deployment Pipeline</h2>
+            <pre><code>Git Push → GitHub → Vercel Auto Deploy → Production</code></pre>
+            
+            <h3>Deployment Process</h3>
+            <ol>
+                <li>Push code to GitHub</li>
+                <li>Vercel detects changes</li>
+                <li>Build starts (~50s)</li>
+                <li>Tests & linting</li>
+                <li>Deploy to production</li>
+                <li>SSL certificate auto-renew</li>
+            </ol>
+        </section>
+
+        <section>
+            <h2>📞 Support & Contacts</h2>
+            <table>
+                <tr>
+                    <th>Channel</th>
+                    <th>Contact</th>
+                </tr>
+                <tr>
+                    <td><strong>WhatsApp</strong></td>
+                    <td>0851-0125-6123</td>
+                </tr>
+                <tr>
+                    <td><strong>Email</strong></td>
+                    <td>info@beliseken.com</td>
+                </tr>
+                <tr>
+                    <td><strong>Instagram</strong></td>
+                    <td>@beliseken1</td>
+                </tr>
+                <tr>
+                    <td><strong>Website</strong></td>
+                    <td>beliseken.com</td>
+                </tr>
+            </table>
+        </section>
+
+        <section>
+            <h2>📝 Changelog</h2>
+            
+            <h3>v1.0.0 (19 September 2026)</h3>
+            <ul>
+                <li>✅ Initial release</li>
+                <li>✅ Cloudinary image optimization</li>
+                <li>✅ Performance optimization (next/image, caching)</li>
+                <li>✅ Limit homepage products (12)</li>
+                <li>✅ Skeleton loading states</li>
+                <li>✅ Prefetch links</li>
+            </ul>
+        </section>
+
+        <footer>
+            <p><strong>BeliSeken.com</strong> - E-commerce Elektronik Bekas Premium</p>
+            <p>Document generated by Codebuff 🤖 | 19 September 2026</p>
+            <p style="margin-top: 10px; font-size: 0.85em; color: #999;">
+                Untuk export PDF: Tekan Ctrl+P (Windows) atau Cmd+P (Mac) → Save as PDF
+            </p>
+        </footer>
+    </div>
+</body>
+</html>
