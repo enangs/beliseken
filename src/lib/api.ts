@@ -61,6 +61,29 @@ export interface CategoryResponse {
 // Helper: try API, fallback to null
 // ══════════════════════════════════════════════════════════════
 
+// Helper: parse respons dengan aman — Safari melempar
+// "The string did not match the expected pattern" jika res.json()
+// dipanggil pada respons non-JSON (HTML error page, 413, dsb)
+async function safeParseResponse(res: Response): Promise<any> {
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    const text = await res.text();
+    console.error('Non-JSON response:', res.status, text.slice(0, 200));
+    const hint = res.status === 413
+      ? 'Payload terlalu besar — foto base64 melebihi batas 4.5MB Vercel. Upload ulang foto agar tersimpan ke Cloudinary.'
+      : `Server mengembalikan respons tidak valid (HTTP ${res.status})`;
+    throw new Error(hint);
+  }
+  return res.json();
+}
+
+function checkPayloadSize(body: string, limit = 4_000_000): string | null {
+  if (body.length > limit) {
+    return `Data terlalu besar (${(body.length / 1_000_000).toFixed(1)} MB). Foto yang gagal masuk Cloudinary dikirim sebagai base64 dan melebihi batas server. Hapus foto bermasalah lalu upload ulang.`;
+  }
+  return null;
+}
+
 async function tryAPI<T>(url: string, opts?: RequestInit): Promise<T | null> {
   try {
     const res = await fetch(url, { cache: 'no-store', credentials: 'include', ...opts });
@@ -165,13 +188,16 @@ export async function getProductById(id: string) {
 
 export async function createProduct(d: any) {
   try {
+    const body = JSON.stringify(d);
+    const tooBig = checkPayloadSize(body);
+    if (tooBig) return { success: false, error: tooBig };
     const res = await fetch('/api/admin/products', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify(d),
+      body,
     });
-    const data = await res.json();
+    const data = await safeParseResponse(res);
     return data;
   } catch (err: any) {
     return { success: false, error: err.message };
@@ -180,13 +206,16 @@ export async function createProduct(d: any) {
 
 export async function updateProduct(id: string, u: any) {
   try {
+    const body = JSON.stringify({ id, ...u });
+    const tooBig = checkPayloadSize(body);
+    if (tooBig) return { success: false, error: tooBig };
     const res = await fetch('/api/admin/products', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ id, ...u }),
+      body,
     });
-    const data = await res.json();
+    const data = await safeParseResponse(res);
     return data;
   } catch (err: any) {
     return { success: false, error: err.message };

@@ -15,15 +15,41 @@ export default function NewProductPage() {
     setSaving(true);
     setError("");
     try {
-      console.log('Submitting product data:', JSON.stringify(data).slice(0, 500));
+      // Guard: payload terlalu besar → Vercel menolak dengan halaman HTML non-JSON
+      // yang membuat res.json() melempar "The string did not match the expected pattern" di Safari
+      const payloadSize = JSON.stringify(data).length;
+      if (payloadSize > 4_000_000) {
+        setError(
+          `Data terlalu besar (${(payloadSize / 1_000_000).toFixed(1)} MB). ` +
+          "Foto yang belum ter-upload ke Cloudinary dikirim sebagai base64 dan melebihi batas server. " +
+          "Hapus foto yang gagal lalu upload ulang (pastikan muncul thumbnail Cloudinary)."
+        );
+        setSaving(false);
+        return;
+      }
+
       const res = await fetch("/api/admin/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify(data),
       });
+
+      // Defensive parse: jangan langsung res.json() — respons bisa berupa HTML error page
+      const contentType = res.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        const text = await res.text();
+        console.error("Non-JSON response:", res.status, text.slice(0, 200));
+        setError(
+          `Server mengembalikan respons tidak valid (HTTP ${res.status}). ` +
+          (res.status === 413
+            ? "Payload terlalu besar — kemungkinan foto base64 melebihi batas 4.5MB Vercel."
+            : "Coba lagi, atau cek log Vercel untuk detailnya.")
+        );
+        setSaving(false);
+        return;
+      }
       const result = await res.json();
-      console.log('API response:', result);
       if (result.success) {
         alert('✅ Produk berhasil ditambahkan!');
         router.push("/admin/products");
