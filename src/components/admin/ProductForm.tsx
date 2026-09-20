@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Upload, X, Save, ArrowLeft, Plus, Loader2 } from "lucide-react";
 import type { Product } from "@/data/products";
-import { uploadToCloudinary, CLOUDINARY_CONFIG } from "@/lib/cloudinary";
+import { uploadFileViaServer } from "@/lib/cloudinary";
 
 interface ProductFormProps {
   initialData?: Product;
@@ -182,9 +182,9 @@ export default function ProductForm({
       // Compress all files in parallel
       const compressedFiles = await Promise.all(validFiles.map(f => compressImage(f)));
       
-      // Upload ALL to Cloudinary in parallel (not sequential)
+      // Upload ALL via server route /api/upload in parallel (signed di server)
       const uploadResults = await Promise.all(
-        compressedFiles.map((file) => uploadToCloudinary(file, "beliseken/products"))
+        compressedFiles.map((file) => uploadFileViaServer(file, "beliseken/products"))
       );
 
       const uploadedUrls: string[] = [];

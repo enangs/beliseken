@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Upload, X, Save, ArrowLeft, Star, Loader2 } from "lucide-react";
 import type { BlogPost } from "@/data/products";
-import { uploadToCloudinary } from "@/lib/cloudinary";
+import { uploadFileViaServer } from "@/lib/cloudinary";
 import RichTextEditor from "./RichTextEditor";
 
 interface BlogFormProps {
@@ -48,7 +48,7 @@ export default function BlogForm({ initialData, onSubmit, submitLabel }: BlogFor
 
     setUploading(true);
     try {
-      const result = await uploadToCloudinary(file, "beliseken/blog");
+      const result = await uploadFileViaServer(file, "beliseken/blog");
       if (result) {
         setImageBase64(result.url);
         setImagePreview(result.url);

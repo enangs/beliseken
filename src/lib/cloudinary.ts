@@ -50,9 +50,14 @@ export async function uploadToCloudinary(
       dataURI = `data:image/${format === 'auto' ? 'jpg' : format};base64,${base64String}`;
     }
 
-    // Use Cloudinary's signed upload
+    // Use Cloudinary's signed upload — signature dihitung dari params yang dikirim
     const timestamp = Math.round(Date.now() / 1000);
-    const signature = await createSignature(timestamp);
+    const signedParams: Record<string, string> = {
+      folder,
+      timestamp: timestamp.toString(),
+      transformation: `w_${width},h_${height},c_fill,q_${quality},f_${format}`,
+    };
+    const signature = await createSignature(signedParams);
 
     const formData = new FormData();
     formData.append('file', dataURI);
@@ -100,13 +105,48 @@ function fileToBase64(file: File): Promise<string> {
 }
 
 /**
- * Create signature for Cloudinary upload
+ * Create REAL HMAC-SHA1 signature for Cloudinary signed upload.
+ * Params di-sign HARUS sama dengan yang dikirim ke Cloudinary (sorted alphabetically).
+ * CATATAN: hanya valid di server — CLOUDINARY_API_SECRET tidak tersedia di browser.
+ * Client WAJIB upload via /api/upload, bukan langsung ke Cloudinary.
  */
-async function createSignature(timestamp: number): Promise<string> {
-  // In production, use crypto to create HMAC-SHA1 signature
-  // For now, return a placeholder
-  // TODO: Implement proper signature creation
-  return `placeholder_${timestamp}`;
+async function createSignature(params: Record<string, string>): Promise<string> {
+  const toSign =
+    Object.keys(params)
+      .sort()
+      .map((key) => `${key}=${params[key]}`)
+      .join('&') + CLOUDINARY_API_SECRET;
+
+  const data = new TextEncoder().encode(toSign);
+  const digest = await crypto.subtle.digest('SHA-1', data);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+/**
+ * Upload dari CLIENT: lewat route server /api/upload agar API secret
+ * tidak pernah keluar dari server. Mengembalikan null jika gagal.
+ */
+export async function uploadFileViaServer(
+  file: File,
+  folder: string = 'beliseken/products'
+): Promise<{ url: string; publicId: string } | null> {
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('folder', folder);
+    const res = await fetch('/api/upload', { method: 'POST', body: fd });
+    const json = await res.json();
+    if (res.ok && json?.success && json?.data?.url) {
+      return { url: json.data.url, publicId: json.data.publicId };
+    }
+    console.error('Upload via /api/upload gagal:', res.status, json);
+    return null;
+  } catch (error) {
+    console.error('Upload via /api/upload error:', error);
+    return null;
+  }
 }
 
 /**
@@ -114,7 +154,10 @@ async function createSignature(timestamp: number): Promise<string> {
  */
 export async function deleteFromCloudinary(publicId: string): Promise<void> {
   const timestamp = Math.round(Date.now() / 1000);
-  const signature = await createSignature(timestamp);
+  const signature = await createSignature({
+    public_id: publicId,
+    timestamp: timestamp.toString(),
+  });
 
   const formData = new FormData();
   formData.append('public_id', publicId);

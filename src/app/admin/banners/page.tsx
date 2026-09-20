@@ -11,7 +11,7 @@ import {
   getHorizontalPromos, saveHorizontalPromos, addHorizontalPromo, updateHorizontalPromo, deleteHorizontalPromo,
   type Banner, type PromoCard, type HorizontalPromo,
 } from "@/lib/banners";
-import { uploadToCloudinary } from "@/lib/cloudinary";
+import { uploadFileViaServer } from "@/lib/cloudinary";
 
 const gradientOptions = [
   { value: "from-brand to-brand-dark", label: "BeliSeken (Default)", color: "from-red-500 to-red-700" },
@@ -349,7 +349,7 @@ function BannerForm({ banner, onSave, onClose }: { banner: Banner; onSave: (upda
 
     setUploading(true);
     try {
-      const result = await uploadToCloudinary(file, "beliseken/banners");
+      const result = await uploadFileViaServer(file, "beliseken/banners");
       if (result) {
         setForm({ ...form, imageBase64: result.url });
         onSave({ imageBase64: result.url });
@@ -442,7 +442,7 @@ function PromoForm({ promo, onSave, onClose }: { promo: PromoCard; onSave: (upda
 
     setUploading(true);
     try {
-      const result = await uploadToCloudinary(file, "beliseken/promos");
+      const result = await uploadFileViaServer(file, "beliseken/promos");
       if (result) {
         setForm({ ...form, imageBase64: result.url });
         onSave({ imageBase64: result.url });
@@ -528,7 +528,7 @@ function HorizontalPromoForm({ promo, onSave, onClose }: { promo: HorizontalProm
 
     setUploading(true);
     try {
-      const result = await uploadToCloudinary(file, "beliseken/horizontal-promos");
+      const result = await uploadFileViaServer(file, "beliseken/horizontal-promos");
       if (result) {
         setForm({ ...form, imageBase64: result.url });
         onSave({ imageBase64: result.url });

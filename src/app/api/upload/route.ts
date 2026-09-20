@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     // Convert file to buffer
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    // Upload to Cloudinary
+    // Upload to Cloudinary (signed, server-side — API secret aman di sini)
     const result = await uploadToCloudinary(buffer, folder, {
       width,
       height,
@@ -45,15 +45,18 @@ export async function POST(request: NextRequest) {
       format: 'auto',
     });
 
+    if (!result) {
+      return NextResponse.json(
+        { error: 'Upload to Cloudinary failed' },
+        { status: 502 }
+      );
+    }
+
     return NextResponse.json({
       success: true,
       data: {
-        url: result.secure_url,
-        publicId: result.public_id,
-        width: result.width,
-        height: result.height,
-        format: result.format,
-        bytes: result.bytes,
+        url: result.url,
+        publicId: result.publicId,
       },
     });
   } catch (error) {

@@ -5,7 +5,7 @@ import { Camera, CheckCircle, Upload, ArrowRight, ArrowLeft, Loader2, MessageCir
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getCurrentUser } from "@/lib/auth-api";
-import { CLOUDINARY_CONFIG } from "@/lib/cloudinary";
+import { uploadFileViaServer } from "@/lib/cloudinary";
 
 const steps = ["Info Dasar", "Foto Produk", "Kondisi Barang", "Harga & Kontak"];
 
@@ -74,23 +74,10 @@ export default function SellPage() {
       const compressedFile = await compressImage(file);
       
       try {
-        const formDataUpload = new FormData();
-        formDataUpload.append("file", compressedFile);
-        formDataUpload.append("upload_preset", CLOUDINARY_CONFIG.uploadPreset);
-        formDataUpload.append("folder", "beliseken/sell-requests");
-        formDataUpload.append("resource_type", "image");
-
-        const response = await fetch(
-          `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`,
-          {
-            method: "POST",
-            body: formDataUpload,
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          uploadedUrls.push(data.secure_url);
+        // Upload via server route /api/upload (signature dihitung di server)
+        const result = await uploadFileViaServer(compressedFile, "beliseken/sell-requests");
+        if (result) {
+          uploadedUrls.push(result.url);
         }
       } catch (error) {
         console.error("Upload error:", error);
