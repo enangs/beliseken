@@ -24,12 +24,7 @@ const steps = [
 ];
 
 const paymentMethods = [
-  { id: "qris", label: "QRIS", description: "Scan QR dari semua bank & e-wallet", isPakasir: true, pakasirMethod: "qris" },
-  { id: "va_bri", label: "VA BRI", description: "Virtual Account BRI - Fee Rp3.500", isPakasir: true, pakasirMethod: "bri_va" },
-  { id: "va_bni", label: "VA BNI", description: "Virtual Account BNI - Fee Rp3.500", isPakasir: true, pakasirMethod: "bni_va" },
-  { id: "va_cimb", label: "VA CIMB Niaga", description: "Virtual Account CIMB Niaga - Fee Rp3.500", isPakasir: true, pakasirMethod: "cimb_niaga_va" },
-  { id: "va_mandiri", label: "VA Mandiri (ATM Bersama)", description: "Virtual Account Mandiri - Fee Rp3.500", isPakasir: true, pakasirMethod: "atm_bersama_va" },
-  { id: "va_permata", label: "VA Permata", description: "Virtual Account Permata - Fee Rp3.500", isPakasir: true, pakasirMethod: "permata_va" },
+  { id: "qris", label: "QRIS", description: "Scan QR dari semua bank & e-wallet", isGateway: true },
   { id: "bank_transfer", label: "Transfer Bank Manual", description: "Transfer manual ke rekening toko" },
   { id: "cod", label: "Bayar di Tempat (COD)", description: "Bayar saat barang diterima" },
 ];
@@ -122,14 +117,15 @@ function CheckoutContent() {
   const [proofPreview, setProofPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // PakaSir payment state
-  const [pakasirPayment, setPakasirPayment] = useState<{
+  // Pembayaran QRIS (NotivGo)
+  const [qrisPayment, setQrisPayment] = useState<{
     paymentMethod: string;
     paymentNumber: string;
     totalPayment: number;
     expiredAt: string;
   } | null>(null);
   const [creatingPayment, setCreatingPayment] = useState(false);
+  const [paymentPaid, setPaymentPaid] = useState(false);
 
   const [address, setAddress] = useState<OrderAddress>(() => {
     // Auto-fill from logged-in user's default address
@@ -231,6 +227,40 @@ function CheckoutContent() {
     calcShipping();
   }, [address.cityId]);
 
+  // Pantau status pembayaran QRIS (NotivGo) setelah pesanan dibuat
+  useEffect(() => {
+    if (!orderPlaced || !orderId || !qrisPayment || paymentPaid) return;
+
+    let cancelled = false;
+
+    const checkPayment = async () => {
+      try {
+        const res = await fetch(
+          `/api/payment/notivgo/status?orderNumber=${encodeURIComponent(orderId)}`,
+          { cache: "no-store" }
+        );
+        const data = await res.json();
+        if (
+          !cancelled &&
+          data?.success &&
+          String(data.data?.status || "").toLowerCase() === "paid"
+        ) {
+          setPaymentPaid(true);
+        }
+      } catch {
+        // diamkan — dicoba lagi pada interval berikutnya
+      }
+    };
+
+    checkPayment();
+    const timer = setInterval(checkPayment, 5000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [orderPlaced, orderId, qrisPayment, paymentPaid]);
+
   if (checkoutItems.length === 0 && !orderPlaced) {
     return (
       <>
@@ -318,27 +348,38 @@ function CheckoutContent() {
               )}
             </div>
 
-            {/* PakaSir Payment: QRIS / VA */}
-            {(pakasirPayment || creatingPayment) && (
+            {/* Pembayaran QRIS (NotivGo) */}
+            {(qrisPayment || creatingPayment) && (
               <div className="bg-white rounded-xl border border-brand-border p-6 mb-6 text-left">
                 <h3 className="font-bold text-brand-navy mb-4 flex items-center gap-2">
                   <CreditCard size={18} className="text-brand" />
-                  {pakasirPayment?.paymentMethod === 'qris' ? 'Bayar via QRIS' : `Bayar via Virtual Account ${pakasirPayment?.paymentMethod?.replace('_va','').replace('_',' ').toUpperCase() || ''}`}
+                  Bayar via QRIS
                 </h3>
+
+                {paymentPaid && (
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4">
+                    <p className="text-sm font-bold text-emerald-700 flex items-center gap-2">
+                      <CheckCircle size={16} /> Pembayaran diterima
+                    </p>
+                    <p className="text-xs text-emerald-700 mt-1">
+                      Status pesanan sudah otomatis diperbarui menjadi PAID.
+                    </p>
+                  </div>
+                )}
 
                 {creatingPayment ? (
                   <div className="text-center py-8">
                     <Loader2 size={32} className="animate-spin text-brand mx-auto mb-3" />
                     <p className="text-sm text-brand-muted">Menyiapkan pembayaran...</p>
                   </div>
-                ) : pakasirPayment ? (
+                ) : qrisPayment ? (
                   <>
                     {/* QR Code display for QRIS */}
-                    {pakasirPayment.paymentMethod === 'qris' && pakasirPayment.paymentNumber && (
+                    {!paymentPaid && qrisPayment.paymentMethod === 'qris' && qrisPayment.paymentNumber && (
                       <div className="text-center mb-6">
                         <div className="bg-white border-2 border-brand-border rounded-2xl p-6 inline-block mb-4">
                           <QRCodeSVG
-                            value={pakasirPayment.paymentNumber}
+                            value={qrisPayment.paymentNumber}
                             size={220}
                             level="M"
                             includeMargin={true}
@@ -351,16 +392,16 @@ function CheckoutContent() {
                     )}
 
                     {/* VA Number display */}
-                    {pakasirPayment.paymentMethod !== 'qris' && pakasirPayment.paymentNumber && (
+                    {qrisPayment.paymentMethod !== 'qris' && qrisPayment.paymentNumber && (
                       <div className="mb-6">
                         <p className="text-sm text-brand-muted mb-2">Nomor Virtual Account:</p>
                         <div className="bg-brand-gray rounded-lg p-4 flex items-center justify-between">
                           <span className="text-xl font-mono font-bold text-brand-navy tracking-wider">
-                            {pakasirPayment.paymentNumber}
+                            {qrisPayment.paymentNumber}
                           </span>
                           <button
                             onClick={() => {
-                              navigator.clipboard.writeText(pakasirPayment.paymentNumber);
+                              navigator.clipboard.writeText(qrisPayment.paymentNumber);
                               alert('Nomor VA berhasil dicopy!');
                             }}
                             className="px-3 py-1.5 bg-brand text-white text-xs font-semibold rounded-lg hover:bg-brand-dark flex items-center gap-1"
@@ -379,21 +420,21 @@ function CheckoutContent() {
                     <div className="space-y-3">
                       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
                         <p className="text-sm text-amber-800 font-semibold">Total yang harus dibayar:</p>
-                        <p className="text-2xl font-extrabold text-amber-600">{formatPrice(pakasirPayment.totalPayment)}</p>
-                        {pakasirPayment.totalPayment !== orderTotal && (
+                        <p className="text-2xl font-extrabold text-amber-600">{formatPrice(qrisPayment.totalPayment)}</p>
+                        {qrisPayment.totalPayment !== orderTotal && (
                           <p className="text-xs text-amber-600 mt-1">
-                            (termasuk biaya admin {formatPrice(pakasirPayment.totalPayment - orderTotal)})
+                            (termasuk biaya admin {formatPrice(qrisPayment.totalPayment - orderTotal)})
                           </p>
                         )}
                       </div>
 
-                      {pakasirPayment.expiredAt && (
+                      {qrisPayment.expiredAt && (
                         <div className="flex items-center gap-2 text-sm text-brand-muted bg-red-50 border border-red-200 rounded-xl p-3">
                           <Clock size={14} className="text-red-500" />
                           <span>
                             Pembayaran harus diselesaikan sebelum{' '}
                             <span className="font-semibold text-red-600">
-                              {new Date(pakasirPayment.expiredAt).toLocaleString('id-ID', {
+                              {new Date(qrisPayment.expiredAt).toLocaleString('id-ID', {
                                 day: 'numeric', month: 'long', year: 'numeric',
                                 hour: '2-digit', minute: '2-digit'
                               })}
@@ -412,7 +453,7 @@ function CheckoutContent() {
             )}
 
             {/* Manual Bank Transfer */}
-            {paymentMethod === 'bank_transfer' && !pakasirPayment && (
+            {paymentMethod === 'bank_transfer' && !qrisPayment && (
               <div className="bg-white rounded-xl border border-brand-border p-6 mb-6 text-left">
                 <h3 className="font-bold text-brand-navy mb-4 flex items-center gap-2">
                   <CreditCard size={18} className="text-brand" />
@@ -521,7 +562,7 @@ function CheckoutContent() {
             )}
 
             {/* PakaSir failed - fallback */}
-            {!pakasirPayment && !creatingPayment && paymentMethod !== 'bank_transfer' && paymentMethod !== 'cod' && (
+            {!qrisPayment && !creatingPayment && paymentMethod !== 'bank_transfer' && paymentMethod !== 'cod' && (
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-6 text-left">
                 <h3 className="font-bold text-amber-800 mb-2 flex items-center gap-2">
                   <AlertCircle size={18} />
@@ -535,17 +576,14 @@ function CheckoutContent() {
                     onClick={async () => {
                       setCreatingPayment(true);
                       try {
-                        // Use the actual payment method that was selected, not hardcoded 'qris'
-                        const selectedPm = paymentMethods.find(pm => pm.id === paymentMethod);
-                        const pakasirMethod = selectedPm && (selectedPm as any).pakasirMethod || 'qris';
-                        const res = await fetch('/api/payment/pakasir/create', {
+                        const res = await fetch('/api/payment/notivgo/create', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ orderNumber: orderId, method: pakasirMethod }),
+                          body: JSON.stringify({ orderNumber: orderId }),
                         });
                         const data = await res.json();
                         if (data.success) {
-                          setPakasirPayment({
+                          setQrisPayment({
                             paymentMethod: data.data.paymentMethod,
                             paymentNumber: data.data.paymentNumber,
                             totalPayment: data.data.totalPayment,
@@ -656,38 +694,35 @@ function CheckoutContent() {
     setOrderId(orderNumber);
     setOrderTotal(orderTotalVal);
 
-    // Create PakaSir transaction if applicable
+    // Buat QRIS via NotivGo jika metode pembayaran memakai gateway
     const selectedPm = paymentMethods.find(pm => pm.id === paymentMethod);
-    const isPakasir = selectedPm && (selectedPm as any).isPakasir;
+    const isGateway = selectedPm && (selectedPm as any).isGateway;
 
-    if (isPakasir) {
+    if (isGateway) {
       setCreatingPayment(true);
     }
     setOrderPlaced(true);
 
-    if (isPakasir) {
+    if (isGateway) {
       try {
-        const res = await fetch('/api/payment/pakasir/create', {
+        const res = await fetch('/api/payment/notivgo/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            orderNumber,
-            method: (selectedPm as any).pakasirMethod || 'qris',
-          }),
+          body: JSON.stringify({ orderNumber }),
         });
         const data = await res.json();
         if (data.success) {
-          setPakasirPayment({
+          setQrisPayment({
             paymentMethod: data.data.paymentMethod,
             paymentNumber: data.data.paymentNumber,
             totalPayment: data.data.totalPayment,
             expiredAt: data.data.expiredAt,
           });
         } else {
-          console.error('PakaSir error:', data.error);
+          console.error('NotivGo error:', data.error);
         }
       } catch (err) {
-        console.error('Failed to create PakaSir payment:', err);
+        console.error('Failed to create NotivGo payment:', err);
       }
       setCreatingPayment(false);
     }
@@ -911,7 +946,7 @@ function CheckoutContent() {
                         </>
                       ) : (
                         <>
-                          {paymentMethods.find(pm => pm.id === paymentMethod) && (paymentMethods.find(pm => pm.id === paymentMethod) as any).isPakasir
+                          {paymentMethods.find(pm => pm.id === paymentMethod) && (paymentMethods.find(pm => pm.id === paymentMethod) as any).isGateway
                             ? 'Buat Pesanan & Bayar'
                             : 'Bayar & Pesan via WhatsApp'
                           }

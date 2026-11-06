@@ -43,25 +43,19 @@ export default function OrdersPage() {
   const [retryPaymentData, setRetryPaymentData] = useState<Record<string, any>>({});
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
-  const handleRetryPayment = async (orderNumber: string, paymentMethod: string = 'qris') => {
+  const handleRetryPayment = async (orderNumber: string) => {
     setRetryPayment(orderNumber);
     try {
-      const pakasirMethod = paymentMethod === 'qris' ? 'qris' : paymentMethod.replace('va_', '') + '_va';
-      const res = await fetch('/api/payment/pakasir/create', {
+      const res = await fetch('/api/payment/notivgo/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderNumber, method: pakasirMethod }),
+        body: JSON.stringify({ orderNumber }),
       });
       const data = await res.json();
       if (data.success) {
         setRetryPaymentData(prev => ({ ...prev, [orderNumber]: data.data }));
       } else {
-        const errMsg = data.error || '';
-        if (errMsg.includes('Maximum amount')) {
-          alert('Nominal transaksi melebihi batas sandbox. Hubungi admin.');
-        } else {
-          alert('Gagal memproses pembayaran. Silakan coba lagi.');
-        }
+        alert(data.error || 'Gagal memproses pembayaran. Silakan coba lagi.');
       }
     } catch {
       alert('Gagal memproses pembayaran. Silakan coba lagi.');
@@ -493,15 +487,15 @@ export default function OrdersPage() {
                           </div>
                         )}
 
-                        {/* PakaSir Payment - QRIS / VA retry */}
-                        {order.status === "waiting_payment" && (order.paymentMethod === "qris" || order.paymentMethod?.startsWith("va_")) && (
+                        {/* Pembayaran QRIS (NotivGo) */}
+                        {order.status === "waiting_payment" && order.paymentMethod === "qris" && (
                           <div className="bg-white rounded-xl p-4 border border-brand-border mb-4">
                             {retryPaymentData[order.orderNumber] ? (
                               /* Show QR code */
                               <div>
                                 <h4 className="font-semibold text-brand-navy text-sm mb-3 flex items-center gap-2">
                                   <QrCode size={14} className="text-brand" />
-                                  {retryPaymentData[order.orderNumber].paymentMethod === 'qris' ? 'Scan QRIS untuk Bayar' : 'Virtual Account'}
+                                  Scan QRIS untuk Bayar
                                 </h4>
                                 {retryPaymentData[order.orderNumber].paymentMethod === 'qris' && (
                                   <div className="text-center mb-3">
@@ -541,7 +535,7 @@ export default function OrdersPage() {
                               /* Show bayar button */
                               <div className="text-center py-2">
                                 <button
-                                  onClick={() => handleRetryPayment(order.orderNumber, order.paymentMethod || 'qris')}
+                                  onClick={() => handleRetryPayment(order.orderNumber)}
                                   disabled={retryPayment === order.orderNumber}
                                   className="px-6 py-3 bg-brand hover:bg-brand-dark text-white font-bold rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2 mx-auto"
                                 >
@@ -557,7 +551,7 @@ export default function OrdersPage() {
                                     </>
                                   )}
                                 </button>
-                                <p className="text-xs text-brand-muted mt-2">Klik untuk mendapatkan QR code / nomor Virtual Account</p>
+                                <p className="text-xs text-brand-muted mt-2">Klik untuk menampilkan QRIS pembayaran</p>
                               </div>
                             )}
                           </div>

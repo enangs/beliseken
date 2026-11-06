@@ -311,7 +311,8 @@ export default function AdminOrdersPage() {
                                     : (order as any).paymentRef;
                                   return (
                                     <>
-                                      {ref.pakasirMethod && <p>Metode: {ref.pakasirMethod.toUpperCase()}</p>}
+                                      {(ref.paymentMethod || ref.pakasirMethod) && <p>Metode: {String(ref.paymentMethod || ref.pakasirMethod).toUpperCase()}</p>}
+                                      {ref.notivgoOrderRef && <p>Ref gateway: <span className="font-mono">{ref.notivgoOrderRef}</span></p>}
                                       {ref.paymentNumber && <p>No. Pembayaran: <span className="font-mono font-semibold">{ref.paymentNumber.length > 30 ? ref.paymentNumber.slice(0, 30) + '...' : ref.paymentNumber}</span></p>}
                                       {ref.fee && <p>Fee: {formatPrice(ref.fee)}</p>}
                                     </>

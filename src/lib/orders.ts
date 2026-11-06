@@ -55,7 +55,7 @@ export interface Order {
   status: OrderStatus;
   statusHistory: { status: OrderStatus; date: string; note: string }[];
   paymentMethod: string;
-  paymentProvider?: string; // PAKASIR, MANUAL, etc.
+  paymentProvider?: string; // NOTIVGO, MANUAL, etc.
   paymentRef?: any; // Payment provider reference data
   trackingNumber?: string; // No. Resi
   trackingUrl?: string; // URL tracking kurir
